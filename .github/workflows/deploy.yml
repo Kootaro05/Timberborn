@@ -1,0 +1,20 @@
+pages:
+  image: php:8.3-cli
+  stage: deploy
+  script:
+    - php index.php > index.html
+    - mkdir -p public
+    # alle Top-Level-Einträge nach public/ kopieren, außer Ausschlüssen
+    - >
+      find . -mindepth 1 -maxdepth 1
+      ! -name '.git'
+      ! -name 'public'
+      ! -name 'index.php'
+      ! -name 'Vorlage.md'
+      ! -name '.gitlab-ci.yml'
+      -exec cp -r {} public/ \;
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
