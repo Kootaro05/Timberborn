@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitaltechnik — Übungs-Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14161c; --surface:#1c1f27; --surface-2:#222632; --border:#2a2e3a;
+    --indigo:#3a4cf0; --indigo-soft:#6b78f7; --walnut:#b5895a;
+    --text:#e6e8ee; --muted:#9aa0ad; --faint:#6b7180;
+    --green:#34d399; --green-dim:#1f3d33; --red:#f87171; --red-dim:#3d2226;
+    --amber:#fbbf24;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,sans-serif; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,.mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:840px;margin:0 auto;padding:0 20px 120px}
+
+  /* ---- top bar ---- */
+  .bar{
+    position:sticky;top:0;z-index:50;background:rgba(20,22,28,.86);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+  }
+  .bar-inner{max-width:840px;margin:0 auto;padding:12px 20px;
+    display:flex;align-items:center;gap:16px}
+  .bar h1{font-family:'Space Grotesk';font-size:15px;font-weight:600;
+    margin:0;letter-spacing:.2px;white-space:nowrap}
+  .bar h1 span{color:var(--indigo-soft)}
+  .prog-track{flex:1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--indigo),var(--indigo-soft));
+    border-radius:99px;transition:width .35s ease}
+  .prog-txt{font-family:'JetBrains Mono';font-size:12px;color:var(--muted);white-space:nowrap}
+  .btn-reset{background:none;border:1px solid var(--border);color:var(--muted);
+    font-family:'Inter';font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:9px;
+    cursor:pointer;transition:.15s;white-space:nowrap}
+  .btn-reset:hover{border-color:var(--red);color:var(--red)}
+
+  /* ---- hero ---- */
+  header.hero{padding:56px 0 30px}
+  .eyebrow{font-family:'JetBrains Mono';font-size:12px;letter-spacing:2.5px;
+    text-transform:uppercase;color:var(--walnut);margin-bottom:14px}
+  header.hero h2{font-family:'Space Grotesk';font-weight:700;font-size:clamp(30px,6vw,46px);
+    line-height:1.05;margin:0 0 16px}
+  header.hero p{color:var(--muted);max-width:600px;margin:0 0 6px;font-size:15px}
+  .save-note{display:inline-flex;align-items:center;gap:8px;margin-top:18px;
+    font-size:12.5px;color:var(--faint);font-family:'JetBrains Mono'}
+  .save-dot{width:7px;height:7px;border-radius:99px;background:var(--green)}
+  .save-dot.off{background:var(--amber)}
+
+  /* ---- section ---- */
+  .section{margin-top:46px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;
+    border-bottom:1px solid var(--border);margin-bottom:26px}
+  .sec-num{font-family:'JetBrains Mono';font-size:13px;color:var(--indigo-soft);font-weight:700}
+  .sec-head h3{font-family:'Space Grotesk';font-weight:600;font-size:21px;margin:0;flex:1}
+  .sec-tally{font-family:'JetBrains Mono';font-size:12px;color:var(--muted)}
+
+  /* ---- card ---- */
+  .card{background:var(--surface);border:1px solid var(--border);
+    border-left:3px solid var(--border);border-radius:var(--r);
+    padding:22px 22px 20px;margin-bottom:18px;transition:border-color .2s}
+  .card.ok{border-left-color:var(--green)}
+  .card.bad{border-left-color:var(--red)}
+  .q-top{display:flex;gap:12px;align-items:baseline;margin-bottom:6px}
+  .q-id{font-family:'JetBrains Mono';font-size:12px;color:var(--faint);flex-shrink:0;padding-top:1px}
+  .q-text{font-size:15.5px;font-weight:500}
+  .q-text code, .sol code, .opt code{background:var(--surface-2);padding:1px 6px;border-radius:5px;
+    font-size:.9em;color:var(--indigo-soft)}
+  .badge{margin-left:auto;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--faint);border:1px solid var(--border);
+    padding:2px 8px;border-radius:6px;flex-shrink:0;align-self:flex-start}
+
+  /* options */
+  .opts{margin-top:14px;display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;
+    background:var(--surface-2);border:1px solid transparent;border-radius:10px;
+    cursor:pointer;font-size:14.5px;transition:.12s;user-select:none}
+  .opt:hover{border-color:var(--border)}
+  .opt .mark{width:18px;height:18px;border:1.6px solid var(--faint);border-radius:5px;
+    flex-shrink:0;margin-top:2px;display:grid;place-items:center;font-size:11px;color:#fff}
+  .opt.radio .mark{border-radius:99px}
+  .opt.sel{border-color:var(--indigo-soft)}
+  .opt.sel .mark{background:var(--indigo);border-color:var(--indigo)}
+  .opt.correct{border-color:var(--green);background:var(--green-dim)}
+  .opt.correct .mark{background:var(--green);border-color:var(--green)}
+  .opt.wrong{border-color:var(--red);background:var(--red-dim)}
+  .opt.wrong .mark{background:var(--red);border-color:var(--red)}
+  .opt.locked{cursor:default;pointer-events:none}
+
+  /* text input */
+  textarea{width:100%;margin-top:14px;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:10px;color:var(--text);font-family:'Inter';font-size:14.5px;
+    padding:12px 14px;resize:vertical;min-height:70px}
+  textarea:focus{outline:none;border-color:var(--indigo-soft)}
+  textarea:disabled{opacity:.6}
+
+  /* actions */
+  .actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .btn{font-family:'Inter';font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:9px;
+    cursor:pointer;border:1px solid transparent;transition:.14s}
+  .btn-primary{background:var(--indigo);color:#fff}
+  .btn-primary:hover{background:var(--indigo-soft)}
+  .btn-ghost{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+  .btn-ghost:hover{border-color:var(--indigo-soft)}
+  .btn-ok{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+  .btn-ok:hover{background:var(--green);color:#0b1a14}
+  .btn-bad{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+  .btn-bad:hover{background:var(--red);color:#1a0b0d}
+  .self-q{font-size:13px;color:var(--muted);margin-right:2px}
+
+  /* solution */
+  .sol{margin-top:16px;padding:15px 17px;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:10px;font-size:14.5px;display:none}
+  .sol.show{display:block;animation:fade .25s ease}
+  .sol-label{font-family:'JetBrains Mono';font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--walnut);margin-bottom:9px}
+  .sol p{margin:0 0 8px}.sol p:last-child{margin:0}
+  .sol .mono-block{font-family:'JetBrains Mono';font-size:13.5px;white-space:pre-wrap;
+    background:var(--bg);padding:10px 12px;border-radius:7px;margin:8px 0;color:var(--indigo-soft);line-height:1.7}
+  @keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  .verdict{font-family:'JetBrains Mono';font-size:12.5px;margin-top:12px;display:none}
+  .verdict.show{display:block}
+  .verdict.good{color:var(--green)}.verdict.bad{color:var(--red)}
+
+  /* ---- results ---- */
+  #results{margin-top:60px;padding:34px;background:var(--surface);border:1px solid var(--border);
+    border-radius:18px;display:none}
+  #results.show{display:block}
+  .res-top{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+  .ring{position:relative;width:128px;height:128px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .ring .pct b{font-family:'Space Grotesk';font-size:30px;line-height:1;display:block}
+  .ring .pct small{font-family:'JetBrains Mono';font-size:10.5px;color:var(--muted)}
+  .res-stats{flex:1;min-width:220px}
+  .res-stats h3{font-family:'Space Grotesk';font-size:22px;margin:0 0 10px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-family:'JetBrains Mono';font-size:12.5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+  .chip.g{color:var(--green);border-color:var(--green)}
+  .chip.r{color:var(--red);border-color:var(--red)}
+  .chip.m{color:var(--muted)}
+  .res-break{margin-top:26px;border-top:1px solid var(--border);padding-top:22px}
+  .res-break h4{font-family:'Space Grotesk';font-size:14px;color:var(--muted);margin:0 0 14px;
+    font-weight:600;letter-spacing:.3px}
+  .brk-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;font-size:13.5px}
+  .brk-name{width:150px;flex-shrink:0;color:var(--muted)}
+  .brk-track{flex:1;height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;display:flex}
+  .brk-g{background:var(--green);height:100%}
+  .brk-r{background:var(--red);height:100%}
+  .brk-n{font-family:'JetBrains Mono';font-size:12px;color:var(--faint);width:54px;text-align:right;flex-shrink:0}
+  .wrong-list{margin-top:26px;border-top:1px solid var(--border);padding-top:22px}
+  .wrong-list h4{font-family:'Space Grotesk';font-size:14px;color:var(--red);margin:0 0 14px;font-weight:600}
+  .wrong-item{display:block;padding:11px 14px;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:9px;margin-bottom:8px;font-size:13.5px;text-decoration:none;color:var(--text);
+    border-left:3px solid var(--red);transition:.14s}
+  .wrong-item:hover{border-color:var(--red)}
+  .wrong-item .wi-id{font-family:'JetBrains Mono';font-size:11.5px;color:var(--faint);margin-right:8px}
+  .all-good{color:var(--green);font-size:14px;font-family:'JetBrains Mono'}
+
+  .foot{text-align:center;color:var(--faint);font-size:12px;margin-top:50px;font-family:'JetBrains Mono'}
+  @media(max-width:560px){
+    .bar h1{font-size:0}.bar h1::after{content:'DT';font-size:15px;color:var(--indigo-soft)}
+    .brk-name{width:104px}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-inner">
+    <h1>Digital<span>technik</span></h1>
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <span class="prog-txt" id="progTxt">0 / 0</span>
+    <button class="btn-reset" id="resetBtn">Zurücksetzen</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Übungen &amp; Lösungen · Selbsttest</div>
+    <h2>Frag dich selbst ab.</h2>
+    <p>Multiple-Choice wird automatisch bewertet. Bei Rechen- und Zeichenaufgaben siehst du nach dem Bestätigen die Musterlösung und markierst selbst, ob du richtig lagst.</p>
+    <p>Dein Stand wird im Browser gespeichert — du kannst jederzeit pausieren und weitermachen.</p>
+    <div class="save-note"><span class="save-dot" id="saveDot"></span><span id="saveTxt">Speichern aktiv</span></div>
+  </header>
+
+  <div id="quiz"></div>
+
+  <section id="results">
+    <div class="res-top">
+      <div class="ring">
+        <svg width="128" height="128">
+          <circle cx="64" cy="64" r="56" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+          <circle id="ringFill" cx="64" cy="64" r="56" fill="none" stroke="var(--indigo)" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
+        </svg>
+        <div class="pct"><div><b id="ringPct">0%</b><small>richtig</small></div></div>
+      </div>
+      <div class="res-stats">
+        <h3>Auswertung</h3>
+        <div class="chips">
+          <span class="chip g" id="chipG">✓ 0 richtig</span>
+          <span class="chip r" id="chipR">✗ 0 falsch</span>
+          <span class="chip m" id="chipM">0 offen</span>
+        </div>
+      </div>
+    </div>
+    <div class="res-break">
+      <h4>Nach Themengebiet</h4>
+      <div id="breakdown"></div>
+    </div>
+    <div class="wrong-list">
+      <h4 id="wrongHead">Das hattest du falsch</h4>
+      <div id="wrongList"></div>
+    </div>
+  </section>
+
+  <div class="foot">DHSN · Digitaltechnik &amp; Halbleiterelektronik — generiert aus deinem Übungsscan</div>
+</div>
+
+<script>
+/* ============================================================
+   FRAGEN-DATEN
+   type: 'mc'  = eine richtige Antwort (auto)
+         'multi'= mehrere richtige (auto, exakte Menge)
+         'text' = Freitext + Selbstbewertung gegen Musterlösung
+         'draw' = Zeichnen/Aufbau, kein Textfeld, Selbstbewertung
+============================================================ */
+const SECTIONS = [
+{
+ id:"A", title:"Grundlagen & Rechnerebenen",
+ q:[
+  {id:"1.1", type:"mc", q:"Welcher Unterschied besteht zwischen Interpretation und Übersetzung (Compilierung)?",
+   opts:[
+     {t:"Übersetzung konvertiert das <em>gesamte</em> Programm vorab in eine andere Sprache; Interpretation konvertiert Befehl für Befehl und führt direkt aus.",c:true},
+     {t:"Interpretation ist immer langsamer, weil sie das Programm zweimal liest."},
+     {t:"Übersetzung läuft zur Laufzeit, Interpretation vor dem Start."},
+     {t:"Es gibt keinen Unterschied, beide erzeugen Maschinencode."}
+   ]},
+  {id:"1.2", type:"text", q:"Ein Interpreter der Ebene r braucht n Instruktionen pro Befehl der Ebene r+1. Ein Befehl auf Ebene 1 dauert k ns. Wie lange dauert ein Befehl auf Ebene 2, 3 und 4?",
+   sol:"<div class='mono-block'>Ebene 2:  n · k        ns\nEbene 3:  n · n · k = n²·k ns\nEbene 4:  n · n²·k  = n³·k ns</div><p>Jede Ebene multipliziert mit n, weil jeder Befehl wieder durch n Instruktionen der darunterliegenden Ebene interpretiert wird.</p>"},
+  {id:"1.3", type:"text", q:"Einige Instruktionen der Betriebssystemmaschine sind mit der ISA-Ebene identisch und werden vom Mikroprogramm statt vom Betriebssystem ausgeführt. Warum?",
+   sol:"<p>Weil es <strong>schneller</strong> ist, diese Befehle direkt vom Mikroprogramm ausführen zu lassen, als sie erst durch den (langsameren) Interpreter der Betriebssystemebene zu schicken.</p>"},
+  {id:"1.4", type:"text", q:"Programme können im von-Neumann-Rechner wie Daten geändert werden. Nenne ein Beispiel, bei dem das nützlich ist. (Tipp: Arithmetik mit Arrays.)",
+   sol:"<p>Rechnen mit Arrays unbekannter Größe, z. B. eine Addition, die eintragsweise erfolgt: Nach der Addition der ersten Stelle wird der Programmbefehl <code>A[0]+B[0]</code> inkrementiert, sodass das Programm anschließend <code>A[1]+B[1]</code> ausführt usw. Der Befehl selbst wird als Datum verändert.</p>"},
+  {id:"1.5", type:"mc", q:"Ein Transistor hat eine Strukturbreite von rund 14 nm. Wie groß wären quadratische Transistorstrukturen nach Moore’schem Gesetz in einem Jahr?",
+   opts:[
+     {t:"≈ 10,8 nm  (Fläche schrumpft pro Jahr auf ≈ 2/3, also d ≈ 14·√(3/5))",c:true},
+     {t:"≈ 7 nm  (Strukturbreite halbiert sich jährlich)"},
+     {t:"≈ 12,1 nm"},
+     {t:"≈ 9,3 nm  (Fläche schrumpft auf 1/2)"}
+   ]}
+ ]
+},
+{
+ id:"B", title:"Zahlensysteme & Arithmetik",
+ q:[
+  {id:"2.9", type:"text", q:"Konvertiere ins Binärformat: 1984, 4000, 8192.",
+   sol:"<div class='mono-block'>1984₁₀ = 11111000000₂\n4000₁₀ = 111110100000₂\n8192₁₀ = 2¹³ = 10000000000000₂</div>"},
+  {id:"2.10", type:"text", q:"Stelle den binären Wert <code>10 0110 1001</code> im dezimalen, oktalen und hexadezimalen System dar.",
+   sol:"<div class='mono-block'>1001101001₂\n= 617₁₀\n= 1151₈\n= 269₁₆</div>"},
+  {id:"2.11", type:"multi", q:"Welche der folgenden Darstellungen sind <em>gültige</em> Hexadezimalzahlen? (Mehrfachauswahl)",
+   opts:[
+     {t:"<code>BED</code>",c:true},{t:"<code>CAB</code>",c:true},{t:"<code>DEAD</code>",c:true},
+     {t:"<code>DECADE</code>",c:true},{t:"<code>ACCEDED</code>",c:true},
+     {t:"<code>BAG</code>"},{t:"<code>DAD</code>",c:true}
+   ],
+   sol:"<p>Alle außer <code>BAG</code> sind gültig — <strong>G</strong> ist keine gültige Hexadezimalziffer (gültig sind nur 0–9 und A–F).</p>"},
+  {id:"2.12", type:"text", q:"Wie weit kannst du mit den Fingern zählen, wenn jeder Finger ein Bit ist? Welcher Bereich mit Händen und Füßen? Welcher Bereich, wenn der große Zeh des linken Fußes als Vorzeichenbit dient?",
+   sol:"<div class='mono-block'>Finger:        0 … 2¹⁰−1 = 1023\nFinger+Zehen:  0 … 2²⁰−1 = 1 048 575\nmit Vorzeichen: −524 288 … +524 287  (−2¹⁹ … 2¹⁹−1)</div>"},
+  {id:"2.13", type:"draw", q:"Führe die vier Berechnungen auf 8-Bit-Zahlen (a) im Zweierkomplement und (b) im Einerkomplement aus:<br><code>00101101+01101111</code> &nbsp; <code>11111111+11111111</code> &nbsp; <code>00000000−11111111</code> &nbsp; <code>11110111−11110111</code>",
+   sol:"<p><strong>Zweierkomplement:</strong></p><div class='mono-block'>00101101+01101111 = 10011100   ⚠ Überlauf!\n11111111+11111111 = 11111110   (−2₁₀)\n00000000−11111111 = 00000001   (1₁₀)\n11110111−11110111 = 00000000</div><p><strong>Einerkomplement:</strong></p><div class='mono-block'>00101101+01101111 = 10011100   ⚠ Überlauf!\n11111111+11111111 = 11111111   (−0₁₀)\n00000000−11111111 = 00000000   (+0₁₀)\n11110111−11110111 = 11111111   (−0₁₀)</div>"},
+  {id:"2.14", type:"mc", q:"Multipliziere <code>0111</code> und <code>0011</code> im Binärformat. Was ergibt sich?",
+   opts:[
+     {t:"<code>10101₂</code>  (= 7·3 = 21)",c:true},
+     {t:"<code>1011₂</code>  (= 11)"},
+     {t:"<code>10001₂</code>  (= 17)"},
+     {t:"<code>11001₂</code>  (= 25)"}
+   ],
+   sol:"<p>7 · 3 = 21. Schriftlich binär multipliziert: <code>0111 × 0011 = 10101₂ = 21₁₀</code>.</p>"}
+ ]
+},
+{
+ id:"C", title:"Zahlendarstellungen (VZB · EK · ZK · Exzess-128)",
+ q:[
+  {id:"C.1", type:"draw", q:"Stelle folgende Zahlen als 8-Bit-Werte in <strong>Vorzeichen-Betrag (VZB)</strong>, <strong>Einerkomplement (EK)</strong>, <strong>Zweierkomplement (ZK)</strong> und <strong>Exzess-128</strong> dar: 3, −78, −128, 93, −26, 44, −40.",
+   sol:"<div class='mono-block'>        VZB        EK         ZK         Exz-128\n   3  00000011   00000011   00000011   10000011\n −78  11001110   10110001   10110010   00110010\n−128    —          —        10000000   00000000\n  93  01011101   01011101   01011101   11011101\n −26  10011010   11100101   11100110   01100110\n  44  00101100   00101100   00101100   10101100\n −40  10101000   11010111   11011000   01011000</div><p>−128 ist in VZB/EK (8 Bit) nicht darstellbar; in ZK ist es der kleinste Wert.</p>"}
+ ]
+},
+{
+ id:"D", title:"IEEE-754 Gleitkomma (single precision)",
+ q:[
+  {id:"D.1", type:"text", q:"Stelle 9 als IEEE-754 (32 Bit) dar und gib das Ergebnis hexadezimal an.",
+   sol:"<div class='mono-block'>9 = 1001₂ = 1,001 · 2³\nExponent (Exzess-127): 3+127 = 130 = 10000010\n→ 0 10000010 00100000000000000000000\n= 4110 0000 H</div>"},
+  {id:"D.2", type:"text", q:"Stelle 5/32 als IEEE-754 dar (hex).",
+   sol:"<div class='mono-block'>5/32 = 5·2⁻⁵ = 101₂·2⁻⁵ = 1,01·2⁻³\nExponent: −3+127 = 124 = 01111100\n→ 0 01111100 01000000000000000000000\n= 3E20 0000 H</div>"},
+  {id:"D.3", type:"text", q:"Stelle −5/32 als IEEE-754 dar (hex).",
+   sol:"<div class='mono-block'>wie D.2, nur Vorzeichenbit = 1\n→ 1 01111100 010...\n= BE20 0000 H</div>"},
+  {id:"D.4", type:"text", q:"Stelle 6,125 als IEEE-754 dar (hex).",
+   sol:"<div class='mono-block'>6,125 = 110,001₂ = 1,10001·2²\nExponent: 2+127 = 129 = 10000001\n→ 0 10000001 10001000000000000000000\n= 40C4 0000 H</div>"},
+  {id:"D.5", type:"mc", q:"Welche Dezimalzahl steht hinter <code>42E4 8000 H</code> (IEEE-754)?",
+   opts:[{t:"114,25",c:true},{t:"228,5"},{t:"57,125"},{t:"110,5"}],
+   sol:"<div class='mono-block'>42E48000 H = 0 10000101 110010010000000...\nExponent 133−127 = 6 → +2⁶·1,1100100…₂\n= 1110010,01₂ = 114,25</div>"},
+  {id:"D.6", type:"mc", q:"Welche Dezimalzahl steht hinter <code>3F88 0000 H</code>?",
+   opts:[{t:"1,0625",c:true},{t:"1,5"},{t:"0,53125"},{t:"2,125"}],
+   sol:"<div class='mono-block'>3F880000 H = 0 01111111 0001000...\nExponent 127−127 = 0 → +2⁰·1,0001₂\n= 1,0625</div>"},
+  {id:"D.7", type:"mc", q:"Welcher Wert steht hinter <code>0080 0000 H</code>?",
+   opts:[{t:"2⁻¹²⁶  (kleinste normalisierte positive Zahl)",c:true},{t:"0"},{t:"2⁻¹²⁷"},{t:"1,0"}],
+   sol:"<div class='mono-block'>00800000 H = 0 00000001 000...0\nExponent 1−127 = −126 → +2⁻¹²⁶ · 1,0</div>"},
+  {id:"D.8", type:"mc", q:"Welche Dezimalzahl steht hinter <code>C7F0 0000 H</code>?",
+   opts:[{t:"−122 880",c:true},{t:"−61 440"},{t:"−245 760"},{t:"−15 360"}],
+   sol:"<div class='mono-block'>C7F00000 H = 1 10001111 1110000...\nExponent 143−127 = 16 → −2¹⁶·1,111₂\n= −1,875·2¹⁶ = −122 880</div>"},
+  {id:"D.9", type:"mc", q:"Was ergibt <code>3EE0 0000 H + 3D80 0000 H</code> (IEEE-754)?",
+   opts:[{t:"<code>3F00 0000 H</code>  (= 0,5)",c:true},{t:"<code>3FC0 0000 H</code>"},{t:"<code>3E80 0000 H</code>"},{t:"<code>4000 0000 H</code>"}],
+   sol:"<div class='mono-block'>A = 3EE00000 H = 1,11·2⁻²\nB = 3D800000 H = 1,0·2⁻⁴ = 0,01·2⁻²\nA+B = 10,00·2⁻² = 1·2⁻¹\nExponent −1+127 = 126\n→ 0 01111110 000...0 = 3F00 0000 H</div>"},
+  {id:"D.10", type:"mc", q:"Wann tritt bei Gleitkomma-Subtraktion <em>Auslöschung</em> (Verlust signifikanter Stellen) auf?",
+   opts:[{t:"Wenn beide Zahlen fast gleich groß sind.",c:true},
+         {t:"Wenn eine Zahl viel größer ist als die andere."},
+         {t:"Wenn beide Zahlen negativ sind."},
+         {t:"Wenn der Exponent 0 ist."}],
+   sol:"<p>Bei fast gleich großen Zahlen, z. B. <code>5,1037 − 5,1035 = 0,0002</code>: aus 5 signifikanten Stellen wird nur 1 signifikante Stelle.</p>"},
+  {id:"D.11", type:"text", q:"Wie halbiert man eine IEEE-754-Zahl (durch 2 teilen) auf Ebene der Mantisse?",
+   sol:"<p>Exponent halbieren bzw. Mantisse um eine Stelle nach rechts schieben — alle Stellen werden um eine Position nach rechts gerückt (Exponent −1).</p>"}
+ ]
+},
+{
+ id:"E", title:"Hamming-Code",
+ q:[
+  {id:"3.12", type:"mc", q:"Wieviele Prüfbits brauchst du für ein 7-Bit-Datenwort, um alle Einzelbitfehler erkennen und korrigieren zu können?",
+   opts:[{t:"4 — als Prüfbits fungieren die Bits 1, 2, 4 und 8",c:true},
+         {t:"3 — Bits 1, 2, 4"},{t:"5 — Bits 1, 2, 4, 8, 16"},{t:"2 — Bits 1, 2"}],
+   sol:"<p>4 Prüfbits nötig (2⁴ = 16 ≥ 7+4+1). Sie liegen an den Zweierpotenz-Positionen: Bits 1, 2, 4 und 8.</p>"},
+  {id:"3.13a", type:"text", q:"Finde und korrigiere den Fehler im Codewort <code>10111000001</code> bei <em>ungerader</em> Parität.",
+   sol:"<div class='mono-block'>Fehlerhaftes Bit: Position 1+2+4 = 7\nKorrigiertes Codewort: 10111010001</div>"},
+  {id:"3.13b", type:"text", q:"Bestimme bei ungerader Parität den Hamming-Code zum Datenwort <code>1100101</code>.",
+   sol:"<div class='mono-block'>Hamming-Code: 11101001101</div>"},
+  {id:"3.14", type:"text", q:"Empfangenes Codewort (Hamming, ungerade Parität): <code>10101111111</code>. Fehlerfrei? Korrigiere ggf. und gib die Dezimaldarstellung der übertragenen Binärzahl an.",
+   sol:"<div class='mono-block'>Fehler in Bitstelle 9\nKorrigiert:  10101111011\nDatenwort:   1111011\nDezimal:     123</div>"}
+ ]
+},
+{
+ id:"F", title:"Schaltnetzanalyse",
+ q:[
+  {id:"4.1", type:"draw", q:"Bestimme für die gegebene Schaltung (Folie 118) die Funktionsgleichungen für X, Y und Z und stelle die Wahrheitstabelle auf.",
+   sol:"<div class='mono-block'>X = (Ā∧B̄∧C̄) ∨ (A∧B∧C)\nY = ‾(A⊻B⊻C) = Ā∧B∧C  (bzw. negiertes XOR)\nZ = (ĀB̄C̄ ∨ ABC) ∧ ‾(A∧B∧C) = 0</div><p>Z ist konstant 0 — der untere AND-Zweig kann nie 1 werden.</p>"},
+  {id:"4.2", type:"text", q:"Die Schaltung (Folie 119) arbeitet fehlerhaft. Aus der IST-Messtabelle: welche Gatter sind fehlerhaft?",
+   sol:"<p>Man prüft K gegen die fehlerhaft gegebenen Y-Werte: arbeiten die Gatter korrekt? — Ja. <strong>Nur das Y-Gatter (≥1, OR) ist fehlerhaft.</strong></p>"}
+ ]
+},
+{
+ id:"G", title:"Schaltnetzsynthese",
+ q:[
+  {id:"4.3", type:"text", q:"Stelle die Funktionsgleichung der Schaltung (Folie 120) auf und forme sie so um, dass die Teilausdrücke durch ODER verbunden sind. Bei welchen Eingangskombinationen ist X=1?",
+   sol:"<div class='mono-block'>X = (A∧B∧C̄) ∨ (A∧C∧B̄) ∨ (B∧C∧Ā)\n→ kann die Eingangskombinationen für X=1\n  direkt ablesen (genau zwei der drei Eingänge =1)</div>"},
+  {id:"4.4", type:"draw", q:"Fahrstuhl-Sicherheitsschaltung: Der Korb darf NICHT abfahren, wenn die Tür offen (T) ist, er überlastet (G) ist oder der Fahrknopf nicht aktiviert (F) wurde. Stelle die Funktion der Abfahrt A auf.",
+   sol:"<div class='mono-block'>T offen=1, G überlastet=1, F Fahrknopf=1\n→ A = T̄ ∧ Ḡ ∧ F</div><p>Abfahrt nur, wenn Tür geschlossen, nicht überlastet und Fahrknopf gedrückt.</p>"},
+  {id:"4.5", type:"text", q:"Eine Kontrolllampe soll nur leuchten, wenn von drei Schaltern genau einer geschlossen ist. Entwickle die Funktion A aus NOT, AND, OR.",
+   sol:"<div class='mono-block'>A = (S̄₁∧S̄₂∧S₃) ∨ (S̄₁∧S₂∧S̄₃) ∨ (S₁∧S̄₂∧S̄₃)</div>"},
+  {id:"4.6", type:"text", q:"Vereinfache: <code>Z = (A∧B∧C)∨(A∧B̄∧C)∨(Ā∧B̄∧C)∨(Ā∧B̄∧C̄)</code> mit Schaltalgebra (Kontrolle per KV).",
+   sol:"<div class='mono-block'>Z = A∧C ∨ Ā∧B̄</div>"},
+  {id:"4.7", type:"draw", q:"Entwirf eine Schaltung, die feststellt, ob zwei zweistellige Dualzahlen A,B und C,D gleich sind. Gib die Funktionsgleichung X(A,B,C,D) an.",
+   sol:"<div class='mono-block'>X = (Ā∧C̄ ∨ A∧C) ∧ (B̄∧D̄ ∨ B∧D)\n  = (A⊙C) ∧ (B⊙D)   (Äquivalenz beider Bitpaare)</div>"},
+  {id:"4.8", type:"draw", q:"4 Eingänge A,B,C,D: Y=1 genau dann, wenn eine <em>geradzahlige</em> Anzahl Eingänge =1 ist (Geradeschaltung). Stelle ODER-Normalform und vereinfachte Funktion auf.",
+   sol:"<div class='mono-block'>Y = AB(C⊙D) ∨ (Ā⊙B)(C⊙D)\nallg.: Y = ‾(A⊕B⊕C⊕D)\n(0 Einsen gilt als gerade → Y=1)</div>"},
+  {id:"4.9", type:"text", q:"Vereinfache die ODER-Normalform aus dem KV-Diagramm (Folie 123, Aufg. 9).",
+   sol:"<div class='mono-block'>Y = B∧D̄ ∨ C∧D̄ ∨ C̄∧D\n  = B∧D̄ ∨ (C⊕D)</div>"},
+  {id:"4.10", type:"text", q:"Wahrheitstabelle (A B C → Y): 000→0, 001→1, 010→1, 011→0, 100→1. Stelle das KV-Diagramm auf und leite die minimierte Funktion ab.",
+   sol:"<div class='mono-block'>Y = A ∨ B̄∧C ∨ B∧C̄\n  = A ∨ (B⊕C)</div>"}
+ ]
+},
+{
+ id:"H", title:"Gatter & Schaltkreise",
+ q:[
+  {id:"5.11", type:"mc", q:"TTL-Tri-State-Gatter (NAND, positive Logik). Welches Gatter ergibt sich bei <em>negativer</em> Logik?",
+   opts:[{t:"NOR-Gatter (Enable wird masse-asserted → Inversions-Bubble)",c:true},
+         {t:"AND-Gatter"},{t:"XOR-Gatter"},{t:"NAND bleibt NAND"}],
+   sol:"<p>Die Arbeitstabelle bleibt gleich, aber in negativer Logik entspricht das einem <strong>NOR-Gatter</strong>. Der Enable-Eingang ist masse-asserted und erhält eine Inversions-Bubble.</p>"},
+  {id:"5.12", type:"mc", q:"CMOS-Gatter (Folie 144), positive Logik. Welche Funktion y=f(x₁,x₀) wird realisiert?",
+   opts:[{t:"XNOR",c:true},{t:"NAND"},{t:"XOR"},{t:"NOR"}],
+   sol:"<div class='mono-block'>‾(S ∧ ‾(x₁⊻x₀)) = S̄ ∨ (x₁∧x₀)\nGesamtfunktion y = XNOR(x₁,x₀)</div>"}
+ ]
+},
+{
+ id:"I", title:"Flipflops & Monoflop",
+ q:[
+  {id:"FF.1", type:"draw", q:"Realisiere mit Hilfe eines JK-Flipflops ein D-Flipflop bzw. ein RS-(S-)Flipflop.",
+   sol:"<p><strong>D-FF:</strong> D direkt auf J, D negiert (über Inverter) auf K.</p><p><strong>RS-FF:</strong> S auf J, R auf K (verbotener Zustand J=K=1 vermeiden).</p>"},
+  {id:"FF.2", type:"text", q:"Berechne die Eigenzeit des retriggerbaren Monoflops aus Impulsdauer t_pulse, R und C (Schwellspannung V_u = d·V_DD).",
+   sol:"<div class='mono-block'>Ladekurve: V_C = V_DD·(1 − e^(−t/RC))\nSchwelle nach Zeit T:  V_u = V_DD·(1 − e^(−T/RC))\n→ T = −RC·ln(1 − V_u/V_DD)\n\nEigenzeit = t_pulse + T = t_pulse − RC·ln(1 − d)</div>"}
+ ]
+},
+{
+ id:"J", title:"Multiplexer",
+ q:[
+  {id:"MUX.1", type:"text", q:"Implementiere mit einem 8:1-Multiplexer (3 Steuereingänge A,B,C) die <em>gerade Parität</em> (Ausgang 1, wenn eine gerade Anzahl Eingänge =1; 0 gilt als gerade).",
+   sol:"<p>Verbinde die Eingänge <code>D1, D2, D4, D7</code> mit Masse, die übrigen (<code>D0, D3, D5, D6</code>) mit der Versorgungsspannung. Auch 0 ist eine gerade Zahl → D0 = 1.</p>"},
+  {id:"MUX.2", type:"draw", q:"Mit einem 8:1-MUX (3 Steuereingänge) lässt sich eine beliebige Funktion von 4 Variablen berechnen. Gib die Schaltung für die Funktion an, die 0 ausgibt, wenn das englische Wort der Zeilennummer (0…15) eine gerade Buchstabenzahl hat, sonst 1.",
+   sol:"<p>Die drei höchstwertigen Variablen (A,B,C) als Steuereingänge nutzen; die vierte (niederwertigste, D) bildet je Zeilenpaar das Wertepaar 01. Verbinde jeden Dateneingang:</p><div class='mono-block'>Ausgangspaar 00 → Masse\nAusgangspaar 11 → V_CC\nAusgangspaar 01 → D\nAusgangspaar 10 → D̄</div><p>Wortlängen: zero3,one3,two3,three5,four4,five4,six3,seven5,eight5,nine4,ten3,eleven6,twelve6,thirteen8,fourteen8,fifteen7 → F entsprechend gerade=0 / ungerade=1.</p>"}
+ ]
+},
+{
+ id:"K", title:"Rechnerarchitektur & Datenraten",
+ q:[
+  {id:"18", type:"mc", q:"Wieviele Pins hat ein 4-Bit-Addierer-Chip?",
+   opts:[{t:"16",c:true},{t:"12"},{t:"14"},{t:"20"}],
+   sol:"<div class='mono-block'>8 Pins für 2 × 4-Bit-Eingangsworte\n1 Übertrags-Eingang\n4 Ausgangspins (Ergebnis)\n1 Übertrags-Ausgang\n1 Versorgungsspannung + 1 Masse\n= 16 Pins</div>"},
+  {id:"19", type:"mc", q:"ALU mit Gatterlaufzeit 1 ns: wann kann frühestens ein gültiges Ausgabebit gewährleistet werden?",
+   opts:[{t:"6 ns  (längster Weg: A über Volladdierer zum Ausgang = 6 Gatter)",c:true},
+         {t:"4 ns"},{t:"8 ns"},{t:"3 ns"}],
+   sol:"<p>Der längste Weg führt von Variable A über den Volladdierer zum Ausgang: 6 Gatter × 1 ns = <strong>6 ns</strong>.</p>"},
+  {id:"20", type:"text", q:"Kann die 8-Bit-ALU auch subtrahieren? Falls ja, wie?",
+   sol:"<div class='mono-block'>Ja: INVA aktivieren und INC nutzen, dann Addition:\nO = B + ‾A + 1 = B + (−A) = B − A</div>"},
+  {id:"21", type:"text", q:"Erkläre zwei Wege, wie die ALU den Wert −1 ausgeben kann.",
+   sol:"<div class='mono-block'>−1 = ‾1 + 1 = 11111110 + 1 → alle Ausgangsbits = 1\n(a) alle A-Eingänge=1, ENB & INC aus, Addition oder OR\n(b) ENB aus (B=0), Funktion ‾B, INC aus</div>"},
+  {id:"22", type:"mc", q:"16-Bit-ALU aus 16 1-Bit-ALUs (je 10 ns Additionszeit, +1 ns Weiterleitung zur nächsten). Wie lange bis das Ergebnis erscheint?",
+   opts:[{t:"175 ns  (15·11 + 10, letzte ALU leitet nicht weiter)",c:true},
+         {t:"176 ns"},{t:"160 ns"},{t:"165 ns"}],
+   sol:"<p>Eine ALU braucht 10 ns zum Rechnen und 1 ns zum Weiterleiten → T = 15·11 + 10 = <strong>175 ns</strong> (die letzte ALU muss nichts weiterleiten).</p>"},
+  {id:"11.1", type:"mc", q:"von-Neumann-Rechner: Laden der ALU-Register 5 ns, Verarbeitung 10 ns, Rückspeichern 5 ns. Wieviele MIPS ohne Fließband?",
+   opts:[{t:"50 MIPS  (20 ns/Zyklus → 50 Mio. Zyklen/s)",c:true},
+         {t:"100 MIPS"},{t:"20 MIPS"},{t:"5 MIPS"}],
+   sol:"<div class='mono-block'>1 Datenpfadzyklus = 5+10+5 = 20 ns\n→ 50 000 000 Zyklen/s = 50 MIPS</div>"},
+  {id:"11.2", type:"text", q:"Befehlsausführung: Was passiert, wenn Schritt 2 (Befehlszähler inkrementieren) ausgelassen wird?",
+   sol:"<p>Der Befehlszähler wird nicht erhöht → es wird immer wieder <strong>derselbe Befehl</strong> ausgeführt, das Programm läuft nicht ab.</p>"},
+  {id:"11.3", type:"mc", q:"Computer 1 führt jeden Befehl in 10 ns aus, Computer 2 in 5 ns. Ist Computer 2 sicher schneller?",
+   opts:[{t:"Nein — z. B. wenn Comp.1 eine 5-stufige Pipeline hat, schafft er in 10 ns 5 Befehle, Comp.2 nur 2.",c:true},
+         {t:"Ja, halbe Befehlszeit bedeutet immer doppelte Leistung."},
+         {t:"Ja, weil 5 < 10."},
+         {t:"Nein, weil die Taktrate fehlt."}],
+   sol:"<p>Nicht sicher: Mit Fließbandverarbeitung (Pipeline) kann Comp.1 trotz längerer Einzelbefehlszeit mehr Befehle pro Zeit fertigstellen.</p>"},
+  {id:"11.4", type:"mc", q:"Ternärer Speicher (Trits = 0,1,2). Wieviele Trits braucht eine 6-Bit-Zahl?",
+   opts:[{t:"4 Trits  (3ᵏ ≥ 2ⁿ → k = n·log₃2)",c:true},{t:"3 Trits"},{t:"6 Trits"},{t:"2 Trits"}],
+   sol:"<div class='mono-block'>größte 6-Bit-Zahl 111111₂ = 63\n3ᵏ ≥ 2ⁿ → k = ⌈n·log₃2⌉\nn=6: 3⁴=81 ≥ 64 → 4 Trits</div>"},
+  {id:"11.5", type:"mc", q:"Datenrate des Auges: 10⁶ Pixel, 3 Primärfarben je 64 Helligkeitsstufen, zeitliche Auflösung 100 ms. Wie groß?",
+   opts:[{t:"180 Mbit/s = 22,5 MB/s",c:true},{t:"60 Mbit/s"},{t:"18 Mbit/s"},{t:"1,8 Gbit/s"}],
+   sol:"<div class='mono-block'>Subpixel: 3·10⁶, pro Pixel 64 Stufen = 6 Bit\nÜbermittlung 10×/s\nR = 3·10⁶ · 6 · 10 = 180 Mbit/s = 22,5 MB/s</div>"},
+  {id:"11.6", type:"text", q:"DNA: 3·10⁹ Nukleobasen (A,C,G,T) in ~30 000 Genen. Datenvolumen des Genoms und eines durchschnittlichen Gens?",
+   sol:"<div class='mono-block'>4 Nukleobasen → 2 Bit zur Codierung\nGenom: 3·10⁹ · 2 Bit = 6 Gbit\n1 Gen = Genom/30000 = 200 kbit ≈ 25 kB</div>"},
+  {id:"11.9", type:"mc", q:"Festplatte 7200 rpm, 1024 Sektoren/Spur, 4096 Datenbits/Sektor. Dauertransferrate?",
+   opts:[{t:"≈ 60 MiB/s  (≈ 62,9 MByte/s)",c:true},{t:"≈ 30 MiB/s"},{t:"≈ 120 MiB/s"},{t:"≈ 7,5 MiB/s"}],
+   sol:"<div class='mono-block'>R = 1024 · 4096 Bit · 7200/60 s⁻¹\n= 503 316 480 Bit/s = 62,9 MByte/s ≈ 60 MiB/s</div>"},
+  {id:"11.10", type:"mc", q:"Bus 5 ns Zyklus (32-Bit-Wort), SCSI-Platte läuft mit 160 MB/s am Bus. Wie stark wird der Prozessor gebremst?",
+   opts:[{t:"Auf 20 % der möglichen Geschwindigkeit",c:true},{t:"Auf 50 %"},{t:"Auf 80 %"},{t:"Gar nicht"}],
+   sol:"<div class='mono-block'>Prozessor: alle 5 ns → 200 Mio. Befehle/s\nPlatte: 160 MB/s, 32-Bit-Wort = 4 Byte → 40 Mio. Worte/s\n→ 40/200 = 20 %</div>"},
+  {id:"11.11", type:"text", q:"RAID Level 3 korrigiert Einzelbitfehler mit einem Paritätslaufwerk. Welchen Sinn hat dann RAID Level 2 (auch nur ein Fehler, aber mehr Laufwerke)?",
+   sol:"<p>Level 2 kann per Hamming-Code jeden Einzelbitfehler korrigieren — auch wenn ein Laufwerk nur <em>fehlerhaft</em> arbeitet. Level 3 stellt per Parität zwar fest, dass ein Fehler auftrat, kann ihn aber nicht lokalisieren/korrigieren — das geht nur, wenn ein Laufwerk komplett ausfällt.</p>"},
+  {id:"11.12", type:"mc", q:"Audio-CD mit 175 200 Byte/s, 80 Minuten. CD-ROM-Kapazität im Modus 2? (und Modus 1?)",
+   opts:[{t:"≈ 802 MiB (Modus 2); ≈ 703 MiB (Modus 1)",c:true},
+         {t:"≈ 650 MiB; ≈ 600 MiB"},{t:"≈ 1 GiB; ≈ 900 MiB"},{t:"≈ 700 MiB; ≈ 800 MiB"}],
+   sol:"<div class='mono-block'>80·60 s · 175200 Byte/s = 840 960 000 Byte = 802 MiB (Modus 2)\nModus 1: ·2048/2336 = 737 280 000 Byte = 703 MiB</div>"},
+  {id:"11.13", type:"mc", q:"133-min-Video auf einschichtige DVD (3,5 GiB Videospur, 720×480 px, 24-Bit-RGB, 30 fps). Erforderlicher Komprimierungsfaktor?",
+   opts:[{t:"≈ 66  (Reduktion auf ≈ 1,5 %)",c:true},{t:"≈ 30"},{t:"≈ 100"},{t:"≈ 12"}],
+   sol:"<div class='mono-block'>1 Frame: 720·480·3 Byte = 1 036 800 Byte\n30 fps → 31,1 MB/s · 60 · 133 ≈ 231 GiB\nFaktor = 231 GiB / 3,5 GiB ≈ 66</div>"},
+  {id:"11.14", type:"mc", q:"Blu-Ray 4,5 MB/s, Kapazität 25 GB. Wie lange dauert das Lesen der ganzen Scheibe?",
+   opts:[{t:"≈ 94,8 min (≈ 1 h 35 min)",c:true},{t:"≈ 45 min"},{t:"≈ 2 h 10 min"},{t:"≈ 60 min"}],
+   sol:"<div class='mono-block'>25·10⁹ Byte / 4,5·10⁶ Byte/s ≈ 5556 s ≈ 92,6 min\n(für GiB & MiB: ≈ 94,8 min)</div>"},
+  {id:"11.15", type:"mc", q:"Bitmap-Terminal 1600×1200 px, 75-mal/s neu gezeichnet. Dauer des Spannungsimpulses an einem Pixel?",
+   opts:[{t:"≈ 6,944 ns",c:true},{t:"≈ 13,9 ns"},{t:"≈ 3,5 ns"},{t:"≈ 69 ns"}],
+   sol:"<div class='mono-block'>t = 1 s / (1600·1200·75) = 6,944 ns</div>"},
+  {id:"11.16", type:"mc", q:"Laserdrucker: 50 Zeilen × 80 Zeichen/Seite, Zeichen ≈ 2×2 mm² (25 % Toner), Schicht 25 µm, Kassette 25×8×2 cm³. Wieviele Seiten?",
+   opts:[{t:"4000 Seiten",c:true},{t:"2000 Seiten"},{t:"8000 Seiten"},{t:"1000 Seiten"}],
+   sol:"<div class='mono-block'>Tonervolumen/Seite: 50·80·0,04 cm²·0,25·25·10⁻⁴ cm = 0,1 cm³\nKassette: 25·8·2 = 400 cm³ → 4000 Seiten</div>"},
+  {id:"11.17", type:"mc", q:"ASCII-Text mit ungerader Parität, asynchron über 56 000 bit/s-Modem. Wieviel % der empfangenen Bits sind Nutzdaten? Übertragungsrate?",
+   opts:[{t:"70 % Nutzdaten → 39 200 bit/s (4,785 KiB/s)",c:true},
+         {t:"80 % → 44 800 bit/s"},{t:"87,5 % → 49 000 bit/s"},{t:"50 % → 28 000 bit/s"}],
+   sol:"<div class='mono-block'>Zeichen: 7 Datenbit + 1 Paritätsbit + Start + Stopp = 10 Bit\n→ 7/10 = 70 % Datenbits\nRate = 0,7 · 56 000 = 39 200 bit/s ≈ 4,785 KiB/s</div>"}
+ ]
+}
+];
+
+/* ============================================================
+   ZUSTAND + SPEICHERN
+============================================================ */
+const STORAGE_KEY = "dt_quiz_v1";
+let state = {};        // id -> {answer, status:'correct'|'wrong'|null, revealed:bool}
+let saveOK = true;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) state = JSON.parse(raw);
+  }catch(e){ saveOK=false; }
+}
+function persist(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ saveOK=false; updateSaveNote(); }
+}
+function updateSaveNote(){
+  const dot=document.getElementById('saveDot'), txt=document.getElementById('saveTxt');
+  if(saveOK){ dot.classList.remove('off'); txt.textContent="Speichern aktiv"; }
+  else{ dot.classList.add('off'); txt.textContent="Speichern blockiert — Datei lokal öffnen, dann bleibt der Stand erhalten"; }
+}
+
+/* flatten for lookups */
+const ALL = [];
+SECTIONS.forEach(s=>s.q.forEach(q=>{ q._sec=s.id; q._secTitle=s.title; ALL.push(q); }));
+
+/* ============================================================
+   RENDER
+============================================================ */
+const quizEl = document.getElementById('quiz');
+
+function badgeFor(type){
+  return {mc:"Auswahl",multi:"Mehrfachauswahl",text:"Freitext",draw:"Zeichnen / Aufbau"}[type];
+}
+
+function render(){
+  quizEl.innerHTML="";
+  SECTIONS.forEach((sec,si)=>{
+    const secEl=document.createElement('section');
+    secEl.className='section'; secEl.id='sec-'+sec.id;
+    const head=document.createElement('div'); head.className='sec-head';
+    head.innerHTML=`<span class="sec-num">${String(si+1).padStart(2,'0')}</span>
+      <h3>${sec.title}</h3><span class="sec-tally" id="tally-${sec.id}"></span>`;
+    secEl.appendChild(head);
+
+    sec.q.forEach(q=>{
+      secEl.appendChild(buildCard(q));
+    });
+    quizEl.appendChild(secEl);
+  });
+  refreshAllVisual();
+}
+
+function buildCard(q){
+  const st = state[q.id] || {};
+  const card=document.createElement('div');
+  card.className='card'; card.id='q-'+q.id;
+  if(st.status==='correct') card.classList.add('ok');
+  if(st.status==='wrong')   card.classList.add('bad');
+
+  const top=document.createElement('div'); top.className='q-top';
+  top.innerHTML=`<span class="q-id">${q.id}</span><div class="q-text">${q.q}</div>
+    <span class="badge">${badgeFor(q.type)}</span>`;
+  card.appendChild(top);
+
+  if(q.type==='mc' || q.type==='multi'){
+    buildChoice(card,q,st);
+  } else {
+    buildOpen(card,q,st);
+  }
+  return card;
+}
+
+/* ---- Multiple choice ---- */
+function buildChoice(card,q,st){
+  const wrap=document.createElement('div'); wrap.className='opts';
+  const chosen = Array.isArray(st.answer)? st.answer : (st.answer!=null?[st.answer]:[]);
+  const locked = st.status!=null;
+  q.opts.forEach((o,i)=>{
+    const el=document.createElement('div');
+    el.className='opt '+(q.type==='mc'?'radio':'');
+    el.innerHTML=`<span class="mark"></span><span>${o.t}</span>`;
+    if(chosen.includes(i)) el.classList.add('sel');
+    if(locked){
+      el.classList.add('locked');
+      if(o.c) el.classList.add('correct');
+      else if(chosen.includes(i)) el.classList.add('wrong');
+      el.querySelector('.mark').textContent = o.c?'✓':(chosen.includes(i)?'✗':'');
+    }
+    if(!locked){
+      el.onclick=()=>toggleChoice(q,i);
+    }
+    wrap.appendChild(el);
+  });
+  card.appendChild(wrap);
+
+  if(!locked){
+    const act=document.createElement('div'); act.className='actions';
+    const btn=document.createElement('button'); btn.className='btn btn-primary';
+    btn.textContent='Antwort prüfen';
+    btn.onclick=()=>checkChoice(q);
+    act.appendChild(btn);
+    card.appendChild(act);
+  }
+
+  const sol=document.createElement('div'); sol.className='sol'+(locked?' show':'');
+  sol.innerHTML=`<div class="sol-label">Musterlösung</div>${q.sol||q.opts.filter(o=>o.c).map(o=>o.t).join('<br>')}`;
+  card.appendChild(sol);
+
+  if(locked){
+    const v=document.createElement('div'); v.className='verdict show '+(st.status==='correct'?'good':'bad');
+    v.textContent = st.status==='correct'?'✓ Richtig':'✗ Falsch';
+    card.appendChild(v);
+  }
+}
+
+function toggleChoice(q,i){
+  const st = state[q.id] || (state[q.id]={answer:[],status:null});
+  if(!Array.isArray(st.answer)) st.answer = st.answer!=null?[st.answer]:[];
+  if(q.type==='mc'){ st.answer=[i]; }
+  else{
+    const k=st.answer.indexOf(i);
+    if(k>=0) st.answer.splice(k,1); else st.answer.push(i);
+  }
+  persist();
+  rerenderCard(q);
+}
+
+function checkChoice(q){
+  const st=state[q.id]||{answer:[]};
+  const chosen=(st.answer||[]).slice().sort();
+  const correct=q.opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0).sort();
+  const ok = chosen.length===correct.length && chosen.every((v,k)=>v===correct[k]);
+  st.status = ok?'correct':'wrong';
+  state[q.id]=st; persist();
+  rerenderCard(q); refreshAllVisual();
+}
+
+/* ---- Open (text / draw) ---- */
+function buildOpen(card,q,st){
+  const locked = st.status!=null;
+  const revealed = st.revealed || locked;
+
+  if(q.type==='text'){
+    const ta=document.createElement('textarea');
+    ta.placeholder='Deine Antwort …';
+    ta.value=st.answer||'';
+    ta.disabled=locked;
+    ta.oninput=()=>{ (state[q.id]=state[q.id]||{}).answer=ta.value; persist(); };
+    card.appendChild(ta);
+  }
+
+  const sol=document.createElement('div'); sol.className='sol'+(revealed?' show':'');
+  sol.innerHTML=`<div class="sol-label">Musterlösung</div>${q.sol}`;
+  card.appendChild(sol);
+
+  const act=document.createElement('div'); act.className='actions';
+
+  if(!revealed){
+    const reveal=document.createElement('button'); reveal.className='btn btn-primary';
+    reveal.textContent = q.type==='draw' ? 'Erledigt — Lösung zeigen' : 'Bestätigen — Lösung zeigen';
+    reveal.onclick=()=>{ (state[q.id]=state[q.id]||{}).revealed=true; persist(); rerenderCard(q); };
+    act.appendChild(reveal);
+  } else if(!locked){
+    const lbl=document.createElement('span'); lbl.className='self-q'; lbl.textContent='Lagst du richtig?';
+    const ok=document.createElement('button'); ok.className='btn btn-ok'; ok.textContent='Richtig';
+    ok.onclick=()=>{ markSelf(q,'correct'); };
+    const bad=document.createElement('button'); bad.className='btn btn-bad'; bad.textContent='Falsch';
+    bad.onclick=()=>{ markSelf(q,'wrong'); };
+    act.appendChild(lbl); act.appendChild(ok); act.appendChild(bad);
+  }
+  card.appendChild(act);
+
+  if(locked){
+    const v=document.createElement('div'); v.className='verdict show '+(st.status==='correct'?'good':'bad');
+    v.textContent = st.status==='correct'?'✓ Als richtig markiert':'✗ Als falsch markiert';
+    const change=document.createElement('button');
+    change.className='btn btn-ghost'; change.style.marginLeft='10px'; change.style.fontSize='12px';
+    change.style.padding='5px 11px'; change.textContent='ändern';
+    change.onclick=()=>{ markSelf(q, st.status==='correct'?'wrong':'correct'); };
+    v.appendChild(change);
+    card.appendChild(v);
+  }
+}
+
+function markSelf(q,status){
+  const st=state[q.id]||{}; st.status=status; st.revealed=true;
+  state[q.id]=st; persist(); rerenderCard(q); refreshAllVisual();
+}
+
+function rerenderCard(q){
+  const old=document.getElementById('q-'+q.id);
+  const fresh=buildCard(q);
+  old.replaceWith(fresh);
+}
+
+/* ============================================================
+   FORTSCHRITT / TALLY / AUSWERTUNG
+============================================================ */
+function counts(){
+  let done=0,correct=0,wrong=0;
+  ALL.forEach(q=>{ const s=state[q.id]; if(s&&s.status){done++; s.status==='correct'?correct++:wrong++;} });
+  return {done,correct,wrong,total:ALL.length};
+}
+
+function refreshAllVisual(){
+  const c=counts();
+  document.getElementById('progFill').style.width=(c.done/c.total*100)+'%';
+  document.getElementById('progTxt').textContent=`${c.done} / ${c.total}`;
+  // per-section tally
+  SECTIONS.forEach(sec=>{
+    let d=0,t=sec.q.length;
+    sec.q.forEach(q=>{ if(state[q.id]&&state[q.id].status) d++; });
+    const el=document.getElementById('tally-'+sec.id);
+    if(el) el.textContent=`${d}/${t}`;
+  });
+  renderResults(c);
+}
+
+function renderResults(c){
+  const res=document.getElementById('results');
+  if(c.done===0){ res.classList.remove('show'); return; }
+  res.classList.add('show');
+
+  const pct = c.done? Math.round(c.correct/c.done*100):0;
+  const circ=351.86;
+  document.getElementById('ringFill').style.strokeDashoffset = circ - circ*(pct/100);
+  document.getElementById('ringFill').setAttribute('stroke',
+    pct>=75?'var(--green)':pct>=50?'var(--indigo)':'var(--red)');
+  document.getElementById('ringPct').textContent=pct+'%';
+  document.getElementById('chipG').textContent=`✓ ${c.correct} richtig`;
+  document.getElementById('chipR').textContent=`✗ ${c.wrong} falsch`;
+  document.getElementById('chipM').textContent=`${c.total-c.done} offen`;
+
+  // breakdown
+  const bd=document.getElementById('breakdown'); bd.innerHTML='';
+  SECTIONS.forEach(sec=>{
+    let g=0,r=0,tot=sec.q.length;
+    sec.q.forEach(q=>{ const s=state[q.id]; if(s&&s.status){ s.status==='correct'?g++:r++; }});
+    const row=document.createElement('div'); row.className='brk-row';
+    const gp=tot?g/tot*100:0, rp=tot?r/tot*100:0;
+    row.innerHTML=`<span class="brk-name">${sec.title}</span>
+      <span class="brk-track"><span class="brk-g" style="width:${gp}%"></span><span class="brk-r" style="width:${rp}%"></span></span>
+      <span class="brk-n">${g}/${tot}</span>`;
+    bd.appendChild(row);
+  });
+
+  // wrong list
+  const wl=document.getElementById('wrongList'), wh=document.getElementById('wrongHead');
+  wl.innerHTML='';
+  const wrongs=ALL.filter(q=>state[q.id]&&state[q.id].status==='wrong');
+  if(wrongs.length===0){
+    wh.style.display='none';
+    if(c.done===c.total){ wl.innerHTML='<div class="all-good">Alles richtig — sauber. 🎯</div>'; }
+    else wl.innerHTML='';
+  }else{
+    wh.style.display='block';
+    wrongs.forEach(q=>{
+      const a=document.createElement('a'); a.className='wrong-item'; a.href='#q-'+q.id;
+      a.innerHTML=`<span class="wi-id">${q.id}</span>${stripQ(q.q)}`;
+      wl.appendChild(a);
+    });
+  }
+}
+function stripQ(html){ const d=document.createElement('div'); d.innerHTML=html; let t=d.textContent||''; return t.length>90?t.slice(0,90)+'…':t; }
+
+/* ============================================================
+   RESET
+============================================================ */
+document.getElementById('resetBtn').onclick=()=>{
+  if(!confirm('Alle Antworten löschen und das Quiz neu starten?')) return;
+  state={}; persist(); render();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+/* ---- init ---- */
+loadState();
+updateSaveNote();
+render();
+</script>
+</body>
+</html>

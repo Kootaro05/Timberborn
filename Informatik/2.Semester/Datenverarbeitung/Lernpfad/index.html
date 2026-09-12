@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernpfad – Datenverarbeitung (Java 2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo:#4338ca; --indigo-deep:#312e81; --indigo-soft:#e1e2ff;
+    --amber:#b45309; --amber-soft:#ffe6c7;
+    --coral:#be123c; --coral-soft:#ffdce4;
+    --teal:#0f766e; --teal-soft:#c8efe9;
+    --ink:#11111a; --ink-soft:#3b3b4c; --line:#d6d6e4;
+    --paper:#fbfbfd; --card:#ffffff;
+    --mono:'JetBrains Mono',monospace; --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--indigo);text-decoration:none;font-weight:500}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:#f1f1f6;padding:.1em .38em;border-radius:5px;color:var(--indigo-deep)}
+
+  /* ---------- Sticky control bar ---------- */
+  .bar{position:sticky;top:0;z-index:50;background:rgba(251,251,253,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar-inner{max-width:880px;margin:0 auto;padding:.7rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+  .timer{display:flex;align-items:center;gap:.7rem}
+  .ring{position:relative;width:58px;height:58px;flex:none}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:.82rem;letter-spacing:-.5px}
+  .t-meta{display:flex;flex-direction:column;line-height:1.25}
+  .t-mode{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;color:var(--indigo)}
+  .t-mode.brk{color:var(--teal)} .t-mode.lbrk{color:var(--amber)}
+  .t-cycle{font-size:.72rem;color:var(--ink-soft)}
+  .t-cycle .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line);margin-right:3px;vertical-align:middle}
+  .t-cycle .dot.on{background:var(--coral)}
+  .btns{display:flex;gap:.4rem}
+  .btns button{font-family:var(--mono);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.45rem .7rem;border-radius:8px;cursor:pointer;transition:.15s}
+  .btns button:hover{border-color:var(--indigo);color:var(--indigo)}
+  .btns button.primary{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+  .btns button.primary:hover{background:var(--indigo-deep);color:#fff}
+  .prog{margin-left:auto;display:flex;align-items:center;gap:.6rem;min-width:170px}
+  .prog-track{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--indigo));transition:width .4s}
+  .prog-txt{font-family:var(--mono);font-size:.74rem;font-weight:700;white-space:nowrap}
+
+  /* ---------- Page ---------- */
+  .wrap{max-width:880px;margin:0 auto;padding:2.4rem 1.1rem 5rem}
+  header.hero{margin-bottom:2.6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--indigo)}
+  h1{font-family:var(--display);font-weight:700;font-size:2.5rem;line-height:1.05;letter-spacing:-1.5px;margin:.5rem 0 .4rem}
+  .sub{color:var(--ink-soft);font-size:1.02rem;max-width:60ch}
+  .legend{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.3rem}
+  .legend span{font-family:var(--mono);font-size:.68rem;font-weight:700;padding:.28rem .6rem;border-radius:99px;text-transform:uppercase;letter-spacing:.5px}
+  .lg-tip{background:var(--amber-soft);color:var(--amber)}
+  .lg-trap{background:var(--coral-soft);color:var(--coral)}
+  .lg-merk{background:var(--teal-soft);color:var(--teal)}
+  .lg-task{background:var(--indigo-soft);color:var(--indigo-deep)}
+
+  /* ---------- Satz / set divider ---------- */
+  .satz{margin:2.6rem 0 1.2rem;display:flex;align-items:center;gap:.9rem}
+  .satz-n{font-family:var(--mono);font-weight:700;font-size:.72rem;letter-spacing:1.5px;color:#fff;background:var(--ink);padding:.35rem .7rem;border-radius:7px;text-transform:uppercase;white-space:nowrap}
+  .satz-t{font-family:var(--display);font-weight:600;font-size:1.18rem;letter-spacing:-.5px}
+  .satz-line{flex:1;height:1px;background:var(--line)}
+
+  /* ---------- Pomodoro card ---------- */
+  .pom{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:.85rem;position:relative;transition:.2s;scroll-margin-top:90px}
+  .pom:hover{box-shadow:0 6px 24px -12px rgba(79,70,229,.22);border-color:#d8d8ea}
+  .pom.done{background:#fafafb;border-color:var(--line)}
+  .pom.done .p-title,.pom.done .p-intro{opacity:.5}
+  .pom.done::after{content:"✓ erledigt";position:absolute;top:1.2rem;right:1.4rem;font-family:var(--mono);font-size:.68rem;font-weight:700;color:var(--teal);letter-spacing:.5px}
+  .p-head{display:flex;align-items:flex-start;gap:.9rem;margin-bottom:.7rem}
+  .p-num{font-family:var(--mono);font-weight:700;font-size:.78rem;color:var(--indigo);background:var(--indigo-soft);width:44px;height:44px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;line-height:1}
+  .p-num small{font-size:.52rem;letter-spacing:.5px;color:var(--ink-soft);margin-top:2px}
+  .p-titles{flex:1;min-width:0}
+  .p-theme{font-family:var(--mono);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink-soft)}
+  .p-title{font-family:var(--display);font-weight:600;font-size:1.16rem;letter-spacing:-.4px;margin:.1rem 0 0;line-height:1.2}
+  .p-intro{font-size:.96rem;margin:.2rem 0 .9rem}
+  .p-intro code{font-size:.84em}
+
+  .callout{border-radius:11px;padding:.7rem .9rem .7rem 1rem;margin:.5rem 0;font-size:.9rem;border-left:5px solid}
+  .callout .c-lbl{font-family:var(--mono);font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:.2rem}
+  .c-tip{background:var(--amber-soft);border-left-color:var(--amber)} .c-tip .c-lbl{color:var(--amber)}
+  .c-trap{background:var(--coral-soft);border-left-color:var(--coral)} .c-trap .c-lbl{color:var(--coral)}
+  .c-merk{background:var(--teal-soft);border-left-color:var(--teal)} .c-merk .c-lbl{color:var(--teal)}
+  .c-task{background:var(--indigo-soft);border-left-color:var(--indigo)} .c-task .c-lbl{color:var(--indigo-deep)}
+
+  .p-foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding-top:.85rem;border-top:1px dashed var(--line);flex-wrap:wrap}
+  .p-tut{font-size:.84rem;color:var(--ink-soft);flex:1;min-width:200px}
+  .p-tut .who{font-family:var(--mono);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:.18rem .45rem;border-radius:5px;margin-right:.45rem}
+  .who.jk{background:#ffe9d6;color:#b45309}
+  .who.tm{background:#e7e4ff;color:#5b21b6}
+  .who.web{background:#e2f3ee;color:#0f766e}
+  .check{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;font-family:var(--mono);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);flex:none}
+  .check input{appearance:none;width:22px;height:22px;border:2px solid var(--line);border-radius:7px;cursor:pointer;position:relative;transition:.15s;flex:none}
+  .check input:checked{background:var(--teal);border-color:var(--teal)}
+  .check input:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;font-weight:700}
+  .check input:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+
+  /* ---------- break marker ---------- */
+  .brk-mark{display:flex;align-items:center;gap:.6rem;margin:.2rem 0 .85rem;padding-left:.3rem}
+  .brk-pill{font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:.28rem .65rem;border-radius:99px}
+  .brk-short{background:var(--teal-soft);color:var(--teal)}
+  .brk-long{background:var(--amber-soft);color:var(--amber)}
+  .brk-mark .ln{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 12px)}
+
+  footer{max-width:880px;margin:0 auto;padding:0 1.1rem 4rem;color:var(--ink-soft);font-size:.84rem}
+  footer .reset{font-family:var(--mono);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);padding:.5rem .8rem;border-radius:8px;cursor:pointer;margin-top:1rem}
+  footer .reset:hover{border-color:var(--coral);color:var(--coral)}
+
+  @media (max-width:560px){
+    h1{font-size:1.9rem}
+    .bar-inner{gap:.7rem}
+    .prog{min-width:0;width:100%;order:3;margin-left:0}
+    .p-head{gap:.65rem}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== Control bar ===== -->
+<div class="bar">
+  <div class="bar-inner">
+    <div class="timer">
+      <div class="ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle cx="29" cy="29" r="25" fill="none" stroke="#e6e6ee" stroke-width="5"/>
+          <circle id="ringFill" cx="29" cy="29" r="25" fill="none" stroke="#4338ca" stroke-width="5"
+                  stroke-linecap="round" stroke-dasharray="157.08" stroke-dashoffset="0"/>
+        </svg>
+        <div class="time" id="timeTxt">25:00</div>
+      </div>
+      <div class="t-meta">
+        <span class="t-mode" id="modeTxt">Fokus</span>
+        <span class="t-cycle" id="cycleTxt"><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="startBtn">Start</button>
+      <button id="skipBtn">Skip</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+    <div class="prog">
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <span class="prog-txt" id="progTxt">0/24</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Modul 5CS-DPDL-20 · Prof. Dr. Deweß</div>
+    <h1>Lernpfad Datenverarbeitung</h1>
+    <p class="sub">24 Pomodoro-Blöcke (25 min Fokus / 5 min Pause, nach jedem 4. Block 30 min) durch alle 12 Klausurthemen – Erklärung, Quicktipp, Klausurfalle, Aufgabe und Tutorial pro Block. Hak jeden Block ab; dein Fortschritt bleibt gespeichert.</p>
+    <div class="legend">
+      <span class="lg-task">Aufgabe</span>
+      <span class="lg-tip">Quicktipp</span>
+      <span class="lg-trap">Klausurfalle</span>
+      <span class="lg-merk">Merksatz</span>
+    </div>
+  </header>
+
+  <div id="path"></div>
+
+</div>
+
+<footer>
+  <p>Tutorial-Quellen: <strong>Jonas Keil</strong> – kompletter deutscher Java-Kurs (<a href="https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV" target="_blank" rel="noopener">64-teilige Playlist</a>, Code auf <a href="https://github.com/Jonas-Keil/learn-java" target="_blank" rel="noopener">GitHub</a>). Stark für die Grundlagen-Themen; die fortgeschrittenen Themen (Generics-Wildcards, Streams, Reflection, Builder, sealed/record, JAXB) deckt sein Kurs nicht eigenständig ab – dafür ist <strong><a href="https://www.youtube.com/@TheMorpheus407" target="_blank" rel="noopener">The Morpheus Tutorials</a></strong> die deutsche Anlaufstelle (Suchbegriff je Block angegeben), ergänzt um schriftliche Referenzen.</p>
+  <button class="reset" id="resetProgress">Fortschritt zurücksetzen</button>
+</footer>
+
+<script>
+/* ============================================================
+   CURRICULUM DATA
+   types: tip | trap | merk | task
+   tut.who: jk = Jonas Keil | tm = The Morpheus | web = schriftlich
+   ============================================================ */
+const SETS = [
+  { satz:"Satz 1", titel:"Stil, Konventionen & Eingebettete Klassen", poms:[
+    { theme:"Thema 1 · Gestaltungsrichtlinien", title:"Gestaltgesetze & UI-Typen",
+      intro:"Gestaltungsrichtlinien regeln das Erscheinungsbild von Objekten und enthalten <em>muss-/soll-/kann</em>-Bestimmungen. Dazu die fünf Gestaltgesetze und der Zoo der Benutzerschnittstellen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"5 Gestaltgesetze: <strong>Prägnanz</strong> (Figur/Grund), <strong>Ähnlichkeit</strong>, <strong>Nähe</strong>, <strong>Geschlossenheit</strong>, <strong>Fortsetzung</strong> (gemeinsame Linie = zusammengehörig)."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>TUI</code> ist doppeldeutig: <em>Text</em> User Interface (zeichenorientiert) <strong>und</strong> <em>Tangible</em> UI (haptisch). Aus dem Kontext erkennen."}
+      ],
+      task:"Ordne aus dem Kopf zu: CLI, TUI, GUI, NUI, VUI, PUI, BCI – jeweils das Eingabe-/Steuerprinzip. Dann: nenne zu jedem Gestaltgesetz ein UI-Beispiel (z.&nbsp;B. Nähe → Formularfelder mit Label gruppiert).",
+      tut:{who:"web",lbl:"Schriftlich",text:"Reine Definitionsthemen – am schnellsten aus deiner Zusammenfassung (S.&nbsp;1). Vertiefung optional: „Gestaltgesetze\u201c bei Wikipedia."} },
+
+    { theme:"Thema 1 · Java-Kodierungsstil", title:"DRY, KISS, Rule of Three & Namenskonventionen",
+      intro:"Programmierrichtlinien zielen auf Lesbarkeit: selbsterklärender Code statt Kommentare, keine magischen Zahlen, keine globalen Variablen. Dazu die Daumenregeln und die Java-Namenskonventionen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>KISS</strong> – eine Methode, eine Aufgabe. <strong>Rule of Three</strong> – ab dem 3. Mal auslagern. <strong>Ninety-Ninety</strong> – die letzten 10&nbsp;% Code kosten 90&nbsp;% Zeit. Erst klar, dann optimieren."},
+        {type:"tip",lbl:"Quicktipp",text:"Namen: Klassen <code>GroßAnfang</code>, Methoden/Variablen <code>camelCase</code>, Konstanten <code>GROSS_MIT_UNTERSTRICH</code>, Pakete/Primitive <code>klein</code>."}
+      ],
+      task:"Schreib das „magische Zahl\u201c-Beispiel auf: ersetze <code>for(int i=0;i&lt;32;i++)</code> durch eine benannte <code>final</code>-Konstante. Begründe in einem Satz, warum das die Wartbarkeit erhöht.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"Folge 20 „CoC in Java\u201c (Coding Conventions). In der Kurs-Playlist verlinkt.",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 2 · Eingebettete Klassen", title:"Static Nested vs. Inner vs. Local vs. Anonym",
+      intro:"Eine Klasse X in Y einbetten dient Logik, Kapselung und Wartbarkeit. Entscheidend ist der Unterschied zwischen statisch eingebetteter und (nicht-statischer) innerer Klasse – plus lokale und anonyme Klassen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>Static nested</strong>: kein äußeres Objekt nötig, sieht direkt nur statische Felder. <strong>Inner</strong>: braucht äußere Instanz (<code>enclosingObj.new Inner()</code>), sieht <em>alle</em> Felder inkl. private."},
+        {type:"trap",lbl:"Klausurfalle",text:"Klassen <strong>in Interfaces</strong> sind implizit <code>static</code> und <code>public</code> – Erzeugung ohne äußere Instanz: <code>Loadable.CargoHold h = new Loadable.CargoHold();</code>"}
+      ],
+      task:"Schreib eine anonyme <code>Runnable</code>-Klasse, die „anonym!\u201c ausgibt. Erkläre dann, warum man für eine statische eingebettete Klasse <code>new Außen.Innen()</code>, für eine innere aber <code>außenObj.new Innen()</code> braucht.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"OOP-/Klassen-Teil der Kurs-Playlist (Klassen, Interfaces) als Basis – eingebettete Klassen dann gezielt aus der Zusammenfassung.",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 2 · Builder Pattern", title:"Der Builder gegen Konstruktor-Chaos",
+      intro:"Bei vielen optionalen Parametern gleichen Typs versagen Konstruktoren. Lösung: privater Konstruktor der Hauptklasse + statisch eingebettete Builder-Klasse mit Method-Chaining.",
+      callouts:[
+        {type:"trap",lbl:"Klausurfalle",text:"Die vier Bausteine müssen sitzen: (1) <strong>privater Konstruktor</strong> in der Hauptklasse, (2) <strong>static</strong> Builder-Klasse, (3) Setter geben <code>return this;</code> (Chaining), (4) <code>build()</code> erzeugt das Objekt."},
+        {type:"tip",lbl:"Quicktipp",text:"Pflichtparameter gehören in den <em>Builder-Konstruktor</em>, optionale in die chainbaren Methoden."}
+      ],
+      task:"Implementiere <code>Balloon</code> mit Builder: Pflicht <code>type</code>, optional <code>manufacturer</code> + <code>payload</code>. Dann der Aufruf: <code>new Balloon.BalloonBuilder(\"Heißluft\").payload(700).manufacturer(\"BA\").build();</code>",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche auf YouTube: „Builder Pattern Java The Morpheus\u201c bzw. „Design Patterns Builder deutsch\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} }
+  ]},
+
+  { satz:"Satz 2", titel:"Neuere Typen & Collections Framework", poms:[
+    { theme:"Thema 3 · Neuere Typen", title:"enum als vollwertige Klasse",
+      intro:"Ein <code>enum</code> ist eine Spezialklasse für eine feste Menge benannter Konstanten – mit Konstruktor, Feldern und Methoden. Superklasse ist immer <code>Enum&lt;T&gt;</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Geerbte Helfer: <code>name()</code>, <code>ordinal()</code>, <code>values()</code>, <code>valueOf(String)</code>. Über <code>values()</code> iterierbar, in <code>switch</code> nutzbar."},
+        {type:"trap",lbl:"Klausurfalle",text:"Der enum-Konstruktor wird vom Compiler <strong>automatisch private</strong> – kein <code>new Planet(...)</code> von außen möglich."}
+      ],
+      task:"Schreib ein <code>enum Planet</code> mit <code>diameter</code>/<code>mass</code>, Konstruktor und <code>getDiameter()</code>. Iteriere mit <code>for(Planet p : Planet.values())</code> und gib jeden Durchmesser aus.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"enum-Folge in der Kurs-Playlist (Aufzählungstypen).",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 3 · Neuere Typen", title:"record, default/static-Methoden & sealed",
+      intro:"<code>record</code> = kompakter, unveränderlicher Datenhalter (Getter/equals/hashCode/toString automatisch). Interfaces dürfen seit Java 8 <code>default</code>- und <code>static</code>-Methoden haben. <code>sealed</code> begrenzt erlaubte Unterklassen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>record Point(int x,int y){}</code> → Getter heißt <code>p.x()</code> (nicht <code>getX()</code>), <code>toString()</code> liefert <code>Point[x=3, y=4]</code>."},
+        {type:"tip",lbl:"Quicktipp",text:"<code>sealed … permits A,B</code> erzwingt: jede Unterklasse ist <code>final</code> (dicht), <code>sealed</code> (weiter begrenzt) oder <code>non-sealed</code> (wieder offen)."}
+      ],
+      task:"(1) Definiere ein Interface <code>Greetable</code> mit abstrakter <code>getName()</code>, einer <code>default greet()</code> und einer <code>static genericGreeting()</code>. (2) Erkläre den Unterschied <code>final</code> vs. <code>non-sealed</code> bei einer <code>sealed</code>-Klasse.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java record\u201c und „sealed classes Java deutsch\u201c. Default-Methoden: „Java default Methode Interface\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 4 · Collections", title:"Set: HashSet, TreeSet, EnumSet & Iterator",
+      intro:"Die <code>Collection</code>-Hierarchie teilt sich in <code>Set</code> (keine Duplikate), <code>List</code> und <code>Queue/Deque</code>; <code>Map</code> steht separat. Set-Varianten unterscheiden sich in Ordnung und Effizienz.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>HashSet</strong>: keine Reihenfolge. <strong>TreeSet</strong>: sortiert (braucht <code>compareTo</code>), <em>kein null</em>. <strong>EnumSet</strong>: hocheffizient für enums."},
+        {type:"tip",lbl:"Quicktipp",text:"Iterator-Muster: <code>while(it.hasNext()) it.next()</code> – kommt in der Klausur gern als Lückentext."}
+      ],
+      task:"Lege ein <code>TreeSet&lt;Integer&gt;</code> mit 2, 3, 5 an, entferne 4 (passiert nichts) und gib es per <code>Iterator</code> aus. Was passiert beim Versuch, <code>null</code> ins TreeSet zu legen?",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"Collections-Grundlagen in der Kurs-Playlist; HashMap explizit in Folge 42 (analoges Prinzip).",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 4 · Collections", title:"List & Map: ArrayList vs. LinkedList, HashMap",
+      intro:"<code>List</code> erlaubt Duplikate und wahrt Reihenfolge. ArrayList und LinkedList haben gegensätzliche Performanceprofile. <code>Map</code> speichert Schlüssel-Wert-Paare.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>ArrayList</strong> (Array intern): <code>get/set</code> schnell, Einfügen/Löschen teuer. <strong>LinkedList</strong> (verkettet): get/set langsam, Einfügen/Löschen schnell."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>list.remove(\"x\")</code> entfernt nur das <strong>erste</strong> Vorkommen, nicht alle."}
+      ],
+      task:"Iteriere über eine <code>Map&lt;String,Integer&gt;</code> mit <code>for(Map.Entry&lt;…&gt; e : scores.entrySet())</code> und gib <code>e.getKey()</code> + <code>e.getValue()</code> aus.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"Folge 42 „HashMap\u201c + ArrayList-Folge der Playlist. Code: github.com/Jonas-Keil/learn-java.",url:"https://github.com/Jonas-Keil/learn-java"} }
+  ]},
+
+  { satz:"Satz 3", titel:"Generics, Wildcards, Lambdas & Streams", poms:[
+    { theme:"Thema 5 · Generics", title:"Warum Generics? Klassen & Methoden",
+      intro:"Generics bringen Typsicherheit zur Kompilierzeit ohne Casts. Du kannst Klassen und Methoden generisch parametrisieren und Typen mit <code>extends</code> begrenzen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Mit Generics entfällt der manuelle Cast: <code>List&lt;String&gt; l; String s = l.get(0);</code> – ohne Generics bräuchtest du <code>(String) l.get(0)</code>."},
+        {type:"tip",lbl:"Quicktipp",text:"Begrenzter Typparameter: <code>&lt;T extends Number&gt;</code> erlaubt nur Number-Subtypen → du darfst <code>doubleValue()</code> aufrufen."}
+      ],
+      task:"Schreib eine generische Methode <code>&lt;T extends Number&gt; T add(T a, T b)</code> (Signatur reicht) und eine generische Klasse <code>Coordinate&lt;X extends Number, Y extends Number&gt;</code>. Instanziiere sie mit <code>Double, Integer</code>.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Generics deutsch The Morpheus\u201c bzw. „Generische Klassen Methoden Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 5 · Wildcards", title:"PECS: ? extends, ? super, ?",
+      intro:"Wildcards machen generische APIs flexibel. Die Faustregel <em>PECS</em> – Producer Extends, Consumer Super – entscheidet, welche du nimmst.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>? extends T</code> = <strong>lesen</strong> (Upper Bound, Producer). <code>? super T</code> = <strong>schreiben</strong> (Lower Bound, Consumer). <code>?</code> = nur <code>Object</code>-Methoden."},
+        {type:"trap",lbl:"Klausurfalle",text:"Aus einer <code>List&lt;? extends Number&gt;</code> kannst du lesen, aber (außer null) nichts hineinschreiben. Genau anders herum bei <code>? super</code>."}
+      ],
+      task:"Schreib <code>double sum(List&lt;? extends Number&gt; list)</code>, das alle Elemente per <code>doubleValue()</code> aufsummiert. Begründe, warum hier <code>extends</code> (nicht <code>super</code>) korrekt ist.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Wildcards extends super deutsch\u201c. Schriftlich top: Baeldung „Java Generics\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 6 · Lambdas", title:"Functional Interfaces & Lambda-Syntax",
+      intro:"Eine funktionale Schnittstelle (<code>@FunctionalInterface</code>) hat genau <em>eine</em> abstrakte Methode (SAM). Lambdas implementieren sie kompakt. Die eingebauten Interfaces solltest du auswendig können.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>Predicate&lt;T&gt;</code> → <code>test</code> (filtern), <code>Function&lt;T,R&gt;</code> → <code>apply</code> (umwandeln), <code>Consumer&lt;T&gt;</code> → <code>accept</code> (forEach), <code>Supplier&lt;T&gt;</code> → <code>get</code> (erzeugen), <code>Comparator&lt;T&gt;</code> → <code>compare</code> (sortieren)."},
+        {type:"tip",lbl:"Quicktipp",text:"„Genau eine abstrakte Methode\u201c – <code>default</code>/<code>static</code>-Methoden zählen nicht mit, das Interface bleibt funktional."}
+      ],
+      task:"Definiere <code>@FunctionalInterface MathOperation</code> mit <code>int operate(int a,int b)</code>. Schreib das Lambda <code>(a,b) -&gt; a+b</code> und ruf <code>operate(3,4)</code> auf (= 7).",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Lambda deutsch\u201c und „Funktionale Interfaces Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 6 · Stream API", title:"Pipeline: intermediär vs. terminal",
+      intro:"Ein Stream ist keine Datenstruktur, sondern eine Verarbeitungs-Pipeline. Intermediäre Operationen liefern wieder einen Stream; terminale beenden ihn und erzeugen ein Ergebnis.",
+      callouts:[
+        {type:"trap",lbl:"Klausurfalle",text:"Intermediäre Operationen sind <strong>lazy</strong>: ohne terminale Operation (<code>collect</code>, <code>forEach</code>, <code>count</code>, <code>min/max</code>, <code>anyMatch</code>…) passiert <em>nichts</em>."},
+        {type:"tip",lbl:"Quicktipp",text:"Intermediär: <code>filter</code>, <code>map</code>, <code>sorted</code>, <code>limit/skip</code>, <code>distinct</code>. <code>distinct()</code> braucht korrektes <code>equals/hashCode</code>!"}
+      ],
+      task:"Baue eine Pipeline: aus einer Liste die ersten 20 nehmen → <code>map</code> auf einen Zahlenwert → <code>distinct()</code> → <code>sorted()</code> → <code>collect(Collectors.toList())</code>. Markiere, welche Operation terminal ist.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Stream API deutsch\u201c. Referenz-Spickzettel: Baeldung „Java 8 Streams\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} }
+  ]},
+
+  { satz:"Satz 4", titel:"Reflexion, Object-Methoden & Zwischenreview", poms:[
+    { theme:"Thema 7 · Metaprogrammierung", title:"Reflexion: Klassen zur Laufzeit untersuchen",
+      intro:"Ein Metaprogramm bearbeitet andere Programme. Reflexion = ein Programm beobachtet (Introspektion) und verändert (Interzession) sich zur Laufzeit selbst. Über <code>java.lang.reflect</code> kommst du an Felder, Methoden und Konstruktoren.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"3 Wege zum <code>Class</code>-Objekt: <code>obj.getClass()</code>, <code>Typ.class</code>, <code>Class.forName(\"voll.qualifiziert\")</code> (zur Laufzeit!)."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>field.setAccessible(true)</code> hebt den private-Schutz auf. Reflexion ist langsamer und umgeht Kapselung – nur wenn keine Alternative existiert."}
+      ],
+      task:"Schreib Code, der alle <code>getDeclaredFields()</code> eines Objekts durchläuft, per <code>setAccessible(true)</code> auslesbar macht, ausgibt – und wenn ein Feld <code>\"James\"</code> ist, es per <code>f.set(obj,\"Bond\")</code> ändert.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Reflection deutsch\u201c / „Reflection API Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 8 · Object", title:"equals() & hashCode() – die Verträge",
+      intro:"Alle Klassen erben von <code>Object</code>. <code>equals()</code> macht standardmäßig nur Referenzvergleich – für inhaltlichen Vergleich überschreiben. Und: <strong>nie ohne hashCode</strong>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"equals-Verträge: <strong>reflexiv</strong> (x=x), <strong>symmetrisch</strong> (x=y ⇔ y=x), <strong>transitiv</strong>. Prüfreihenfolge: <code>this==obj</code> → <code>null</code> → <code>getClass()</code> → Felder."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>hashCode()</code> <strong>immer zusammen</strong> mit <code>equals()</code> überschreiben: gleich nach equals ⇒ gleicher hashCode (umgekehrt nicht zwingend). Sonst brechen HashSet/HashMap."}
+      ],
+      task:"Überschreibe <code>equals()</code> für eine Klasse <code>Circus(int id, String name)</code> nach dem korrekten Schema und dazu <code>hashCode()</code> mit <code>Objects.hash(id, name)</code>.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „equals hashCode Java deutsch\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 8 · Object", title:"toString, clone (flach/tief) & Copy-Konstruktor",
+      intro:"<code>toString()</code> überschreibt man für sinnvolle Ausgabe. <code>clone()</code> macht standardmäßig eine <em>flache</em> Kopie – Referenz-Felder bleiben geteilt. Für unabhängige Objekte: tiefe Kopie oder Copy-Konstruktor.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>Flach</strong>: Variableninhalte kopiert, Referenz-Felder zeigen aufs selbe Objekt. <strong>Tief</strong>: referenzierte Objekte werden ebenfalls geklont → komplett unabhängig."},
+        {type:"trap",lbl:"Klausurfalle",text:"Für <code>clone()</code> muss die Klasse <code>Cloneable</code> implementieren, sonst <code>CloneNotSupportedException</code>. <code>super.clone()</code> allein = flach."}
+      ],
+      task:"Schreib eine tiefe <code>clone()</code>-Variante für <code>Clown</code> mit Referenzfeld <code>Circus circus</code>: <code>super.clone()</code> casten, dann <code>cloned.circus = (Circus) circus.clone();</code>. Nenne die Alternative ohne clone.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java clone flach tief Kopie\u201c / „shallow deep copy Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Review · Sätze 1–4", title:"Zwischenreview – aktiv abfragen",
+      intro:"Kein neuer Stoff – Festigung per Active Recall. Beantworte ohne nachzusehen, dann gegen die Zusammenfassung prüfen. Lücken markieren und gezielt nacharbeiten.",
+      callouts:[
+        {type:"task",lbl:"Schnellabfrage",text:"1) 4 Builder-Bausteine? 2) static-nested vs. inner – Zugriff & Erzeugung? 3) PECS in einem Satz? 4) Warum enum-Konstruktor private? 5) Wann <code>distinct()</code> fehlerhaft? 6) equals-Prüfreihenfolge?"},
+        {type:"tip",lbl:"Quicktipp",text:"Was du nicht flüssig beantworten kannst, wird eine handgeschriebene Karteikarte – die nimmst du in die letzte Wiederholung."}
+      ],
+      task:"Schreib zu jeder der 6 Fragen oben die Antwort aus dem Kopf auf Papier, dann Abgleich mit der PDF. Pro Fehler eine Karteikarte.",
+      tut:{who:"web",lbl:"Selbsttest",text:"Quelle ist deine eigene Zusammenfassung + die 10 Klausur-Tipps am Ende (S.&nbsp;20)."} }
+  ]},
+
+  { satz:"Satz 5", titel:"I/O, Serialisierung, XML & Datum/Zeit", poms:[
+    { theme:"Thema 9 · I/O", title:"Serialisierung & try-with-resources",
+      intro:"Serialisierung wandelt ein Objekt in einen Byte-Stream (Speichern/Übertragen), Deserialisierung zurück. Voraussetzung: <code>Serializable</code> (Marker-Interface). Streams immer schließen – am besten automatisch.",
+      callouts:[
+        {type:"trap",lbl:"Klausurfalle",text:"Enthält eine serialisierbare Klasse eine andere (z.&nbsp;B. <code>Clown</code> enthält <code>Circus</code>), muss <strong>auch die enthaltene Klasse</strong> <code>Serializable</code> sein."},
+        {type:"merk",lbl:"Merksatz",text:"<code>try-with-resources</code> verlangt <code>AutoCloseable</code> und schließt die Ressource garantiert – auch bei Exception. Ersetzt das fehleranfällige <code>finally{ …close() }</code>."}
+      ],
+      task:"Schreib Serialisierung mit <code>ObjectOutputStream</code> in <code>try(...)</code> und die Deserialisierung mit <code>ObjectInputStream</code>, inkl. <code>catch(IOException | ClassNotFoundException e)</code>.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"Datei-/Exception-Grundlagen aus der Kurs-Playlist; Serializable gezielt aus der Zusammenfassung.",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 9 · I/O", title:"Stream-Typen, FileWriter & java.nio.file",
+      intro:"I/O-Streams gibt es als Byte-, Character-, Object- und Buffered-Streams. Zum Schreiben/Lesen von Text nutzt du <code>FileWriter</code>/<code>Reader</code>; für Pfade und Dateioperationen das moderne <code>java.nio.file</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>Byte</strong> (<code>InputStream/OutputStream</code>) für Binärdaten, <strong>Character</strong> (<code>Reader/Writer</code>) für Text, <strong>Object</strong> für Serialisierung, <strong>Buffered</strong> = gepuffert/schneller."},
+        {type:"tip",lbl:"Quicktipp",text:"<code>new FileWriter(\"x.txt\", true)</code> – das <code>true</code> bedeutet <em>anhängen</em> statt überschreiben."}
+      ],
+      task:"Mit <code>Path.of(\"blumen.png\")</code> + <code>toAbsolutePath()</code>: gib <code>getFileName()</code>, <code>getParent()</code>, <code>getRoot()</code> und <code>getNameCount()</code> aus. Prüfe mit <code>Files.isRegularFile(...)</code>.",
+      tut:{who:"jk",lbl:"Jonas Keil",text:"Datei-I/O-Folge der Kurs-Playlist als Einstieg; nio.file-Pfade aus der Zusammenfassung.",url:"https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV"} },
+
+    { theme:"Thema 10 · XML", title:"SAX vs. DOM, XPath & JAXB",
+      intro:"XML speichert hierarchische Textdaten zwischen Tags. Zum Parsen gibt es das ereignisorientierte SAX und das baumbasierte DOM. XPath fragt gezielt ab, JAXB bindet XML an Java-Objekte.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>SAX</strong>: sequentiell, wenig Speicher, schwer änderbar. <strong>DOM</strong>: ganzer Baum im Speicher, viel RAM, wahlfreier Zugriff, leicht änderbar."},
+        {type:"tip",lbl:"Quicktipp",text:"DOM-Reihenfolge merken: <strong>Factory → Builder → Document</strong>. JAXB: <em>Marshalling</em> = Java→XML, <em>Unmarshalling</em> = XML→Java."}
+      ],
+      task:"Schreib die DOM-Parsing-Kette: <code>DocumentBuilderFactory.newInstance()</code> → <code>newDocumentBuilder()</code> → <code>parse(\"buecher.xml\")</code>. Formuliere den XPath „alle Buchtitel mit Jahr &gt; 2000\u201c.",
+      tut:{who:"web",lbl:"Schriftlich",text:"Begriffe (SAX/DOM/JAXB) aus der Zusammenfassung; Code-Referenz: Baeldung „Java DOM Parser\u201c / „JAXB\u201c."} },
+
+    { theme:"Thema 11 · java.time", title:"LocalDate/Time, Period/Duration & Formatter",
+      intro:"Seit Java 8 ersetzt <code>java.time</code> die alten Date-Klassen (ISO 8601). Du unterscheidest Datum/Zeit/beides mit/ohne Zeitzone und formatierst mit <code>DateTimeFormatter</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>LocalDate</code> (Datum), <code>LocalTime</code> (Uhrzeit), <code>LocalDateTime</code> (beides, keine Zone), <code>ZonedDateTime</code> (mit Zone). <strong>Duration</strong> = Sek/Nanosek, <strong>Period</strong> = Jahre/Monate/Tage."},
+        {type:"tip",lbl:"Quicktipp",text:"Objekte sind immutable: <code>minusYears</code>/<code>plusYears</code>/<code>withYear</code> liefern <em>neue</em> Objekte zurück. Eigenes Muster: <code>DateTimeFormatter.ofPattern(\"dd.MM.yyyy HH:mm:ss\")</code>."}
+      ],
+      task:"Erzeuge <code>LocalDate.of(1980,7,31)</code>, gib <code>getDayOfWeek()</code> aus, berechne <code>plusYears(50)</code> und vergleiche zwei Daten mit <code>isAfter</code>/<code>isBefore</code>. Formatiere ein <code>LocalDateTime</code> im Muster oben.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java LocalDate LocalDateTime deutsch\u201c / „java.time Tutorial\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} }
+  ]},
+
+  { satz:"Satz 6", titel:"Threads & Klausur-Simulation", poms:[
+    { theme:"Thema 12 · Threads", title:"Threads erzeugen, Lebenszyklus & join()",
+      intro:"Ein Thread ist ein leichtgewichtiger Prozess im Programm; mehrere laufen parallel. Erzeugen kannst du sie über <code>Thread</code>-Vererbung, <code>Runnable</code> (empfohlen) oder ein Lambda. <code>join()</code> wartet auf Fertigstellung.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Lebenszyklus: <code>new</code> → <code>start()</code> → runnable → <code>run()</code> läuft → terminiert (dazwischen blockiert durch sleep/wait/join/I/O)."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>run()</code> direkt aufrufen startet <strong>keinen</strong> neuen Thread – nur <code>start()</code> tut das. <code>join()</code> erzwingt sequenzielle Reihenfolge."}
+      ],
+      task:"Starte zwei Threads per Lambda; lass den ersten mit <code>addThread.join()</code> fertiglaufen, bevor der zweite startet. Erkläre, warum der Zähler dann deterministisch ist.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „Java Threads deutsch\u201c / „Runnable Thread Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Thema 12 · Threads", title:"Race Condition, synchronized & Co.",
+      intro:"Greifen zwei Threads gleichzeitig lesend/schreibend auf dieselbe Variable zu, entsteht eine Race Condition mit undefiniertem Ergebnis. <code>synchronized</code> serialisiert den Zugriff.",
+      callouts:[
+        {type:"trap",lbl:"Klausurfalle",text:"Wenn zwei Methoden dieselbe geteilte Variable anfassen, müssen <strong>beide</strong> <code>synchronized</code> sein – sonst stört die unsynchronisierte die synchronisierte."},
+        {type:"merk",lbl:"Merksatz",text:"4 Risiken: <strong>Race Condition</strong> (gleichzeitiger Zugriff), <strong>Deadlock</strong> (gegenseitiges Warten), <strong>Livelock</strong> (ständiger Zustandswechsel ohne Fortschritt), <strong>Starvation</strong> (ein Thread kommt nie dran)."}
+      ],
+      task:"Mach <code>addToCounter</code> und <code>subtractFromCounter</code> beide <code>static synchronized</code>. Erkläre in einem Satz pro Begriff den Unterschied Deadlock vs. Livelock vs. Starvation.",
+      tut:{who:"tm",lbl:"The Morpheus",text:"Suche: „synchronized Java deutsch\u201c / „Race Condition Deadlock Java\u201c.",url:"https://www.youtube.com/@TheMorpheus407"} },
+
+    { theme:"Klausur-Simulation 1", title:"Code schreiben unter Zeitdruck",
+      intro:"Jetzt produktiv: vier typische Schreibaufgaben in 25 Minuten, ohne Hilfsmittel. Erst schreiben, dann gegen die Zusammenfassung kontrollieren. Genau diese Muster tauchen erfahrungsgemäß als Klausuraufgaben auf.",
+      callouts:[
+        {type:"task",lbl:"Aufgabenblock",text:"1) Builder-Klasse komplett aus dem Kopf. 2) <code>equals()</code> + <code>hashCode()</code> korrekt. 3) Stream-Pipeline <code>filter→map→sorted→collect</code>. 4) Zwei <code>synchronized</code>-Methoden auf gemeinsamem Zähler."},
+        {type:"tip",lbl:"Quicktipp",text:"Auf Papier schreiben, nicht in der IDE – das trainiert Syntax-Gedächtnis ohne Autovervollständigung, wie in der Klausur."}
+      ],
+      task:"Setz dir 25 Minuten und schreib alle vier Aufgaben handschriftlich. Danach Abgleich; jeden Syntaxfehler notieren.",
+      tut:{who:"web",lbl:"Selbsttest",text:"Lösungsmuster stehen in den Codeblöcken deiner Zusammenfassung (Builder S.&nbsp;4, equals/hashCode S.&nbsp;12, Streams S.&nbsp;10, synchronized S.&nbsp;18)."} },
+
+    { theme:"Klausur-Simulation 2", title:"Finale Checkliste – die 10 Klausur-Tipps",
+      intro:"Letzter Block: die 10 Kern-Stolperfallen aus deiner Zusammenfassung als finale Selbstkontrolle. Jeden Punkt laut erklären können = bereit. Was hakt, wird die allerletzte Wiederholung vor der Klausur.",
+      callouts:[
+        {type:"merk",lbl:"Die 10 Tipps",text:"Builder · equals+hashCode zusammen · Streams brauchen Terminal · try-with-resources = AutoCloseable · Serializable auch für enthaltene Klassen · Wildcards (extends=lesen/super=schreiben) · synchronized beidseitig · enum-Konstruktor private · clone standard = flach · DOM: Factory→Builder→Document."},
+        {type:"tip",lbl:"Quicktipp",text:"Geh die 10 Punkte durch und vergib dir je eine Ampelfarbe (grün/gelb/rot). Nur die roten/gelben wiederholst du final."}
+      ],
+      task:"Erkläre jeden der 10 Tipps in 1–2 Sätzen aus dem Kopf. Vergib Ampelfarben. Mach aus jedem roten Punkt eine letzte Karteikarte.",
+      tut:{who:"web",lbl:"Quelle",text:"Klausur-Tipps 1–10 auf S.&nbsp;20 deiner Zusammenfassung. Viel Erfolg in der Klausur!"} }
+  ]}
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const TYPE = {tip:{c:"c-tip"},trap:{c:"c-trap"},merk:{c:"c-merk"},task:{c:"c-task"}};
+const WHO = {jk:"jk",tm:"tm",web:"web"};
+const path = document.getElementById("path");
+let counter = 0;
+const allNums = [];
+
+SETS.forEach((set,si)=>{
+  const div = document.createElement("div");
+  div.className="satz";
+  div.innerHTML=`<span class="satz-n">${set.satz}</span><span class="satz-t">${set.titel}</span><span class="satz-line"></span>`;
+  path.appendChild(div);
+
+  set.poms.forEach((p,pi)=>{
+    counter++;
+    const n = counter; allNums.push(n);
+    const card = document.createElement("section");
+    card.className="pom"; card.id="pom-"+n;
+    const callouts = p.callouts.map(c=>
+      `<div class="callout ${TYPE[c.type].c}"><span class="c-lbl">${c.lbl}</span>${c.text}</div>`).join("");
+    const tutLink = p.tut.url ? ` <a href="${p.tut.url}" target="_blank" rel="noopener">↗ öffnen</a>` : "";
+    card.innerHTML=`
+      <div class="p-head">
+        <div class="p-num">${n}<small>POMODORO</small></div>
+        <div class="p-titles">
+          <div class="p-theme">${p.theme}</div>
+          <h3 class="p-title">${p.title}</h3>
+        </div>
+      </div>
+      <p class="p-intro">${p.intro}</p>
+      ${callouts}
+      <div class="callout c-task"><span class="c-lbl">Aufgabe</span>${p.task}</div>
+      <div class="p-foot">
+        <div class="p-tut"><span class="who ${WHO[p.tut.who]}">${p.tut.lbl}</span>${p.tut.text}${tutLink}</div>
+        <label class="check"><input type="checkbox" data-n="${n}"> erledigt</label>
+      </div>`;
+    path.appendChild(card);
+
+    // break marker after each pomodoro (long every 4th)
+    const isLong = (n % 4 === 0);
+    const isLastOverall = (si===SETS.length-1 && pi===set.poms.length-1);
+    if(!isLastOverall){
+      const bm = document.createElement("div");
+      bm.className="brk-mark";
+      bm.innerHTML = isLong
+        ? `<span class="brk-pill brk-long">☕ 30 min lange Pause</span><span class="ln"></span>`
+        : `<span class="brk-pill brk-short">5 min Pause</span><span class="ln"></span>`;
+      path.appendChild(bm);
+    }
+  });
+});
+
+/* ============================================================
+   PROGRESS PERSISTENCE  (window.storage with in-memory fallback)
+   ============================================================ */
+const KEY = "lernpfad-dv:done";
+let done = new Set();
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) JSON.parse(raw).forEach(x=>done.add(Number(x)));
+  }catch(e){ /* localStorage blocked -> in-memory only */ }
+  applyProgress();
+}
+function saveProgress(){
+  try{ localStorage.setItem(KEY, JSON.stringify([...done])); }catch(e){}
+}
+function applyProgress(){
+  document.querySelectorAll('.check input').forEach(cb=>{
+    const n = Number(cb.dataset.n);
+    cb.checked = done.has(n);
+    cb.closest('.pom').classList.toggle('done', cb.checked);
+  });
+  updateBar();
+}
+function updateBar(){
+  const total = allNums.length, d = done.size;
+  document.getElementById('progFill').style.width = (d/total*100)+'%';
+  document.getElementById('progTxt').textContent = d+'/'+total;
+}
+document.addEventListener('change', e=>{
+  if(e.target.matches('.check input')){
+    const n = Number(e.target.dataset.n);
+    e.target.checked ? done.add(n) : done.delete(n);
+    e.target.closest('.pom').classList.toggle('done', e.target.checked);
+    updateBar(); saveProgress();
+  }
+});
+document.getElementById('resetProgress').addEventListener('click', ()=>{
+  done.clear(); applyProgress();
+  try{ localStorage.removeItem(KEY); }catch(e){}
+});
+loadProgress();
+
+/* ============================================================
+   POMODORO TIMER  25 / 5 / (30 every 4th)
+   ============================================================ */
+const DUR = {work:25*60, short:5*60, long:30*60};
+const LABEL = {work:"Fokus", short:"Pause", long:"Lange Pause"};
+let mode="work", remaining=DUR.work, ticking=false, tid=null, workDone=0;
+const CIRC = 2*Math.PI*25; // 157.08
+
+const ringFill=document.getElementById('ringFill');
+const timeTxt=document.getElementById('timeTxt');
+const modeTxt=document.getElementById('modeTxt');
+const cycleTxt=document.getElementById('cycleTxt');
+const startBtn=document.getElementById('startBtn');
+
+function fmt(s){const m=Math.floor(s/60),ss=s%60;return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function renderTimer(){
+  timeTxt.textContent=fmt(remaining);
+  const frac = remaining / DUR[mode];
+  ringFill.style.strokeDashoffset = CIRC*(1-frac);
+  const col = mode==='work' ? '#4338ca' : (mode==='long' ? '#b45309' : '#0f766e');
+  ringFill.style.stroke = col;
+  modeTxt.textContent = LABEL[mode];
+  modeTxt.className = 't-mode' + (mode==='short'?' brk':mode==='long'?' lbrk':'');
+  // cycle dots = work sessions completed within current set of 4
+  const inSet = workDone % 4;
+  let dots='';
+  for(let i=0;i<4;i++){ dots += `<span class="dot ${i<inSet || (mode!=='work'&&i===inSet-0&&false)?'on':''}"></span>`; }
+  // simpler: light up completed work sessions in current group
+  dots='';
+  const lit = (mode==='work') ? inSet : (inSet===0?4:inSet);
+  for(let i=0;i<4;i++) dots+=`<span class="dot ${i<lit?'on':''}"></span>`;
+  cycleTxt.innerHTML = dots;
+}
+function setMode(m){ mode=m; remaining=DUR[m]; renderTimer(); }
+function tick(){
+  remaining--;
+  if(remaining<=0){
+    ping();
+    if(mode==='work'){
+      workDone++;
+      setMode( (workDone%4===0) ? 'long' : 'short' );
+    } else {
+      setMode('work');
+    }
+    renderTimer();
+    return;
+  }
+  renderTimer();
+}
+function start(){ if(ticking)return; ticking=true; startBtn.textContent='Pause'; tid=setInterval(tick,1000); }
+function pause(){ ticking=false; startBtn.textContent='Start'; clearInterval(tid); }
+startBtn.addEventListener('click', ()=> ticking?pause():start());
+document.getElementById('resetBtn').addEventListener('click', ()=>{ pause(); workDone=0; setMode('work'); });
+document.getElementById('skipBtn').addEventListener('click', ()=>{
+  if(mode==='work'){ workDone++; setMode(workDone%4===0?'long':'short'); }
+  else setMode('work');
+});
+
+// gentle audio ping (only after user has interacted -> allowed)
+let actx=null;
+function ping(){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.frequency.value=660; o.type='sine';
+    g.gain.setValueAtTime(0.0001,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.2,actx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.6);
+    o.start(); o.stop(actx.currentTime+0.62);
+  }catch(e){}
+}
+renderTimer();
+</script>
+</body>
+</html>

@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathe-Klausur Guide · Analysis</title>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      packages: {'[+]': ['ams']}
+    },
+    chtml: { scale: 1.0 },
+    startup: {
+      ready() {
+        MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(function () {
+          if (window.__fitMath) window.__fitMath(false);
+        });
+      }
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+<script>
+  /* Passt jede Formel an die verfügbare Breite an:
+     - am Bildschirm an die Breite ihrer Spalte/ihres Kastens
+     - im Druck an die A4-Spaltenbreite
+     Zu breite Formeln werden proportional verkleinert, statt zu scrollen oder abgeschnitten zu werden. */
+  (function () {
+    var PRINT_W = 680; // nutzbare Breite einer A4-Spalte in px (210mm - 2x14mm Rand)
+    function fitMath(forPrint) {
+      var nodes = document.querySelectorAll('mjx-container');
+      for (var i = 0; i < nodes.length; i++) {
+        var c = nodes[i];
+        c.style.fontSize = ''; // erst zurücksetzen, dann frisch messen
+        var math = c.querySelector('mjx-math') || c;
+        var natural = math.getBoundingClientRect().width; // Eigenbreite der Formel
+        if (!natural) continue;
+        var avail;
+        if (forPrint) {
+          avail = PRINT_W;
+        } else {
+          var p = c.parentElement;
+          avail = p ? p.clientWidth : natural; // tatsächliche Breite der Spalte/des Kastens
+        }
+        if (avail > 0 && natural > avail) {
+          var scale = Math.max(0.5, (avail / natural) * 0.96);
+          c.style.fontSize = (scale * 100).toFixed(1) + '%';
+        }
+      }
+    }
+    window.__fitMath = fitMath;
+
+    // Nach jedem Layout-Wechsel am Bildschirm neu anpassen (Fenstergröße, Spaltenumbruch bei 720px)
+    var t;
+    window.addEventListener('resize', function () {
+      clearTimeout(t);
+      t = setTimeout(function () { fitMath(false); }, 120);
+    });
+    window.addEventListener('load', function () { fitMath(false); });
+
+    // Druck: an A4 anpassen, danach wieder an den Bildschirm
+    window.addEventListener('beforeprint', function () { fitMath(true); });
+    window.addEventListener('afterprint', function () { fitMath(false); });
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#191d2b;
+    --ink-soft:#454b5e;
+    --paper:#fbfaf6;
+    --line:#e4e0d6;
+
+    --amber:#e08a1e;
+    --amber-bg:#fdf3e1;
+    --amber-edge:#f3d9a8;
+
+    --indigo:#3a4cf0;
+    --indigo-bg:#eef0ff;
+    --indigo-edge:#c5ccff;
+
+    --green:#179a5c;
+    --green-bg:#e9faf0;
+    --green-edge:#b5e8cd;
+
+    --red:#d4452f;
+    --red-bg:#fdecea;
+  }
+
+  *{box-sizing:border-box;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    word-wrap: break-word;
+  }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:48px 28px 90px; }
+
+  .toolbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    gap:16px; flex-wrap:wrap;
+    background:rgba(251,250,246,.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:12px 28px;
+  }
+  .toolbar .brand{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+  .printbtn{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.06em;
+    background:var(--ink); color:#fff; border:none; border-radius:8px;
+    padding:9px 16px; cursor:pointer; transition:transform .12s ease, opacity .12s;
+  }
+  .printbtn:hover{ transform:translateY(-1px); opacity:.9; }
+  .printbtn:focus-visible{ outline:3px solid var(--indigo); outline-offset:2px; }
+
+  .cover{ padding:18px 0 8px; }
+  .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--indigo); margin:0 0 14px; }
+  h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(40px,7vw,76px); line-height:.98; letter-spacing:-.02em;
+    margin:0 0 6px;
+  }
+  h1 .sub{ display:block; color:var(--indigo); }
+  .tag{ color:var(--ink-soft); font-size:18px; max-width:54ch; margin:14px 0 0; }
+
+  .legend{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px; }
+  .chip{ border:1px solid var(--line); border-radius:14px; padding:16px 16px 15px; background:#fff; }
+  .chip .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  .chip .dot{ width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .chip p{ margin:9px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
+  .chip.a .lbl{ color:var(--amber); } .chip.a .dot{ background:var(--amber); }
+  .chip.k .lbl{ color:var(--indigo); } .chip.k .dot{ background:var(--indigo); }
+  .chip.b .lbl{ color:var(--green); } .chip.b .dot{ background:var(--green); }
+
+  .vorwort{ margin-top:34px; }
+  .vorwort h2{ font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); font-weight:600; margin:0 0 12px; }
+  .vorwort p{ margin:0 0 14px; }
+
+  hr.div{ border:none; border-top:1px solid var(--line); margin:46px 0; }
+
+  .aufgabe{
+    position:relative;
+    border-left:3px solid var(--indigo);
+    padding:6px 0 8px 34px;
+    margin:0 0 8px;
+  }
+  .aufgabe + .aufgabe{ margin-top:0; }
+  .a-head{ display:flex; align-items:center; gap:18px; margin:18px 0 18px -52px; }
+  .a-num{
+    flex:none;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--indigo); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px;
+    box-shadow:0 0 0 6px var(--paper);
+  }
+  .a-titles .ey{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--indigo); }
+  .a-titles h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30px; letter-spacing:-.01em; margin:2px 0 0; }
+
+  h3{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; margin:26px 0 10px; }
+  h4{ font-family:'Inter',sans-serif; font-weight:700; font-size:15px; margin:18px 0 6px; }
+  p{ margin:0 0 12px; }
+  .muted{ color:var(--ink-soft); }
+  strong{ font-weight:700; }
+
+  .erklaer{
+    background:var(--amber-bg);
+    border:1px solid var(--amber-edge);
+    border-left:5px solid var(--amber);
+    border-radius:14px;
+    padding:18px 20px 18px 20px;
+    margin:6px 0 8px;
+    display:flex; gap:14px;
+  }
+  .erklaer .ico{ font-size:24px; line-height:1.2; flex:none; }
+  .erklaer .body{ flex:1; }
+  .erklaer p:last-child{ margin-bottom:0; }
+
+  .grid{ display:grid; grid-template-columns:1.35fr 1fr; gap:22px; margin:18px 0; align-items:start; }
+  
+  .weg, .safe { min-width: 0; } 
+  
+  .weg h3:first-child, .weg h4:first-child{ margin-top:0; }
+
+  .safe{
+    background:var(--indigo-bg);
+    border:1px solid var(--indigo-edge);
+    border-radius:14px;
+    position:relative;
+    background-image:
+      linear-gradient(var(--indigo-bg),var(--indigo-bg)),
+      linear-gradient(rgba(58,76,240,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(58,76,240,.07) 1px, transparent 1px);
+    background-size:100% 100%, 22px 22px, 22px 22px;
+    background-blend-mode:normal;
+  }
+  .safe .safe-head{
+    background:var(--indigo); color:#fff;
+    border-radius: 13px 13px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:9px 16px; display:flex; align-items:center; gap:8px;
+  }
+  .safe .safe-body{ 
+    padding:14px 16px 14px; 
+    overflow:visible; 
+  }
+  .safe ol{ margin:2px 0 12px; padding-left:20px; }
+  .safe li{ margin:0 0 10px; }
+  .safe p{ margin:0 0 10px; }
+  .safe p:last-child { margin-bottom: 0; }
+  .safe .note{ font-size:13.5px; color:var(--ink-soft); }
+
+  .ref{
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:6px 20px; margin:16px 0;
+    overflow:visible;
+  }
+  .ref .rule{ padding:11px 0; border-bottom:1px dashed var(--line); }
+  .ref .rule:last-child{ border-bottom:none; }
+  .ref .rname{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--indigo); display:block; margin-bottom:3px; }
+
+  .achtung{
+    background:var(--red-bg); border:1px solid #f3c4bc; border-left:5px solid var(--red);
+    border-radius:12px; padding:13px 16px; margin:14px 0; font-size:14.5px;
+  }
+  .achtung b{ color:var(--red); }
+
+  .beispiel{
+    background:var(--green-bg);
+    border:1px solid var(--green-edge);
+    border-radius:16px;
+    margin:22px 0 6px;
+  }
+  .beispiel .b-head{
+    background:var(--green); color:#fff;
+    border-radius: 15px 15px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:10px 20px; display:flex; align-items:center; gap:9px;
+  }
+  .beispiel .b-body{ 
+    padding:6px 22px 14px; 
+    overflow:visible; 
+  }
+  .beispiel .b-body h4{ color:#0d6b3f; }
+  .schritt{ margin:14px 0; }
+  .schritt .stitle{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; letter-spacing:.05em; color:#0d6b3f; text-transform:uppercase; margin-bottom: 6px; }
+  .result{
+    background:#fff; border:1px dashed var(--green); border-radius:10px;
+    padding:8px 16px; margin:8px 0; font-weight:600;
+  }
+
+  mjx-container{ 
+    overflow:visible !important; 
+    max-width: 100%; 
+    padding: 6px 0; 
+  }
+  mjx-container[display="true"]{ margin:10px 0 !important; }
+
+  .cases{ 
+    background:#fff; border:1px solid var(--line); border-radius:10px; 
+    padding:8px 16px; margin:10px 0; 
+    overflow:visible; 
+  }
+
+  footer{ margin-top:60px; padding-top:18px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:720px){
+    .wrap{ padding:30px 16px 70px; }
+    .legend{ grid-template-columns:1fr; }
+    .grid{ grid-template-columns:1fr; }
+    .aufgabe{ padding-left:22px; }
+    .a-head{ margin-left:-40px; gap:12px; }
+    .a-num{ width:44px; height:44px; font-size:20px; }
+    .a-titles h2{ font-size:24px; }
+    body{ font-size:15.5px; }
+  }
+
+  /* ---------- PRINT OPTIMIERUNGEN ---------- */
+  @media print{
+    @page{ size:A4; margin:14mm 14mm 16mm; }
+    html,body{ background:#fff; font-size:10.5pt; line-height:1.4; }
+    .toolbar{ display:none !important; }
+    .wrap{ max-width:none; padding:0; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    /* Jede Aufgabe beginnt auf einer neuen Seite */
+    .aufgabe{
+      break-before:page; page-break-before:always;
+      padding:4px 0 6px 28px;          /* weniger Einzug, damit nichts in den Rand läuft */
+      border-left:2px solid var(--indigo);
+    }
+    #a1{ break-before:auto; page-break-before:auto; }
+
+    /* Aufgaben-Kopf: Kreis nicht in den Seitenrand schieben (sonst angeschnitten) */
+    .a-head{ margin:14px 0 14px -28px; gap:12px; }
+    .a-num{ width:40px; height:40px; font-size:20px; box-shadow:0 0 0 4px #fff; }
+    .a-titles h2{ font-size:22px; }
+
+    /* Deckblatt etwas kompakter */
+    h1{ font-size:34pt; line-height:1; }
+    .tag{ font-size:11.5pt; }
+    .legend{ gap:10px; margin:18px 0 6px; }
+
+    /* KERN-FIX: Das zweispaltige Layout im PDF aufheben ->
+       Rechenweg und Klausur-Safe stehen untereinander und nutzen die VOLLE Seitenbreite.
+       Dadurch sind die Kästen nicht mehr zu schmal und Formeln werden nicht abgeschnitten. */
+    .grid{ grid-template-columns:1fr; gap:12px; margin:12px 0; }
+    .safe .safe-body{ font-size:10pt; }
+
+    /* Boxen NICHT mitten durchschneiden -> möglichst komplett auf EINER Seite halten.
+       Passt eine Box nicht aufs Seitenende, rutscht sie als Ganzes auf die nächste Seite. */
+    .erklaer,.ref,.achtung,.chip,.schritt,.cases,.result,.beispiel,.safe{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    /* Notfall-Ventil: Nur falls eine Box höher als eine ganze Seite ist, darf ihr Innenteil
+       umbrechen — dann aber sauber zwischen ganzen Schritten (Schritte bleiben unzerteilt). */
+    .grid,.weg,.b-body,.safe-body{ break-inside:auto; }
+
+    /* Farbige Kopfzeilen NIE allein am Seitenende stehen lassen ->
+       Kopf bleibt mit dem Anfang seines Inhalts zusammen (keine verwaisten Köpfe mehr) */
+    .b-head,.safe-head{ break-after:avoid; page-break-after:avoid; }
+    .b-body,.safe-body{ break-before:avoid; page-break-before:avoid; }
+    .beispiel .b-body .schritt:first-child,
+    .b-body > p:first-child,
+    .safe-body > *:first-child{ break-before:avoid; page-break-before:avoid; }
+
+    .a-head,h3,h4{ break-after:avoid; }
+    /* Keine einzelnen Zeilen am Seitenanfang/-ende */
+    p,li{ orphans:3; widows:3; }
+
+    /* MathJax für den Druck zähmen; zu breite Formeln werden zusätzlich per Skript passgenau skaliert */
+    mjx-container{ font-size:90%; }
+    mjx-container[display="true"]{ margin:8px 0 !important; }
+
+    /* Keine Scrollbereiche im PDF abschneiden */
+    .safe .safe-body, .beispiel .b-body, .ref, mjx-container, .cases{
+      overflow:visible !important;
+      white-space:normal !important;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+  }
+</style>
+
+<style>
+  /* ---------- BASICS-KASTEN (Formelsammlung) ---------- */
+  .basics{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    margin:0 0 6px;
+    overflow:visible;
+  }
+  .basics .basics-head{
+    background:var(--ink); color:#fff;
+    border-radius:15px 15px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:10px 20px; display:flex; align-items:center; gap:9px;
+  }
+  .basics .basics-body{ padding:14px 22px 18px; overflow:visible; }
+  .basics .basics-intro{ color:var(--ink-soft); font-size:14px; margin:0 0 16px; }
+
+  .bgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; align-items:start; }
+  .bcard{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 16px 13px;
+    background:var(--paper);
+    min-width:0;
+    overflow:visible;
+  }
+  .bcard .bcard-h{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700;
+    color:var(--indigo); margin:0 0 7px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .bcard .bcard-h::before{
+    content:""; width:9px; height:9px; border-radius:3px; background:var(--indigo); display:inline-block; flex:none;
+  }
+  .bcard .f{ margin:0; padding:4px 0; line-height:1.5; }
+  .bcard .f + .f{ border-top:1px dashed var(--line); }
+  .bcard .sub{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin:11px 0 1px;
+  }
+  /* dezentes Hervorheben der ergänzten tan-Formeln */
+  .bcard .f.tan-neu{
+    background:var(--indigo-bg); border:1px solid var(--indigo-edge); border-radius:8px;
+    padding:5px 10px; margin:5px 0; position:relative;
+  }
+  .bcard .f.tan-neu + .f{ border-top:none; }
+  .bcard .f.tan-neu .neu{
+    font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+    color:#fff; background:var(--indigo); border-radius:5px; padding:1px 5px; margin-left:8px; vertical-align:middle;
+  }
+
+  @media (max-width:720px){
+    .bgrid{ grid-template-columns:1fr; }
+  }
+
+  @media print{
+    .basics, .bcard{ break-inside:avoid; page-break-inside:avoid; }
+    .basics-head{ break-after:avoid; page-break-after:avoid; }
+    .bgrid{ grid-template-columns:repeat(2,1fr); gap:10px; }
+    .bcard .f{ padding:2px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="brand">Analysis · Klausur-Guide</span>
+  <button class="printbtn" onclick="window.print()">Als PDF speichern / drucken</button>
+</div>
+
+<div class="wrap">
+
+  <header class="cover">
+    <p class="eyebrow">Step-by-Step · von Studis für Studis</p>
+    <h1>Mathe-Klausur<span class="sub">Guide — Analysis</span></h1>
+    <p class="tag">Die komprimierte Anleitung, die dich durch diesen Brecher von einer Klausur bringt. Aufgabe für Aufgabe, in genau der Reihenfolge, in der sie in der Prüfung dran sind.</p>
+  </header>
+
+  <div class="legend" aria-label="So liest du den Guide">
+    <div class="chip a">
+      <span class="lbl"><span class="dot"></span>Erklärkasten</span>
+      <p>Lockere Einleitung: <em>Was mache ich hier und warum?</em> Lies das zuerst, dann ergibt der Rest Sinn.</p>
+    </div>
+    <div class="chip k">
+      <span class="lbl"><span class="dot"></span>Klausur-Safe</span>
+      <p>Der blaue Block rechts. Genau das — Formeln, Sätze, Annotationen — gehört aufs Klausurblatt.</p>
+    </div>
+    <div class="chip b">
+      <span class="lbl"><span class="dot"></span>Beispiel</span>
+      <p>Eine echte Aufgabe, Schritt für Schritt durchgerechnet. So sieht's am Ende auf dem Papier aus.</p>
+    </div>
+  </div>
+
+  <section class="vorwort">
+    <h2>Vorwort</h2>
+    <p>Liebe Kommilitoninnen und Kommilitonen,</p>
+    <p>das hier ist eine Step-by-Step-Anleitung, um euch durch diesen Brecher von einer Mathe-Klausur zu bringen. Es hat extrem viel Zeit, Nerven und unzählige vollgekritzelte Papierstapel gekostet, die Themengebiete so weit zu komprimieren und auf das absolut Wesentliche herunterzubrechen.</p>
+    <p>Im Gegenzug bitte ich euch nur um eines: Nehmt euch das bisschen Zeit, diesen Guide vor der Klausur wirklich einmal in Ruhe durchzulesen — damit wir am Ende gemeinsam unseren Bachelor schaffen!</p>
+
+    <h2 style="margin-top:26px">So ist der Guide aufgebaut</h2>
+    <p>Die Anleitung läuft <strong>chronologisch wie die Klausur selbst</strong>: Aufgabe&nbsp;1 hier entspricht thematisch Aufgabe&nbsp;1 in der Prüfung, Aufgabe&nbsp;2 der Aufgabe&nbsp;2 und so weiter. Ihr könnt euch also in der Prüfung Schritt für Schritt an diesem Guide entlanghangeln — folgt einfach der blauen Linie am linken Rand von Station zu Station.</p>
+    <p>Jede Aufgabe folgt dabei immer demselben Dreierschema, das ihr oben in der Legende seht:</p>
+    <p style="margin-bottom:6px"><strong style="color:var(--amber)">① Erklärkasten</strong> — die lockere Einleitung zum Reinkommen. <strong style="color:var(--indigo)">② Klausur-Safe</strong> — der blaue Kasten neben dem Rechenweg, in dem <em>exakt</em> das steht, was zwingend aufs Blatt muss (Formeln, Sätze, „so markierst du das für den Korrektor"). <strong style="color:var(--green)">③ Beispiel</strong> — eine komplette Aufgabe, sauber durchgerechnet.</p>
+    <p class="muted">Dieser Guide orientiert sich strukturell an der Probeklausur sowie den Altklausuren 25_1, 25_2 und 26_1 von Prof.&nbsp;Dr.&nbsp;Breuning. Da diese in der Vergangenheit 1:1 gleich aufgebaut waren, ist die Wahrscheinlichkeit hoch, dass unsere Klausur demselben Muster folgt. Trotzdem gilt natürlich: alles ohne Gewähr! Viel Erfolg beim Lernen.</p>
+  </section>
+
+  <hr class="div">
+
+  <section class="basics">
+    <div class="basics-head"><span>∑</span> Basics · Formelsammlung</div>
+    <div class="basics-body">
+      <p class="basics-intro">Das absolute Grundwerkzeug — Potenz-, Logarithmus- und Ableitungsregeln, Integrale und die wichtigsten Standardgrenzwerte. Diese Sachen sollten so sitzen, dass du sie ohne Nachdenken hinschreibst, denn sie tauchen in fast jeder Aufgabe wieder auf. <strong>Erinnerung:</strong> steht irgendwo $\log(x)$ ohne Basis, ist immer $\ln(x)$ gemeint.</p>
+
+      <div class="bgrid">
+
+        <div class="bcard">
+          <div class="bcard-h">Potenzgesetze</div>
+          <p class="f">$a^m\cdot a^n = a^{m+n}$</p>
+          <p class="f">$\dfrac{a^m}{a^n} = a^{m-n}$</p>
+          <p class="f">$(a^m)^n = a^{mn}$</p>
+          <p class="f">$a^{-n} = \dfrac{1}{a^n}$</p>
+          <p class="f">$a^{\frac{m}{n}} = \sqrt[n]{a^m}$</p>
+        </div>
+
+        <div class="bcard">
+          <div class="bcard-h">Binomische Formeln</div>
+          <p class="f">$(a+b)^2 = a^2 + 2ab + b^2$</p>
+          <p class="f">$(a-b)^2 = a^2 - 2ab + b^2$</p>
+          <p class="f">$(a+b)^3 = a^3 + 3a^2b + 3ab^2 + b^3$</p>
+          <p class="f">$(a-b)^3 = a^3 - 3a^2b + 3ab^2 - b^3$</p>
+          <p class="f">$(a+b)(a-b) = a^2 - b^2$</p>
+        </div>
+
+        <div class="bcard">
+          <div class="bcard-h">Logarithmen</div>
+          <p class="f">$\log(xy) = \log x + \log y$</p>
+          <p class="f">$\log\!\left(\dfrac{x}{y}\right) = \log x - \log y$</p>
+          <p class="f">$\log(x^n) = n\log x$</p>
+          <p class="f">$\log_a(x) = \dfrac{\ln x}{\ln a}$</p>
+          <p class="f">$\ln(e) = 1$</p>
+        </div>
+
+        <div class="bcard">
+          <div class="bcard-h">Ableitungen</div>
+          <p class="f">$(x^n)' = n\,x^{n-1}$</p>
+          <p class="f">$(e^x)' = e^x$</p>
+          <p class="f">$(\ln x)' = \dfrac{1}{x}$</p>
+          <p class="f">$(\sin x)' = \cos x$</p>
+          <p class="f">$(\cos x)' = -\sin x$</p>
+          <p class="f tan-neu">$(\tan x)' = \dfrac{1}{\cos^2 x} = 1 + \tan^2 x$<span class="neu">tan</span></p>
+          <p class="sub">Produktregel</p>
+          <p class="f">$(fg)' = f'g + fg'$</p>
+          <p class="sub">Quotientenregel</p>
+          <p class="f">$\left(\dfrac{f}{g}\right)' = \dfrac{f'g - fg'}{g^2}$</p>
+          <p class="sub">Kettenregel</p>
+          <p class="f">$\big(f(g(x))\big)' = f'(g(x))\cdot g'(x)$</p>
+        </div>
+
+        <div class="bcard">
+          <div class="bcard-h">Integrale</div>
+          <p class="f">$\displaystyle\int x^n\,dx = \dfrac{x^{n+1}}{n+1} + C \quad (n\neq-1)$</p>
+          <p class="f">$\displaystyle\int \dfrac{1}{x}\,dx = \ln|x| + C$</p>
+          <p class="f">$\displaystyle\int e^x\,dx = e^x + C$</p>
+          <p class="f">$\displaystyle\int \sin x\,dx = -\cos x + C$</p>
+          <p class="f">$\displaystyle\int \cos x\,dx = \sin x + C$</p>
+          <p class="f tan-neu">$\displaystyle\int \tan x\,dx = -\ln|\cos x| + C$<span class="neu">tan</span></p>
+          <p class="sub">Partielle Integration</p>
+          <p class="f">$\displaystyle\int uv' = uv - \int u'v$</p>
+        </div>
+
+        <div class="bcard">
+          <div class="bcard-h">Substitution</div>
+          <p class="f">$u = g(x), \quad du = g'(x)\,dx$</p>
+          <p class="f">$\displaystyle\int f(g(x))\,g'(x)\,dx = \int f(u)\,du$</p>
+          <p class="sub">Standardgrenzwerte</p>
+          <p class="f">$\displaystyle\lim_{x\to0}\dfrac{\sin x}{x} = 1$</p>
+          <p class="f">$\displaystyle\lim_{x\to0}\dfrac{e^x - 1}{x} = 1$</p>
+          <p class="f">$\displaystyle\lim_{x\to0}\dfrac{\ln(1+x)}{x} = 1$</p>
+          <p class="sub">L'Hospital · für $\tfrac00$ oder $\tfrac{\infty}{\infty}$</p>
+          <p class="f">$\displaystyle\lim\dfrac{f(x)}{g(x)} = \lim\dfrac{f'(x)}{g'(x)}$</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <section class="aufgabe" id="a1">
+    <div class="a-head">
+      <div class="a-num">1</div>
+      <div class="a-titles"><div class="ey">Aufgabe 1</div><h2>Ableitungen</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Achtet immer auf das angegebene <strong>Intervall</strong> — es sagt euch, was ihr für $x$ einsetzen dürft. Runde Klammern (oder eckige falschherum) bedeuten: die Grenze ist <strong>exklusiv</strong> und darf nicht eingesetzt werden. Eckige Klammern heißen: <strong>inklusiv</strong>. Beispiel: $x \in (0,\infty)$.</p>
+        <p>Und ganz wichtig fürs ganze Heft: Steht irgendwo $\log(x)$ <em>ohne</em> Basis, ist immer der natürliche Logarithmus $\ln(x)$ gemeint.</p>
+      </div>
+    </div>
+
+    <h3>Die sieben Ableitungsregeln</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">1 · Konstantenregel</span>$f(x)=c \;\implies\; f'(x)=0$</div>
+      <div class="rule"><span class="rname">2 · Potenzregel</span>$f(x)=x^n \;\implies\; f'(x)=n\cdot x^{\,n-1}$</div>
+      <div class="rule"><span class="rname">3 · Faktorregel</span>$f(x)=c\cdot g(x) \;\implies\; f'(x)=c\cdot g'(x)$</div>
+      <div class="rule"><span class="rname">4 · Summen- &amp; Differenzenregel</span>$f(x)=g(x)\pm h(x) \;\implies\; f'(x)=g'(x)\pm h'(x)$</div>
+      <div class="rule"><span class="rname">5 · Produktregel</span>$f(x)=u(x)\cdot v(x) \;\implies\; f'(x)=u'(x)\,v(x)+u(x)\,v'(x)$</div>
+      <div class="rule"><span class="rname">6 · Quotientenregel</span>$f(x)=\dfrac{u(x)}{v(x)} \;\implies\; f'(x)=\dfrac{u'(x)\,v(x)-u(x)\,v'(x)}{\big(v(x)\big)^2}$</div>
+      <div class="rule"><span class="rname">7 · Kettenregel</span>$f(x)=u\big(v(x)\big) \;\implies\; f'(x)=u'\big(v(x)\big)\cdot v'(x)$</div>
+    </div>
+
+    <h4>Wichtige Standard-Ableitungen &amp; Umschreibe-Hilfen</h4>
+    <div class="ref">
+      <div class="rule">$(\log x)' = \dfrac{1}{x} \qquad (\sin x)' = \cos x \qquad (\cos x)' = -\sin x$</div>
+      <div class="rule">$\dfrac{1}{x}=x^{-1} \qquad \dfrac{1}{x^2}=x^{-2} \qquad \sqrt{x}=x^{0{,}5}$</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Der $x^x$-Trick: variable Basis &amp; variabler Exponent</h3>
+        <p>Funktionen der Form $f(x)=g(x)^{\,h(x)}$ darf man <strong>niemals</strong> einfach mit der Potenzregel $n\cdot x^{n-1}$ ableiten! Der Trick: Jede positive Größe lässt sich als E-Funktion schreiben, $g(x)=e^{\log(g(x))}$. Daraus folgt für $x^x$:</p>
+        <p>$$x^x = e^{\log(x^x)} = e^{\,x\cdot\log x}$$</p>
+        <p>Hat man die Funktion erst als $f(x)=e^{g(x)}$ stehen, gilt nach der Kettenregel immer:</p>
+        <p>$$f'(x)=f(x)\cdot g'(x)$$</p>
+        <p>Für $x^x$ ist der Exponent $g(x)=x\cdot\log x$, also (Produktregel) $g'(x)=1\cdot\log x + x\cdot\frac1x = \log x + 1$. Damit:</p>
+        <div class="result">$f'(x)=x^x\cdot\big(\log x + 1\big)$</div>
+      </div>
+
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note">So sammelst du die Punkte beim $x^x$-Typ:</p>
+          <ol>
+            <li>Genutzte Rechenregeln <strong>namentlich</strong> nennen (z.&nbsp;B. „Mittels Produktregel:").</li>
+            <li>Den Umschreibe-Schritt sauber als Erstes hinschreiben: $f(x)=x^x=e^{\,x\log x}$.</li>
+            <li>Die Ableitung des Exponenten als übersichtliche Nebenrechnung (NR) deklarieren.</li>
+            <li>Alles in die Hauptformel einsetzen und das Endergebnis <strong>unterstreichen</strong>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispielaufgabe</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Berechne die erste Ableitung von $f:(0,\infty)\to\mathbb{R}$ mit $f(x)=x^{\sin x}$.</p>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Intervall &amp; Log-Voraussetzung</div>
+          <p>Das Intervall $x\in(0,\infty)$ liefert uns $x \gt 0$ frei Haus. Damit dürfen wir den Logarithmus im nächsten Schritt mathematisch sauber benutzen.</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Basis in die E-Funktion umschreiben</div>
+          <p>Wir holen die Variable aus der Basis raus:</p>
+          <p>$$f(x)=x^{\sin x}=e^{\log\left(x^{\sin x}\right)}=e^{\sin x\cdot\log x}$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Nebenrechnung für den Exponenten (Produktregel)</div>
+          <p>Wir nehmen den Exponenten als eigene Funktion $g(x)=\sin x\cdot\log x$ und leiten mit $(u\cdot v)'=u'v+uv'$ ab:</p>
+          <p>$u(x)=\sin x \implies u'(x)=\cos x \qquad v(x)=\log x \implies v'(x)=\tfrac1x$</p>
+          <p>$$g'(x)=\cos x\cdot\log x + \sin x\cdot\tfrac1x$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Zusammenführen über $f'(x)=f(x)\cdot g'(x)$</div>
+          <p>Weil die Ableitung von $e^{g(x)}$ einfach $e^{g(x)}\cdot g'(x)$ ist, setzen wir die Originalfunktion und unsere NR zusammen:</p>
+          <div class="result">$f'(x)=x^{\sin x}\left(\cos x\cdot\log x + \dfrac{\sin x}{x}\right)$</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a2">
+    <div class="a-head">
+      <div class="a-num">2</div>
+      <div class="a-titles"><div class="ey">Aufgabe 2</div><h2>Taylorpolynom</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Beim Taylorpolynom nehmen wir die Funktion und leiten sie so oft ab, wie der Grad hoch ist (meistens 3.&nbsp;Grad). Dann setzen wir den Entwicklungspunkt $x_0$ ein und packen alles in die ausgeschriebene Formel unten. Kurz gesagt: <strong>Ableiten und Copy-Paste!</strong> Wenn ihr am Ende noch Zeit habt, dürft ihr das fertige Polynom etwas zusammenfassen und vereinfachen. Das war's.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h4>1 · Die Zutaten sammeln</h4>
+        <p>Für ein Taylorpolynom 3.&nbsp;Grades brauchst du die Originalfunktion und die ersten <strong>drei</strong> Ableitungen.</p>
+        <h4>2 · Am Entwicklungspunkt auswerten</h4>
+        <p>Du setzt den gegebenen Punkt $x_0$ in die Funktion und in alle Ableitungen ein. Heraus kommen <strong>konkrete Zahlen</strong> (kein $x$ mehr!).</p>
+        <h4>3 · Die Taylor-Formel (ausgeschrieben)</h4>
+        <p>$$T_n(x)=f(x_0)+f'(x_0)(x-x_0)+\frac{f''(x_0)}{2!}(x-x_0)^2+\frac{f'''(x_0)}{3!}(x-x_0)^3+\dots$$</p>
+        <p>Für den 3.&nbsp;Grad umgebrochen für den Druck:</p>
+        <p>$$ \begin{align*} T_3(x) =& f(x_0)+f'(x_0)(x-x_0) \\ &+\frac{f''(x_0)}{2!}(x-x_0)^2+\frac{f'''(x_0)}{3!}(x-x_0)^3 \end{align*} $$</p>
+        <h4>4 · Fakultäten zur Erinnerung</h4>
+        <p>Die Zahlen im Nenner sind die Fakultäten der jeweiligen Ableitung: $\;1!=1,\;\;2!=2,\;\;3!=6,\;\;4!=24.$</p>
+      </div>
+
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <ol>
+            <li><strong>Zwingend</strong> die allgemeine Definition mit Summenzeichen notieren (gibt oft schon einen Teilpunkt): $$T_n(x)=\sum_{k=0}^{n}\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k$$</li>
+            <li>Eine saubere, untereinander geschriebene Liste der Ableitungen und Werte erstellen:
+              <p style="margin:6px 0 0">$k=0:\ f(x)=\cdots \implies f(x_0)=\dots$<br>
+              $k=1:\ f'(x)=\cdots \implies f'(x_0)=\dots$<br>
+              $k=2:\ f''(x)=\cdots \implies f''(x_0)=\dots$<br>
+              $k=3:\ f'''(x)=\cdots \implies f'''(x_0)=\dots$</p>
+            </li>
+            <li>Zahlen einsetzen, Brüche kürzen, finales $T_3(x)$ <strong>unterstreichen</strong>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispielaufgabe</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme das Taylorpolynom 3.&nbsp;Grades von $f(x)=\log(x)$ zum Entwicklungspunkt $x_0=1$.</p>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Allgemeine Formel notieren</div>
+          <p>Als Erstes die formale Definition aufs Blatt:</p>
+          <p>$$T_n(x)=\sum_{k=0}^{n}\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Dreimal ableiten und bei $x_0=1$ auswerten</div>
+          <p>Achtung: Uni-Schreibweise, $\log(x)$ ist der natürliche Logarithmus. Wir leiten dreimal ab und setzen sofort $x_0=1$ ein:</p>
+          <p>$k=0:\ f(x)=\log x \implies f(1)=0$<br>
+          $k=1:\ f'(x)=\tfrac1x=x^{-1} \implies f'(1)=1$<br>
+          $k=2:\ f''(x)=-1\cdot x^{-2}=-\tfrac{1}{x^2} \implies f''(1)=-1$<br>
+          $k=3:\ f'''(x)=(-1\cdot-2)\,x^{-3}=\tfrac{2}{x^3} \implies f'''(1)=2$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · In die Taylor-Formel einsetzen</div>
+          <p>Das $x$ bleibt unangetastet, für $x_0$ setzen wir die $1$ ein:</p>
+          <p>$$ \begin{align*} T_3(x)=& 0+1\cdot(x-1) \\ &+\frac{-1}{2!}(x-1)^2+\frac{2}{3!}(x-1)^3 \end{align*} $$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Fakultäten auflösen und kürzen</div>
+          <p>Mit $2!=2$ und $3!=6$ vereinfachen sich die Brüche:</p>
+          <p>$$T_3(x)=(x-1)-\frac12(x-1)^2+\frac{2}{6}(x-1)^3$$</p>
+          <div class="result">$T_3(x)=(x-1)-\dfrac12(x-1)^2+\dfrac13(x-1)^3$</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a3">
+    <div class="a-head">
+      <div class="a-num">3</div>
+      <div class="a-titles"><div class="ey">Aufgabe 3</div><h2>de l'Hospital</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🚑</div>
+      <div class="body">
+        <p>Wir sollen einen Grenzwert berechnen, aber beim bloßen Einsetzen kommt mathematischer Quatsch wie „unendlich minus unendlich" oder „null durch null" heraus. Hier rettet uns de l'Hospital: Wir formen den Ausdruck zuerst immer zu <em>einem einzigen Bruch</em> um. Sobald wir beim Einsetzen die Form $\tfrac00$ oder $\tfrac{\infty}{\infty}$ haben, leiten wir Zähler und Nenner <em>getrennt</em> voneinander ab. Das wiederholen wir, bis eine normale Zahl rauskommt.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h4>1 · Vorbedingung prüfen (ganz wichtig!)</h4>
+        <p>De l'Hospital darf <strong>nur</strong> angewendet werden, wenn der Bruch beim Einsetzen exakt $\tfrac00$ oder $\tfrac{\infty}{\infty}$ ergibt. Manchmal muss man die Formel in den Klammern vorher umformen oder erweitern, damit die Bedingung überhaupt erfüllt ist.</p>
+        <h4>2 · Umformen vor dem Ableiten</h4>
+        <p>Bei Ausdrücken wie $\infty-\infty$ (oft zwei getrennte Brüche) <strong>zwingend</strong> zuerst auf einen gemeinsamen Nenner bringen, sodass ein einziger Bruch entsteht.</p>
+        <h4>3 · Die l'Hospital-Regel</h4>
+        <p>Gilt die Vorbedingung, so ist der Grenzwert der Funktion derselbe wie der Grenzwert ihrer Ableitungen:</p>
+        <p>$$\lim_{x\to a}\frac{f(x)}{g(x)}=\lim_{x\to a}\frac{f'(x)}{g'(x)}$$</p>
+        <h4>4 · Keine Quotientenregel!</h4>
+        <div class="achtung"><b>Größte Fehlerquelle:</b> Zähler und Nenner werden völlig <b>separat</b> abgeleitet — nicht mit der Quotientenregel!</div>
+      </div>
+
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <ol>
+            <li><strong>Voraussetzung benennen:</strong> Bevor du ableitest, schreib zwingend hin, warum du es darfst — z.&nbsp;B. „Da Form $\tfrac00$, Anwendung von l'Hospital erlaubt".</li>
+            <li><strong>Den l'Hospital-Schritt markieren:</strong> Mach über das Gleichheitszeichen ein „L'H", damit der Korrektor sieht, dass hier keine normale Umformung passiert: $$\dots \stackrel{\text{L'H}}{=} \lim_{x\to a}\dots$$</li>
+            <li>Zähler und Nenner sauber in Nebenrechnungen (NR) ableiten, um Flüchtigkeitsfehler im großen Bruch zu vermeiden.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispielaufgabe</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme den Grenzwert $\displaystyle\lim_{x\to0}\left(\frac1x-\frac{1}{\log(1+x)}\right)$.</p>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Einsetzen und Problem erkennen</div>
+          <p>Setzen wir $x=0$ ein, erhalten wir $\tfrac10-\tfrac10$, also die Form $\infty-\infty$. Hier dürfen wir l'Hospital noch <strong>nicht</strong> anwenden — erst auf einen Hauptnenner bringen!</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Auf einen Hauptnenner bringen</div>
+          <p>Über Kreuz erweitern:</p>
+          <p>$$\lim_{x\to0}\frac{\log(1+x)-x}{x\cdot\log(1+x)}$$</p>
+          <p>Einsetzen liefert oben $\log(1)-0=0$ und unten $0\cdot\log(1)=0$. Form $\tfrac00$ — jetzt dürfen wir!</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Erste Anwendung von l'Hospital</div>
+          <p>Zähler ($u$) und Nenner ($v$) separat ableiten — beim Nenner Produktregel:</p>
+          <p>$u'(x)=\dfrac{1}{1+x}-1$<br>
+          $v'(x)=1\cdot\log(1+x)+x\cdot\dfrac{1}{1+x}=\log(1+x)+\dfrac{x}{1+x}$</p>
+          <p>$$\lim_{x\to0}\frac{\log(1+x)-x}{x\log(1+x)}\stackrel{\text{L'H}}{=}\lim_{x\to0}\frac{\frac{1}{1+x}-1}{\log(1+x)+\frac{x}{1+x}}$$</p>
+          <p>Einsetzen: oben $1-1=0$, unten $0+0=0$. Wieder $\tfrac00$ — also ein zweites Mal!</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Zweite Anwendung von l'Hospital</div>
+          <p>Noch einmal ableiten (für den rechten Teil des Nenners brauchen wir die Quotientenregel):</p>
+          <p>$u''(x)=-\dfrac{1}{(1+x)^2}$</p>
+          <p>$$ v''(x)=\dfrac{1}{1+x}+\dfrac{1\cdot(1+x)-x\cdot1}{(1+x)^2} $$
+          $$=\dfrac{1}{1+x}+\dfrac{1}{(1+x)^2}$$</p>
+          <p>$$\dots\stackrel{\text{L'H}}{=}\lim_{x\to0}\frac{-\frac{1}{(1+x)^2}}{\frac{1}{1+x}+\frac{1}{(1+x)^2}}$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 5 · Finales Einsetzen</div>
+          <p>Jetzt können wir endlich die $0$ einsetzen, ohne dass es kracht:</p>
+          <p>Zähler: $-\dfrac{1}{1^2}=-1 \qquad$ Nenner: $\dfrac{1}{1}+\dfrac{1}{1^2}=2$</p>
+          <div class="result">$\displaystyle\lim_{x\to0}\left(\frac1x-\frac{1}{\log(1+x)}\right)=-\frac12$</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispielaufgabe · die „hoch"-Falle</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme den Grenzwert $\displaystyle\lim_{x\to0}\left(\frac{\sin x}{x}\right)^{\frac{1}{x^2}}$.</p>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Einsetzen und Problem erkennen</div>
+          <p>Beim Einsetzen geht die Basis $\tfrac{\sin x}{x}\to1$ (Standardgrenzwert!) und der Exponent $\tfrac{1}{x^2}\to\infty$. Das ergibt die Form $1^{\infty}$ — ein <strong>unbestimmter Ausdruck</strong>, der hier raffinierter ist als $\tfrac00$.</p>
+          <p><em>Der Trick bei „etwas hoch etwas":</em> Wir können l'Hospital nicht direkt auf eine Potenz loslassen. Also <strong>logarithmieren</strong> wir zuerst — dann wird aus dem Exponenten ein Faktor, und wir landen wieder bei einem Bruch.</p>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Logarithmieren und auf einen Bruch bringen</div>
+          <p>Wir setzen $\;y=\left(\dfrac{\sin x}{x}\right)^{1/x^2}\;$ und ziehen den $\ln$, wobei der Exponent nach dem Logarithmusgesetz nach vorne wandert:</p>
+          <p>$$\ln y = \frac{1}{x^2}\cdot\ln\!\left(\frac{\sin x}{x}\right) = \frac{\ln\!\left(\frac{\sin x}{x}\right)}{x^2}$$</p>
+          <p>Einsetzen liefert oben $\ln(1)=0$ und unten $0$. Form $\tfrac00$ — <strong>jetzt</strong> dürfen wir l'Hospital anwenden!</p>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Erste Anwendung von l'Hospital</div>
+          <p>Zähler und Nenner getrennt ableiten. Den Zähler schreiben wir als $\ln(\sin x)-\ln(x)$, dann ist die Ableitung bequem:</p>
+          <p>$u'(x)=\dfrac{\cos x}{\sin x}-\dfrac{1}{x}=\dfrac{x\cos x-\sin x}{x\sin x}$<br>
+          $v'(x)=2x$</p>
+          <p>$$\ln y \stackrel{\text{L'H}}{=} \lim_{x\to0}\frac{\frac{x\cos x-\sin x}{x\sin x}}{2x}=\lim_{x\to0}\frac{x\cos x-\sin x}{2x^2\sin x}$$</p>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Mit dem Standardgrenzwert vereinfachen</div>
+          <p>Bevor wir nochmal ableiten, machen wir uns das Leben leichter: Im Nenner steckt $\tfrac{\sin x}{x}\to1$. Wir schreiben $2x^2\sin x = 2x^3\cdot\tfrac{\sin x}{x}$ und ersetzen den hinteren Faktor durch seinen Grenzwert $1$:</p>
+          <p>$$\ln y = \lim_{x\to0}\frac{x\cos x-\sin x}{2x^3}\cdot\underbrace{\frac{x}{\sin x}}_{\to\,1}=\lim_{x\to0}\frac{x\cos x-\sin x}{2x^3}$$</p>
+          <p>Einsetzen: oben $0\cdot1-0=0$, unten $0$. Wieder $\tfrac00$ — also ein zweites Mal l'Hospital!</p>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 5 · Zweite Anwendung von l'Hospital</div>
+          <p>Erneut Zähler und Nenner separat ableiten (Zähler mit Produktregel; das $\cos x$ kürzt sich schön weg):</p>
+          <p>$u'(x)=\cos x - x\sin x - \cos x = -x\sin x$<br>
+          $v'(x)=6x^2$</p>
+          <p>$$\dots\stackrel{\text{L'H}}{=}\lim_{x\to0}\frac{-x\sin x}{6x^2}=\lim_{x\to0}\frac{-\sin x}{6x}=-\frac16\cdot\underbrace{\lim_{x\to0}\frac{\sin x}{x}}_{=\,1}=-\frac16$$</p>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 6 · Rücksubstitution (nicht vergessen!)</div>
+          <p>Achtung — wir haben den Grenzwert von $\ln y$ berechnet, nicht von $y$ selbst! Wir müssen den Logarithmus wieder rückgängig machen, also mit $e$ potenzieren:</p>
+          <p>$\ln y \to -\dfrac16 \;\implies\; y \to e^{-1/6}$</p>
+          <div class="result">$\displaystyle\lim_{x\to0}\left(\frac{\sin x}{x}\right)^{\frac{1}{x^2}}=e^{-\frac16}\approx0{,}846$</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a4">
+    <div class="a-head">
+      <div class="a-num">4</div>
+      <div class="a-titles"><div class="ey">Aufgabe 4</div><h2>Integration</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Hier erwarten euch meist zwei Teilaufgaben, in denen wir das Ableiten rückwärts machen (Integrieren). Dafür gibt es drei Werkzeuge: die <strong>Standard-Aufleitung</strong> (das Basis-Werkzeug, das wir immer brauchen), die <strong>partielle Integration</strong> und die <strong>Integration durch Substitution</strong>. Mindestens eine der beiden letzteren werdet ihr sehr wahrscheinlich brauchen — die Frage ist nur, welche und wann?</p>
+        <p>Die Entscheidung ist simpel:</p>
+        <p><strong>Substitution</strong> wählt ihr, wenn ein Faktor im Integral (mindestens fast) die Ableitung eines anderen Teils ist. <em>Faustregel: „Ist das eine die Ableitung vom anderen?"</em></p>
+        <p><strong>Partielle Integration</strong> nutzt ihr bei einem Produkt aus zwei völlig unterschiedlichen Funktionen. <em>Faustregel: „Zwei Fremde treffen sich, und einen davon will ich durch Ableiten loswerden."</em></p>
+      </div>
+    </div>
+
+    <h3>1 · Standard-Stammfunktionen (Aufleitungsregeln)</h3>
+    <p>Wenn du $f(x)$ integrierst, suchst du die Stammfunktion $F(x)$, die abgeleitet wieder $f(x)$ ergibt — also $F'(x)=f(x)$.</p>
+    <div class="ref">
+      <div class="rule"><span class="rname">Potenzregel</span>Exponent um 1 erhöhen, durch den <em>neuen</em> Exponenten teilen: $\;f(x)=x^n \implies F(x)=\frac{1}{n+1}x^{n+1}\;$ (gilt für alle $n\neq-1$)</div>
+      <div class="rule"><span class="rname">Sonderfall $n=-1$</span>$f(x)=\dfrac1x \implies F(x)=\log(|x|)$</div>
+      <div class="rule"><span class="rname">E-Funktion</span>$f(x)=e^x \implies F(x)=e^x$</div>
+      <div class="rule"><span class="rname">Trigonometrie</span>$f(x)=\sin x \implies F(x)=-\cos x \qquad f(x)=\cos x \implies F(x)=\sin x$</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h4>Unbestimmtes Integral (ohne Grenzen)</h4>
+        <p>Hier suchen wir keinen Zahlenwert, sondern die allgemeine Stammfunktion $F(x)$. Vergiss das $+C$ nicht!</p>
+        <p>$$\int f(x)\,dx = F(x)+C$$</p>
+        <h4>Bestimmtes Integral (mit Grenzen $a$ und $b$)</h4>
+        <p>Hier suchen wir am Ende einen konkreten Zahlenwert (die Fläche unter der Kurve). Es gilt „obere Grenze minus untere Grenze":</p>
+        <p>$$\int_a^b f(x)\,dx = \big[F(x)\big]_a^b = F(b)-F(a)$$</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note">Standard-Aufleitung brauchst du <strong>immer</strong> — auch am Ende von partieller Integration und Substitution. Diese vier Regeln sollten blind sitzen:</p>
+          <p>$x^n \to \tfrac{1}{n+1}x^{n+1}\;(n\neq-1)$<br>
+          $\tfrac1x \to \log(|x|)$<br>
+          $e^x \to e^x$<br>
+          $\sin x \to -\cos x,\quad \cos x \to \sin x$</p>
+          <p class="note">Unbestimmt → $+C$. Bestimmt → eckige Klammer, $F(b)-F(a)$.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>2 · Partielle Integration</h3>
+    <div class="grid">
+      <div class="weg">
+        <p>Guck dir die Funktion an: Sie besteht aus zwei Teilen einer Multiplikation. (Tipp: Auch ein Bruch $\tfrac{a}{b}$ ist eine Multiplikation, denn $\tfrac{a}{b}=a\cdot\tfrac1b$.) Wir spalten genau an diesem Malzeichen auf. Konstanten wie $2\cdot\dots$ darfst du einfach ganz nach vorne vor das Integral ziehen.</p>
+        <p>Einen Teil nennen wir $u'$ (den müssen wir <em>aufleiten</em>), den anderen $v$ (den müssen wir <em>ableiten</em>). <strong>Faustregel:</strong> $v$ wird das, was beim Ableiten einfacher wird; $u'$ das, was sich leicht aufleiten lässt. Bastle dir in einer NR alle vier Bausteine $(u,\,u',\,v,\,v')$ zusammen und setze sie ein.</p>
+        <div class="achtung"><b>Achtung:</b> Das Ergebnis rechts vom Gleichheitszeichen hat hinten noch ein Integralzeichen drin — das muss noch per Standard-Aufleitung ausgerechnet werden! Manchmal muss dieser hintere Teil sogar ein zweites Mal partiell integriert werden.</div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note">Unbestimmt (keine Grenzen):</p>
+          <p>$$\int u'(x)\,v(x)\,dx = u(x)\,v(x) - \int u(x)\,v'(x)\,dx$$</p>
+          <p class="note">Bestimmt (mit Grenzen):</p>
+          <p>$$\int_a^b u'(x)\,v(x)\,dx = \big[u(x)\,v(x)\big]_a^b - \int_a^b u(x)\,v'(x)\,dx$$</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · Partielle Integration</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Berechne $\displaystyle\int_0^\pi x\cdot\sin(x)\,dx$.</p>
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Vorbereiten (NR)</div>
+          <p>Wir haben ein Produkt aus $x$ und $\sin x$. Da $x$ beim Ableiten verschwindet, wählen wir es als $v$:</p>
+          <p>$v(x)=x \implies v'(x)=1 \qquad u'(x)=\sin x \implies u(x)=-\cos x$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · In die Formel einsetzen</div>
+          <p>$$\int_0^\pi x\sin x\,dx = \big[-\cos x\cdot x\big]_0^\pi - \int_0^\pi(-\cos x)\cdot1\,dx$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Restliches Integral auflösen</div>
+          <p>Das Minus vorm hinteren Integral ziehen wir raus (Minus mal Minus wird Plus). Die Stammfunktion von $\cos x$ ist $\sin x$:</p>
+          <p>$=\big[-x\cos x\big]_0^\pi + \displaystyle\int_0^\pi\cos x\,dx = \big[-x\cos x\big]_0^\pi + \big[\sin x\big]_0^\pi = \big[-x\cos x + \sin x\big]_0^\pi$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Grenzen einsetzen (obere minus untere)</div>
+          <p>Mit $\cos\pi=-1,\ \sin\pi=0,\ \sin0=0$:</p>
+          <p>$=\big(-\pi\cos\pi+\sin\pi\big)-\big(-0\cdot\cos0+\sin0\big)=\big(-\pi\cdot(-1)+0\big)-(0+0)=\pi-0$</p>
+          <div class="result">$\displaystyle\int_0^\pi x\sin x\,dx = \pi$</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>3 · Integration durch Substitution</h3>
+    <div class="grid">
+      <div class="weg">
+        <p>Substitution heißt: Du schreibst einen komplizierten Teil (meist das „Innere") als neue Variable $z$ um, um das Integral extrem zu vereinfachen. <em>Beispiel:</em> $e^{\sqrt{x}} \implies$ wähle $z=\sqrt{x}$, dann steht da ein viel entspannteres $e^z$. Damit das mathematisch legal ist, geh strikt nach Rezept vor:</p>
+        <p><strong>1. $z$ festlegen:</strong> Wähle den „hässlichen" inneren Teil (z.&nbsp;B. den Exponenten, das unter der Wurzel oder den Nenner) als $z$.</p>
+        <p><strong>2. Ableiten:</strong> Leite $z$ ab. Die Schreibweise als Bruch ist hier extrem wichtig: $\;\frac{dz}{dx}=z'(x)$.</p>
+        <p><strong>3. Nach $dx$ umstellen:</strong> Forme die Gleichung nach $dx$ um (meist tauschst du $dx$ und $z'(x)$ über Kreuz): $\;dx=\frac{dz}{z'(x)}$.</p>
+        <p><strong>4. Einsetzen &amp; Kürzen:</strong> Ersetze im Original-Integral den gewählten Teil durch $z$ und das $dx$ durch deinen neuen Ausdruck.</p>
+        <div class="achtung"><b>Jetzt müssen sich alle restlichen $x$ wegkürzen!</b> Bleibt ein $x$ übrig, hast du entweder falsch gekürzt, das falsche $z$ gewählt — oder du musst doch partiell integrieren.</div>
+        <p><strong>5. Aufleiten:</strong> Jetzt hast du ein simples Integral nur aus $z$ und $dz$. Das leitest du mit den Standardregeln auf.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note"><strong>Unbestimmt:</strong> Nach dem Aufleiten darfst du nicht bei $z$ stehen bleiben — du musst <strong>resubstituieren</strong>! Ersetze $z$ wieder durch den ursprünglichen $x$-Ausdruck.</p>
+          <p class="note"><strong>Bestimmt:</strong> Neue Grenzen berechnen. Setze die alte Unter- und Obergrenze nacheinander für $x$ in deine $z$-Formel ein — die beiden Ergebnisse sind deine neuen $z$-Grenzen (dann ist keine Resubstitution nötig):</p>
+          <p>$$\int_{x=a}^{x=b} f(g(x))\,g'(x)\,dx \;\xrightarrow{\text{Grenzen}}\; \int_{z(a)}^{z(b)} f(z)\,dz$$</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · Substitution</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Berechne $\displaystyle\int_0^1 x\cdot e^{x^2}\,dx$.</p>
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · $z$ festlegen, ableiten, umstellen (NR)</div>
+          <p>Wir sehen eine verschachtelte Funktion $e^{x^2}$ und davor ein $x$ — das ist fast die Ableitung des Exponenten. Perfekt für Substitution! Wir wählen den Exponenten:</p>
+          <p>$z=x^2 \qquad \dfrac{dz}{dx}=2x \qquad dx=\dfrac{dz}{2x}$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Grenzen anpassen</div>
+          <p>Wir verlassen die $x$-Welt und setzen die alten Grenzen in $z=x^2$ ein:</p>
+          <p>$x=0 \implies z=0^2=0 \qquad x=1 \implies z=1^2=1$</p>
+          <p class="muted">(Zufall, dass sie hier gleich bleiben — der Schritt ist trotzdem Pflicht!)</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Einsetzen und das $x$ wegkürzen</div>
+          <p>$$=\int_0^1 x\cdot e^z\cdot\frac{dz}{2x}$$</p>
+          <p>Das $x$ vorne und das $x$ im Nenner kürzen sich exakt weg. Die $\tfrac12$ ziehen wir als Faktor vor:</p>
+          <p>$$=\int_0^1 \frac12\,e^z\,dz$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Aufleiten und ausrechnen</div>
+          <p>Die Stammfunktion von $e^z$ bleibt $e^z$. Wir setzen die <em>neuen</em> Grenzen ein (Erinnerung: $e^0=1$):</p>
+          <p>$=\Big[\tfrac12 e^z\Big]_0^1 = \big(\tfrac12 e^1\big)-\big(\tfrac12 e^0\big)$</p>
+          <div class="result">$\displaystyle\int_0^1 x\,e^{x^2}\,dx = \frac12 e - \frac12$</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a5">
+    <div class="a-head">
+      <div class="a-num">5</div>
+      <div class="a-titles"><div class="ey">Aufgabe 5</div><h2>Kritische Punkte</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Hier wird viel abgeleitet. Wir treffen auf ein neues Zauberzeichen, das „del" $\partial$ — es bedeutet <strong>partiell ableiten</strong>: Wir haben eine Funktion mit mehreren Variablen und leiten nur nach einer ab, während wir die anderen wie Konstanten behandeln. $\partial_1$ ist die erste Ableitung nach der ersten Variablen, $\partial_2$ die nach der zweiten. $\partial_1^2$ ist die zweite Ableitung. Und jetzt wird's bunt: $\partial_1\partial_2$ heißt „erst nach der ersten Variable ableiten, das Ergebnis dann nach der zweiten".</p>
+        <p>Das andere wichtige Zeichen ist „grad" bzw. „nabla", $\operatorname{grad} f(x)$ oder $\nabla f(x)$. Das ist einfach $\nabla f(x)=(\partial_1,\partial_2,\dots,\partial_n)^t$. Das hoch&nbsp;$t$ ist nur für den Prof wichtig — es heißt „transponiert", damit rechnen müssen wir nicht.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h4>0 · Unbekannte eliminieren (optional)</h4>
+        <p>Diesen Schritt kannst du manchmal machen, wenn du drei Unbekannte hast (z.&nbsp;B. $x,y,z$). Klingt drastisch, ist aber einfach: Forme eine Funktion so um, dass eine Variable einzeln auf einer Seite steht und der Rest auf der anderen. Dann setzt du diesen Ausdruck in die ursprüngliche Funktion ein — et voilà, du hast nur noch 2 Unbekannte.</p>
+        <h4>1 · Partielle Ableitungen (Gradient)</h4>
+        <p>Du leitest die Funktion nach einer Variablen ab (z.&nbsp;B. $x$). <strong>Wichtig:</strong> alle anderen Variablen behandelst du dabei wie ganz normale Zahlen! Der Gradient $\nabla f$ sammelt diese Ableitungen kommagetrennt in einem Vektor: $\nabla f(x)=(\partial_1,\partial_2,\dots,\partial_n)^t$.</p>
+        <h4>2 · Kritische Punkte finden (LGS lösen)</h4>
+        <p>Setze alle Ableitungen gleich $0$. Du erhältst ein lineares Gleichungssystem (LGS); löse es (meist per Einsetzungsverfahren), um deinen Punkt $P(x,y,z)$ zu finden.</p>
+        <h4>3 · Die Hesse-Matrix (zweite Ableitungen)</h4>
+        <p>Jetzt leitest du deine ersten Ableitungen <em>nochmal</em> ab und ordnest sie in einer Matrix an — bei 2 Unbekannten 2×2, bei 3 Unbekannten 3×3 (hier im Klausur-Stil $f_{xx}$ statt $\partial_1\partial_1 f$):</p>
+        <p>$$H_f=\begin{pmatrix} f_{xx} & f_{xy} \\ f_{yx} & f_{yy} \end{pmatrix} \quad H_f=\begin{pmatrix} f_{xx} & f_{xy} & f_{xz}\\ f_{yx} & f_{yy} & f_{yz}\\ f_{zx} & f_{zy} & f_{zz} \end{pmatrix}$$</p>
+        <p class="muted">Für $x_0$ setzt du nacheinander deine kritischen Punkte ein.</p>
+        <h4>4 · Auswertung über das Hauptminoren-Kriterium</h4>
+        <p>Um Min / Max / Sattelpunkt zu prüfen, berechnen wir die Determinanten der Teilmatrizen von oben links nach unten rechts: $D_1$ = Zahl oben links, $D_2$ = Determinante der 2×2-Matrix oben links, $D_3$ = Determinante der ganzen 3×3-Matrix.</p>
+      </div>
+
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note"><strong>Ansatz hinschreiben:</strong> $\nabla f(x,y,z)=0$, dann die Gleichungen untereinander:</p>
+          <p>I. $\;f_x(x,y,z)=\dots=0$<br>II. $\;f_y(x,y,z)=\dots=0$<br>III. $\;f_z(x,y,z)=\dots=0$</p>
+          <p class="note"><strong>Punkt angeben:</strong> $\implies P(x_0,y_0,z_0)$ ist kritischer Punkt.</p>
+          <p class="note"><strong>Das Urteil (Hauptminoren):</strong></p>
+          <p>• Alle $D \gt 0 \implies$ <strong>lokales Minimum</strong><br>
+          • Abwechselnd $(-,+,-) \implies$ <strong>lokales Maximum</strong><br>
+          • Sonst (z.&nbsp;B. eine 0 oder anderer Vorzeichenwechsel) $\implies$ <strong>Sattelpunkt</strong></p>
+          <p class="note"><strong>Schlusssatz:</strong> „Da alle Hauptminoren positiv sind, ist $H_f$ positiv definit. Es handelt sich um ein lokales Minimum."</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>Exkurs · Determinanten berechnen</h4>
+    <div class="ref">
+      <div class="rule">Ausgangsmatrix: $H_f=\begin{pmatrix}a&b&c\\d&e&f\\g&h&i\end{pmatrix}$</div>
+      <div class="rule"><span class="rname">$D_1$ — der erste Hauptminor</span>einfach der Wert oben links: $\;D_1=a$</div>
+      <div class="rule"><span class="rname">$D_2$ — der zweite Hauptminor</span>$2\times2$-Block oben links: $\;D_2=\det\begin{pmatrix}a&b\\d&e\end{pmatrix}=(a\cdot e)-(d\cdot b)$</div>
+      <div class="rule"><span class="rname">$D_3$ — der dritte Hauptminor (Regel von Sarrus)</span>$D_3=(a\,e\,i+b\,f\,g+c\,d\,h)-(g\,e\,c+h\,f\,a+i\,d\,b)$</div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispielaufgabe</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme alle kritischen Punkte von $f(x,y,z)=x^2-5x+xy+y^2+y+yz+z^2-4z$ und gib an, ob es sich um ein lokales Minimum, Maximum oder einen Sattelpunkt handelt.</p>
+
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Partielle Ableitungen (Gradient = 0)</div>
+          <p>Nach jeder Variable einzeln ableiten und gleich 0 setzen:</p>
+          <p>I. $\;f_x = 2x-5+y = 0$<br>
+          II. $\;f_y = x+2y+1+z = 0$<br>
+          III. $\;f_z = y+2z-4 = 0$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Gleichungssystem lösen</div>
+          <p>Wir stellen I. und III. so um, dass wir in II. einsetzen können.</p>
+          <p>Aus I.: $\;y=5-2x \qquad$ Aus III.: $\;2z=4-y \implies z=2-0{,}5y$</p>
+          <p>Das $y$ aus I. in die umgestellte III., um $z$ abhängig von $x$ zu bekommen:</p>
+          <p>$z=2-0{,}5\cdot(5-2x)=2-2{,}5+x=x-0{,}5$</p>
+          <p>Jetzt $y$ und $z$ in II. einsetzen:</p>
+          <p>$x+2\cdot(5-2x)+1+(x-0{,}5)=0$<br>
+          $x+10-4x+1+x-0{,}5=0$<br>
+          $-2x+10{,}5=0 \implies 2x=10{,}5 \implies x=5{,}25\ \left(\tfrac{21}{4}\right)$</p>
+          <p>Die fehlenden Werte:</p>
+          <p>$y=5-2\cdot5{,}25=-5{,}5\ \left(-\tfrac{11}{2}\right) \qquad z=5{,}25-0{,}5=4{,}75\ \left(\tfrac{19}{4}\right)$</p>
+          <div class="result">Kritischer Punkt: $P\!\left(5{,}25 \mid -5{,}5 \mid 4{,}75\right)$</div>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Hesse-Matrix aufstellen</div>
+          <p>Die ersten Ableitungen aus Schritt 1 noch einmal ableiten:</p>
+          <p>Von $f_x$: $\;f_{xx}=2,\ f_{xy}=1,\ f_{xz}=0$<br>
+          Von $f_y$: $\;f_{yx}=1,\ f_{yy}=2,\ f_{yz}=1$<br>
+          Von $f_z$: $\;f_{zx}=0,\ f_{zy}=1,\ f_{zz}=2$</p>
+          <p>Da keine Variablen mehr übrig sind, müssen wir den Punkt gar nicht einsetzen (die Krümmung ist überall gleich):</p>
+          <p>$$H_f=\begin{pmatrix}2&1&0\\1&2&1\\0&1&2\end{pmatrix}$$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Hauptminoren auswerten</div>
+          <p>$D_1$ (oben links): $\;2 \gt 0$</p>
+          <p>$D_2$ (2×2 oben links): $\;\det\begin{pmatrix}2&1\\1&2\end{pmatrix}=(2\cdot2)-(1\cdot1)=4-1=3 \gt 0$</p>
+          <p>$D_3$ (ganze 3×3, z.&nbsp;B. per Sarrus oder Laplace): $\;2\cdot(2\cdot2-1\cdot1)-1\cdot(1\cdot2-1\cdot0)+0=2\cdot3-2=4 \gt 0$</p>
+          <div class="result">Da $D_1,D_2,D_3 \gt 0$, ist $H_f$ positiv definit → bei $P(5{,}25 \mid -5{,}5 \mid 4{,}75)$ liegt ein <strong>lokales Minimum</strong>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a6">
+    <div class="a-head">
+      <div class="a-num">6</div>
+      <div class="a-titles"><div class="ey">Aufgabe 6</div><h2>Differenzialgleichung</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Bei Differentialgleichungen suchen wir keine Zahl als Ergebnis, sondern eine ganze <strong>Funktion</strong> $x(t)$. Lasst euch von der Schreibweise nicht verwirren: $t$ ist jetzt unsere normale Variable (früher das $x$) und $x$ ist die gesuchte Funktion (früher das $y$).</p>
+        <p>In der Klausur können euch zwei Situationen treffen: eine <strong>homogene DGL 2.&nbsp;Ordnung</strong> oder eine <strong>inhomogene DGL 1.&nbsp;Ordnung</strong>. Das erkennt ihr daran, was die höchste Ableitung ist (steht da ein $x''$ oder nur ein $x'$?). „Homogen" heißt: rechts vom Gleichheitszeichen steht einfach eine Null. „Inhomogen": da steht noch ein Term mit $t$. Falls mal die einfache <em>homogene DGL 1.&nbsp;Ordnung</em> drankommt, lasst ihr die komplizierten Schritte der inhomogenen Rechnung einfach weg.</p>
+      </div>
+    </div>
+
+    <h3>Fall A · DGL 1. Ordnung &nbsp;<span class="muted" style="font-weight:400">($x'(t)=\dots$)</span></h3>
+    <div class="grid">
+      <div class="weg">
+        <h4>Schritt 0 · Homo oder nicht? (Sortieren)</h4>
+        <p>Zieh alle Summanden, die mit $x(t)$ oder $x'(t)$ multipliziert werden, auf die linke Seite. Alles ohne $x$ (Zahlen oder reine $t$-Terme) kommt nach rechts. (Tipp: manchmal musst du erst ausklammern.) Steht rechts danach exakt $0$ → <strong>homogen</strong>. Bleibt eine Störfunktion (z.&nbsp;B. $e^t$ oder $\sin t$) übrig → <strong>inhomogen</strong>.</p>
+        <h4>Schritt 1 · Homogene Lösung $x_h$</h4>
+        <p>Bei inhomogenen DGL setzen wir die rechte Seite künstlich auf $0$; das Ergebnis heißt $x_h(t)$. (Hattet ihr von Anfang an eine homogene DGL, rechnet ihr einfach mit $x(t)$ und lasst das kleine $h$ weg.) Jetzt $x_h'(t)=\frac{dx_h}{dt}$ schreiben und die Variablen trennen — alles mit $x_h$ (inkl. $dx_h$) nach links, alles mit $t$ (inkl. $dt$) nach rechts. Dann beidseitig integrieren:</p>
+        <p>$$\int\dots\,dx_h=\int\dots\,dt$$</p>
+        <p>Auf der rechten Seite ein $+C$ anhängen und nach $x_h$ auflösen — das ist die homogene Lösung.</p>
+        <h4>Schritt 2 · Partikuläre Rechnung (Variation der Konstanten)</h4>
+        <p class="muted">Nur nötig, wenn die DGL inhomogen war! Folg blind dem Rezept:</p>
+        <p>Nimm $x_h(t)$ und mach aus der Konstante $C$ eine Funktion $C(t)$ — das nennen wir $x_p(t)$. Leite $x_p(t)$ ab (Produktregel!), um $x_p'(t)$ zu bekommen (die Ableitung von $C(t)$ ist einfach $C'(t)$). Setze $x_p$ und $x_p'$ in die <em>ursprüngliche</em> Gleichung ein. Wenn alles stimmt, heben sich alle Terme mit „nacktem" $C(t)$ weg. Übrig bleibt ein Term mit $C'(t)$ und die Störfunktion: nach $C'(t)$ umstellen, beide Seiten integrieren ($\int C'(t)\,dt=C(t)$). Setze das Ergebnis in $x_p(t)$ ein.</p>
+        <p>Die finale Lösung ist die Summe beider Teile:</p>
+        <p>$$x(t)=x_h(t)+x_p(t)$$</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note"><strong>💡 Cheatcode — Konstanten zusammenfassen:</strong></p>
+          <p>Wann immer du verschiedene $C$ auf eine Seite bringst, darfst du sie wild zusammenfassen. $C_1-C_2$ wird ein neues $C$. Auch $e^C$ oder $\sin(C)$ sind nur irgendwelche unbekannten Konstanten — sie verschmelzen alle zu einem simplen $C$.</p>
+          <p class="note"><strong>Warum das beim Log wichtig ist:</strong></p>
+          <p>Integrierst du $\tfrac1x$, kommt $\log(|x|)$ raus. Um an $x$ zu kommen, rechnest du beide Seiten mit $e^{\,\cdots}$. Dann steht oft $|x|=e^{t+C}=e^t\cdot e^C$. Da $e^C$ wieder eine Konstante ist (nennen wir sie $C$) und Konstanten auch negativ sein dürfen, fällt der Betragsstrich weg:</p>
+          <p>$$|x|=e^t\cdot e^C \;\implies\; x(t)=C\cdot e^t$$</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · Inhomogene DGL 1. Ordnung</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme die allgemeine Lösung von $\;x'(t)+2t\cdot x(t)=t\cdot e^{-t^2}$.</p>
+        <div class="schritt">
+          <div class="stitle">Schritt 0 · Homo oder nicht?</div>
+          <p>Alles mit $x$ und $x'$ steht links, der Rest rechts. Rechts steht $t\cdot e^{-t^2}$ — die DGL ist also <strong>inhomogen</strong>.</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Homogene Lösung $x_h$</div>
+          <p>Rechte Seite künstlich auf null, Variablen trennen:</p>
+          <p>$x_h'(t)+2t\cdot x_h(t)=0 \implies \dfrac{dx_h}{dt}=-2t\cdot x_h \implies \dfrac{1}{x_h}\,dx_h=-2t\,dt$</p>
+          <p>Beide Seiten integrieren:</p>
+          <p>$\displaystyle\int\frac{1}{x_h}\,dx_h=\int-2t\,dt \implies \log(|x_h|)=-t^2+C$</p>
+          <p>Mit $e^{\,\cdots}$ auflösen und Cheatcode anwenden:</p>
+          <p>$|x_h|=e^{-t^2+C} \implies x_h(t)=C\cdot e^{-t^2}$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Ansatz für die partikuläre Lösung</div>
+          <p>Aus dem konstanten $C$ machen wir eine Funktion $C(t)$ und leiten mit der Produktregel ab:</p>
+          <p>Ansatz: $\;x_p(t)=C(t)\cdot e^{-t^2}$<br>
+          Ableitung: $\;x_p'(t)=C'(t)\cdot e^{-t^2}+C(t)\cdot(-2t)\cdot e^{-t^2}$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Einsetzen und der magische Moment</div>
+          <p>Ansatz und Ableitung in die ursprüngliche DGL $x'+2tx=te^{-t^2}$ einsetzen:</p>
+          <p>$$ \begin{align*} & \underbrace{C'(t)e^{-t^2}-2t\,C(t)e^{-t^2}}_{=\,x'} \\ &+ \underbrace{2t\,C(t)e^{-t^2}}_{=\,2tx} = t\,e^{-t^2} \end{align*} $$</p>
+          <p>Die beiden $\,-2t\dots$- und $+2t\dots$-Terme heben sich exakt auf. Übrig bleibt:</p>
+          <p>$C'(t)\cdot e^{-t^2}=t\cdot e^{-t^2}$, also durch $e^{-t^2}$ teilen: $\;C'(t)=t$</p>
+          <p>Integrieren: $\;C(t)=\displaystyle\int t\,dt=\tfrac12 t^2$ (das $+C$ können wir uns für die partikuläre Lösung sparen). Einsetzen in den Ansatz:</p>
+          <p>$x_p(t)=\tfrac12 t^2\cdot e^{-t^2}$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Zusammenbauen</div>
+          <p>$x(t)=x_h(t)+x_p(t)=C\cdot e^{-t^2}+\tfrac12 t^2\cdot e^{-t^2}$</p>
+          <div class="result">$x(t)=\left(C+\tfrac12 t^2\right)e^{-t^2}$</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Fall B · Homogene DGL 2. Ordnung &nbsp;<span class="muted" style="font-weight:400">(mit $x''$)</span></h3>
+    <div class="grid">
+      <div class="weg">
+        <p>Form: $a\,x''+b\,x'+c\,x=0$ (manchmal auch $a\,x''=b\,x'+c\,x$). Wir setzen für die Ableitungen ein:</p>
+        <p>$x''\to\lambda^2 \qquad x'\to\lambda \qquad x\to1$</p>
+        <p>Damit erhalten wir das charakteristische Polynom und wenden die pq-Formel an. Dabei kommen entweder zwei reelle, eine doppelte oder zwei komplexe $\lambda$ heraus. Das Ergebnis setzt ihr in die passende charakteristische Formel ein.</p>
+        <p>Ihr bekommt „Anfangsbedingungen" (z.&nbsp;B. $x(1)=3$), mit denen ihr $k_1$ und $k_2$ berechnet. Dann eure $\lambda$- und $k$-Werte in die passende Formel einsetzen — fertig.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note">Charakteristische Formeln je nach Lösungsfall:</p>
+          <p><strong>2 reelle Lösungen:</strong></p>
+          <p>$$x(t)=k_1\,e^{\lambda_1 t}+k_2\,e^{\lambda_2 t}$$</p>
+          <p><strong>1 (doppelte) Lösung:</strong></p>
+          <p>$$x(t)=(k_1\,t+k_2)\,e^{\lambda t}$$</p>
+          <p><strong>Komplexe Lösungen</strong> ($\lambda=a\pm\beta i$):</p>
+          <p>$$x(t)=e^{a t}\big(k_1\cos(\beta t)+k_2\sin(\beta t)\big)$$</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · DGL 2. Ordnung mit Anfangsbedingungen</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Bestimme die Lösung von $\;x''(t)-6x'(t)+9x(t)=0\;$ mit $x(0)=2$ und $x'(0)=5$.</p>
+        <div class="schritt">
+          <div class="stitle">Schritt 1 · Charakteristisches Polynom aufstellen</div>
+          <p>Ableitungen übersetzen: $\;\lambda^2-6\lambda+9=0$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 2 · Nullstellen berechnen (pq-Formel)</div>
+          <p>$\lambda_{1,2}=-\dfrac{-6}{2}\pm\sqrt{\left(\dfrac{-6}{2}\right)^2-9}=3\pm\sqrt{9-9}=3\pm0$</p>
+          <p>Wir haben exakt <strong>1 Lösung</strong> (eine doppelte Nullstelle): $\lambda=3$.</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 3 · Lösungsformel aufstellen</div>
+          <p>Fall „1 Lösung": $\;x(t)=(k_1\,t+k_2)\,e^{3t}$</p>
+          <p>Da auch $x'(0)$ gegeben ist, leiten wir direkt ab (Produktregel!):</p>
+          <p>$x'(t)=k_1\,e^{3t}+(k_1 t+k_2)\cdot3e^{3t}$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 4 · Bedingungen einsetzen ($k_1$ und $k_2$)</div>
+          <p>Wir setzen $t=0$ ein und gleichsetzen:</p>
+          <p>I. $\;x(0)=(k_1\cdot0+k_2)\,e^0=2 \implies k_2\cdot1=2 \implies k_2=2$</p>
+          <p>Mit bekanntem $k_2$ (und $t=0$) in die Ableitung:</p>
+          <p>II. $\;x'(0)=k_1\,e^0+(k_1\cdot0+2)\cdot3e^0=5 \implies k_1+6=5 \implies k_1=-1$</p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Schritt 5 · Finale Lösung</div>
+          <p>$k_1$ und $k_2$ in die allgemeine Gleichung aus Schritt 3 einsetzen:</p>
+          <div class="result">$x(t)=(-1\cdot t+2)\,e^{3t}=(2-t)\,e^{3t}$</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="aufgabe" id="a7">
+    <div class="a-head">
+      <div class="a-num">7</div>
+      <div class="a-titles"><div class="ey">Aufgabe 7</div><h2>Endspurt</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">🧠</div>
+      <div class="body">
+        <p>Diese Aufgabe ist ein kleines Überraschungspaket: In vier Altklausuren gab es drei völlig unterschiedliche Aufgabentypen. Es kann passieren, dass ihr die <strong>Stetigkeit und Differenzierbarkeit</strong> einer Funktion prüfen müsst, dass das <strong>Konvergenzverhalten</strong> einer Reihe/Folge gefragt ist, oder dass ein Mix aus den vorherigen Aufgaben drankommt (z.&nbsp;B. nochmal ein Maximum bestimmen: 1.&nbsp;Ableitung null setzen, 2.&nbsp;Ableitung prüfen). Damit ihr für alle Fälle gerüstet seid, behandeln wir hier nacheinander die Themen, die wir noch nicht hatten.</p>
+      </div>
+    </div>
+
+    <h3>1 · Stetig, differenzierbar, stetig differenzierbar</h3>
+    <div class="grid">
+      <div class="weg">
+        <p>Eine Funktion ist <strong>stetig</strong>, wenn man sie ohne Absetzen zeichnen kann (kein Sprung). Sie ist <strong>differenzierbar</strong>, wenn sie keinen Knick hat. Und sie ist <strong>stetig differenzierbar</strong>, wenn ihre Ableitung stetig ist. Wir müssen uns also nur zwei Dinge angucken — wie zeige ich Stetigkeit und wie Differenzierbarkeit — und für „stetig differenzierbar" machen wir den Stetigkeits-Check einfach nochmal mit der Ableitung.</p>
+        <p>Die Funktion ist mit einer geschweiften Klammer und zwei Teil-Definitionen gegeben, z.&nbsp;B.:</p>
+        <div class="cases">$$f(x)=\begin{cases}|x|^{\alpha+2}\sin(|x|^\alpha) & \text{für } x\neq0\\[2pt] 0 & \text{für } x=0\end{cases}$$</div>
+        <p>Es gibt einen Punkt, ab dem nicht mehr die obere, sondern die untere Definition gilt — hier bei $x=0$, das ist unser <strong>kritischer Punkt</strong>.</p>
+        <p>Um <strong>Stetigkeit</strong> zu zeigen, prüfen wir nur, ob beide Teile am kritischen Punkt denselben Wert liefern (vorausgesetzt, die Teilfunktionen selbst sind stetig).</p>
+        <p>Für <strong>Differenzierbarkeit</strong> leiten wir old-school über die h-Methode bzw. den Differenzialquotienten ab: $\;\displaystyle\lim_{h\to0}\frac{f(x+h)-f(x)}{h}$. Das machst du wieder mit beiden Funktionen — kommt dasselbe raus, ist sie differenzierbar.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note"><strong>Konvergenz</strong> — diese Definition schreibst du einfach ab:</p>
+          <p>„Eine Folge heißt konvergent, wenn es ein $a\in\mathbb{R}$ gibt, sodass gilt: Zu jedem $\varepsilon \gt 0$ gibt es ein $n_0\in\mathbb{N}$, sodass für $n\geq n_0$ gilt $|a_n-a| \lt \varepsilon$."</p>
+          <p>$$\forall\varepsilon \gt 0\;\exists\,n_0\in\mathbb{N}\;\forall n\geq n_0:\;|a_n-a| \lt \varepsilon$$</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>2 · Konvergenzverhalten</h3>
+    <p><strong>Vorwort:</strong> Eine Folge $a_n$ ist eine Abbildung und wird durch ihr Bildungsgesetz $a_n=\dots$ oder durch ihre ersten Glieder angegeben. <strong>Reihen</strong> sind spezielle Folgen, bei denen die Folge aufsummiert wird: $a_n=\sum_{i=0}^{n}\dots$. Allgemein gilt: Eine Folge konvergiert sicher, wenn sie <strong>monoton</strong> und <strong>beschränkt</strong> ist (beide Grenzwerte $\gt-\infty$ und $\lt\infty$).</p>
+
+    <div class="grid">
+      <div class="weg">
+        <h4>So zeigst du Konvergenz einer Folge</h4>
+        <p><strong>Schritt 1 — Beschränktheit (Decke oder Boden):</strong> Beweise, dass die Folge nicht ins Unendliche wächst/fällt. Oft gibt die Aufgabe einen Tipp (z.&nbsp;B. „Zeigen Sie, dass $a_n \lt 2$ gilt"). Sonst rechne dir die ersten drei Werte $a_1,a_2,a_3$ aus und rate eine sinnvolle Grenze. Werkzeug: vollständige Induktion (Anfang bei $a_1$, dann Annahme für $a_n$ in die rekursive Formel, beweise es für $a_{n+1}$).</p>
+        <p><strong>Schritt 2 — Monotonie (immer rauf oder immer runter):</strong> Monoton wachsend $a_{n+1}\geq a_n$, monoton fallend $a_{n+1}\leq a_n$. Werkzeug: wieder Induktion <em>oder</em> (oft leichter) die Differenz $a_{n+1}-a_n$ ausrechnen und durch Umformen zeigen, dass sie immer $\gt0$ (wachsend) bzw. $\lt0$ (fallend) ist.</p>
+        <p><strong>Schritt 3 — Den magischen Satz hinschreiben:</strong> Hast du Schritt 1 und 2 (auch nur teilweise) geschafft, kassierst du Logik-Punkte mit: „Da die Folge $(a_n)$ monoton wachsend und nach oben beschränkt ist, konvergiert sie nach dem Monotoniekriterium gegen einen Grenzwert."</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>✎</span> Klausur-Safe</div>
+        <div class="safe-body">
+          <p class="note"><strong>Konvergenzkriterien für Reihen</strong> — du brauchst nur <em>eines</em>, das eine Aussage liefert:</p>
+          <p><strong>Leibniz:</strong> für alternierende Reihen — die Folge muss eine monoton fallende Nullfolge sein (Grenzwert 0).</p>
+          <p><strong>Quotienten-Kriterium:</strong> $\left|\dfrac{a_{n+1}}{a_n}\right|$ bilden. Ergebnis $\lt1$ konvergent, $\gt1$ divergent, $=1$ keine Aussage.</p>
+          <p><strong>Wurzel-Kriterium:</strong> $\sqrt[n]{|a_n|}$ bilden. Ergebnis $\lt1$ konvergent, $\gt1$ divergent, $=1$ keine Aussage.</p>
+          <p><strong>Majoranten-Kriterium:</strong> eine größere/gleich große Reihe finden, von der Konvergenz bekannt ist: $|a_n|\leq b_n$. Beispiel: $\left|\tfrac{\sin x}{n^2}\right|\leq\tfrac{1}{n^2}$, und $\sum\tfrac{1}{n^2}$ konvergiert, also konvergiert auch $\sum\left|\tfrac{\sin x}{n^2}\right|$.</p>
+          <p><strong>Absolut konvergent:</strong> die Reihe konvergiert auch dann, wenn man statt der Glieder deren Beträge betrachtet.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · Stetigkeit &amp; Differenzierbarkeit</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Gegeben ist mit Parameter $\alpha\in\mathbb{R}$:</p>
+        <div class="cases">$$f(x)=\begin{cases}|x|^{\alpha+2}\sin(|x|^\alpha) & \text{für } x\neq0\\[2pt] 0 & \text{für } x=0\end{cases}$$</div>
+        <p>Für welche $\alpha$ ist $f$ stetig, differenzierbar und stetig differenzierbar?</p>
+
+        <div class="schritt">
+          <div class="stitle">a) Für welche $\alpha$ ist $f$ stetig?</div>
+          <p>Bedingung bei 0: Der Limes für $x\to0$ muss genau $f(0)=0$ sein. Wir gucken uns an: $\;\displaystyle\lim_{x\to0}|x|^{\alpha+2}\cdot\sin(|x|^\alpha)$.</p>
+          <p><em>Der rettende Gedanke:</em> Der Sinus schwankt immer nur zwischen $-1$ und $1$, egal was in der Klammer steht — er ist beschränkt. Ob das Ganze null wird, hängt nur vom $|x|^{\alpha+2}$ davor ab. Damit $|x|^{\,\text{irgendwas}}$ bei $x\to0$ zu null wird, muss der Exponent echt $\gt0$ sein (wäre er negativ, stünde das $x$ im Nenner und es würde explodieren).</p>
+          <p>Exponent positiv: $\;\alpha+2 \gt 0 \implies \alpha \gt -2$.</p>
+          <div class="result">Antwort a): $f$ ist stetig für alle $\alpha \gt -2$.</div>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">b) Für welche $\alpha$ ist $f$ differenzierbar?</div>
+          <p>Hier brauchen wir den Differenzenquotienten:</p>
+          <p>$f'(0)=\displaystyle\lim_{x\to0}\frac{f(x)-f(0)}{x-0}=\lim_{x\to0}\frac{|x|^{\alpha+2}\sin(|x|^\alpha)-0}{x}$</p>
+          <p>Wir ziehen ein $|x|$ aus der Potenz ab, um es mit dem $x$ im Nenner zu verrechnen:</p>
+          <p>$=\displaystyle\lim_{x\to0}\frac{|x|\cdot|x|^{\alpha+1}\sin(|x|^\alpha)}{x}$</p>
+          <p>Der vordere Teil $\tfrac{|x|}{x}$ ist immer $+1$ oder $-1$ (beschränkt). Wieder entscheidet nur das $|x|^{\alpha+1}$, ob alles zu 0 wird.</p>
+          <p>Exponent positiv: $\;\alpha+1 \gt 0 \implies \alpha \gt -1$.</p>
+          <div class="result">Antwort b): $f$ ist differenzierbar für alle $\alpha \gt -1$ (und dann ist $f'(0)=0$).</div>
+        </div>
+
+        <div class="schritt">
+          <div class="stitle">c) Für welche $\alpha$ ist $f$ stetig differenzierbar?</div>
+          <p>Die Ableitung muss stetig sein, also $\;\displaystyle\lim_{x\to0}f'(x)=f'(0)=0$. Dafür leiten wir $f(x)$ für $x\neq0$ ganz normal ab. <em>Klausur-Hack:</em> Da $|x|$ symmetrisch ist, rechnen wir nur die rechte Seite ($x \gt 0$) und dürfen die Betragsstriche weglassen:</p>
+          <p>$f(x)=x^{\alpha+2}\sin(x^\alpha)$</p>
+          <p>Ableiten (Produkt- und Kettenregel):</p>
+          <p>$$ \begin{align*} f'(x) =& (\alpha+2)x^{\alpha+1}\sin(x^\alpha) \\ &+ x^{\alpha+2}\cos(x^\alpha)\cdot(\alpha x^{\alpha-1}) \end{align*} $$</p>
+          <p>$f'(x)=\underbrace{(\alpha+2)x^{\alpha+1}\sin(x^\alpha)}_{\text{Teil 1}}+\underbrace{\alpha\,x^{2\alpha+1}\cos(x^\alpha)}_{\text{Teil 2}}$</p>
+          <p>Beide Teile müssen für $x\to0$ null werden (Sinus und Cosinus sind wieder egal, weil beschränkt):</p>
+          <p>Teil 1: $\;\alpha+1 \gt 0 \implies \alpha \gt -1$<br>
+          Teil 2: $\;2\alpha+1 \gt 0 \implies \alpha \gt -0{,}5$</p>
+          <p>Die strengere Bedingung gewinnt.</p>
+          <div class="result">Antwort c): $f$ ist stetig differenzierbar für alle $\alpha \gt -0{,}5$.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>▸</span> Beispiel · Konvergenz einer Reihe</div>
+      <div class="b-body">
+        <p><strong>Aufgabe:</strong> Gegeben ist die Reihe $\;\displaystyle\sum_{n=0}^{\infty}\frac{1}{(-1)^n\,|n-\pi^2|}$. Ist sie konvergent? Ist sie absolut konvergent?</p>
+
+        <div class="schritt">
+          <div class="stitle">Vorbereitung · Der Vorzeichen-Trick</div>
+          <p>Brüche mit $(-1)^n$ im Nenner sehen fies aus, aber $\tfrac{1}{-1}=-1$ und $\tfrac11=1$ — wir dürfen das $(-1)^n$ einfach nach vorne ziehen:</p>
+          <p>$\displaystyle\sum_{n=0}^{\infty}(-1)^n\cdot\frac{1}{|n-\pi^2|}$</p>
+          <p>Spätestens jetzt schreit uns das an: <strong>Leibniz-Kriterium!</strong></p>
+        </div>
+        <div class="schritt">
+          <div class="stitle">a) Ist die Reihe konvergent?</div>
+          <p>Für Leibniz prüfen wir den Rest des Bruchs: Ist $a_n=\dfrac{1}{|n-\pi^2|}$ eine monoton fallende Nullfolge?</p>
+          <p><strong>1. Nullfolge:</strong> Geht $n\to\infty$, wird der Nenner unendlich groß — $\tfrac{1}{\infty}=0$. ✓</p>
+          <p><strong>2. Monotonie:</strong> $\pi^2\approx9{,}86$. Sobald $n\geq10$ ist, ist $n$ größer als $\pi^2$; der Betragsstrich macht nichts mehr und der Nenner wächst kontinuierlich. Dadurch wird der Bruch immer kleiner. ✓</p>
+          <div class="result">Antwort a): Ja — nach dem Leibniz-Kriterium konvergiert die Reihe.</div>
+        </div>
+        <div class="schritt">
+          <div class="stitle">b) Ist sie absolut konvergent?</div>
+          <p>Bei absoluter Konvergenz ziehen wir die Betragsstriche um die <em>gesamte</em> Reihe; das $(-1)^n$ fällt weg (da $|-1|=1$). Wir prüfen also $\;\displaystyle\sum_{n=0}^{\infty}\frac{1}{|n-\pi^2|}$.</p>
+          <p>Hier nutzen wir das Gegenteil der Majorante — das <strong>Minorantenkriterium</strong>: Wir suchen eine kleinere Reihe, von der wir wissen, dass sie divergiert. Für große $n$ (ab $n=10$) ist $|n-\pi^2|=n-\pi^2$ kleiner als das nackte $n$. Kleinerer Nenner heißt größerer Bruch:</p>
+          <p>$\dfrac{1}{n-\pi^2}\geq\dfrac{1}{n}$</p>
+          <p>Die Reihe $\sum\tfrac1n$ ist die harmonische Reihe und divergiert bekanntermaßen. Da unsere Reihe sogar noch größer ist, muss sie erst recht divergieren.</p>
+          <div class="result">Antwort b): Nein — die Reihe ist nicht absolut konvergent (sie divergiert nach dem Minorantenkriterium).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Mathe-Klausur Guide · Analysis</span>
+    <span>Von Studis für Studis · alles ohne Gewähr</span>
+  </footer>
+
+</div>
+</body>
+</html>

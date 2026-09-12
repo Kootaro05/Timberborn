@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Cheatsheet – 5CS25</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #191d2b;
+    --ink-soft:   #454b5e;
+    --paper:      #fbfaf6;
+    --line:       #e4e0d6;
+    --code-bg:    #f0ede5;
+    --amber:      #e08a1e;
+    --amber-bg:   #fdf3e1;
+    --amber-edge: #f3d9a8;
+    --indigo:     #3a4cf0;
+    --indigo-bg:  #eef0ff;
+    --indigo-edge:#c5ccff;
+    --green:      #179a5c;
+    --green-bg:   #e9faf0;
+    --green-edge: #b5e8cd;
+    --coral:      #d4452f;
+    --coral-bg:   #fdecea;
+    --coral-edge: #f3c4bc;
+    --teal:       #0F6E56;
+    --teal-bg:    #E1F5EE;
+    --teal-edge:  #9FE1CB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 8.8pt;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 210mm;
+    margin: 0 auto;
+    padding: 9mm 9mm 7mm;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2.5px solid var(--indigo);
+    padding-bottom: 4px;
+    margin-bottom: 9px;
+  }
+  .header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13pt;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+  }
+  .header h1 span { color: var(--indigo); }
+  .header small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ── GRID LAYOUTS ── */
+  .cols   { display: grid; gap: 7px; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .gap    { margin-top: 7px; }
+
+  /* ── SECTION BOXES ── */
+  .box {
+    border-radius: 7px;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+  .box-head {
+    padding: 2px 7px 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 6.8pt;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .box-body {
+    padding: 5px 7px 6px;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* color variants */
+  .b-indigo .box-head  { background: var(--indigo);     color: #fff; }
+  .b-indigo            { border: 1px solid var(--indigo-edge); }
+  .b-indigo .box-body  { background: var(--indigo-bg); }
+
+  .b-amber .box-head   { background: var(--amber);      color: #fff; }
+  .b-amber             { border: 1px solid var(--amber-edge); }
+  .b-amber .box-body   { background: var(--amber-bg); }
+
+  .b-green .box-head   { background: var(--green);      color: #fff; }
+  .b-green             { border: 1px solid var(--green-edge); }
+  .b-green .box-body   { background: var(--green-bg); }
+
+  .b-coral .box-head   { background: var(--coral);      color: #fff; }
+  .b-coral             { border: 1px solid var(--coral-edge); }
+  .b-coral .box-body   { background: var(--coral-bg); }
+
+  .b-teal .box-head    { background: var(--teal);       color: #fff; }
+  .b-teal              { border: 1px solid var(--teal-edge); }
+  .b-teal .box-body    { background: var(--teal-bg); }
+
+  .b-plain             { border: 1px solid var(--line);  background: #fff; border-radius: 7px; overflow: hidden; break-inside: avoid; }
+  .b-plain .box-head   { background: var(--code-bg);    color: var(--ink-soft); border-bottom: 1px solid var(--line); }
+  .b-plain .box-body   { background: #fff; padding: 5px 7px 6px; overflow: hidden; word-wrap: break-word; overflow-wrap: break-word; }
+
+  /* ── TABLES ── */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 2px 5px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--line);
+    vertical-align: top;
+    overflow-wrap: break-word;
+    hyphens: none;
+  }
+  tr:last-child td { border-bottom: none; }
+  th {
+    font-size: 7pt;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--code-bg);
+    white-space: nowrap;
+  }
+  /* first column holds short code → keep on one line */
+  td:first-child { white-space: nowrap; }
+  td:first-child code { white-space: nowrap; }
+  /* in description cells, inline code may wrap so narrow columns don't break words */
+  td:not(:first-child) code { white-space: normal; overflow-wrap: anywhere; }
+  /* Mengen table: keep the short operator column (s <= t) on one line */
+  table.mengen td:nth-child(2) code { white-space: nowrap; }
+
+  /* ── CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.8pt;
+    background: var(--code-bg);
+    border-radius: 3px;
+    padding: 0 3px;
+    white-space: nowrap;
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5pt;
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 5px 7px;
+    margin: 3px 0 2px;
+    line-height: 1.42;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+  }
+  /* pre inside a colored box – no double bg */
+  .box-body pre { background: rgba(255,255,255,.55); }
+
+  /* ── MISC ── */
+  .note {
+    font-size: 7.2pt;
+    color: var(--ink-soft);
+    margin-top: 3px;
+    line-height: 1.35;
+    word-wrap: break-word;
+  }
+  .warn {
+    font-size: 7.5pt;
+    color: var(--coral);
+    font-weight: 600;
+    margin-top: 3px;
+  }
+  p { margin: 0 0 3px; }
+
+  /* ── DIVIDER ── */
+  .row-gap { margin-top: 6px; }
+
+  /* ── PRINT BUTTON ── */
+  .printbtn {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 50;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    letter-spacing: .04em;
+    background: var(--indigo);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(58,76,240,.25);
+  }
+  .printbtn:hover { opacity: .9; }
+
+  /* ── PRINT ── */
+  @media print {
+    /* echte Seitenränder – gelten auf JEDER Seite, auch oben ab Seite 2 */
+    @page { size: A4; margin: 10mm 9mm; }
+    html, body { background: #fff; font-size: 8pt; }
+    .page { padding: 0; width: auto; margin: 0; }
+    pre   { white-space: pre-wrap; overflow: visible; }
+    .printbtn { display: none; }
+    /* Hintergrundfarben/-flächen mitdrucken */
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    /* Boxen möglichst nicht über Seitenumbrüche zerreißen (Ausnahme: explizit break-inside:auto) */
+    .box:not([style*="break-inside:auto"]), .b-plain { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<button class="printbtn" onclick="window.print()">Als PDF drucken</button>
+<div class="page">
+
+  <div class="header">
+    <h1>Python Cheatsheet &nbsp;<span>·</span>&nbsp; 5CS25-1</h1>
+    <small>Listen · Dicts · Mengen · Funktionen · Klassen · Dateien</small>
+  </div>
+
+  <!-- ══ ROW 1: Datenstrukturen ══ -->
+  <div class="box b-plain">
+    <div class="box-head">Datenstrukturen – Erzeugung im Vergleich</div>
+    <div class="box-body">
+      <table>
+        <tr>
+          <th style="width:11%">Typ</th>
+          <th style="width:30%">Literal</th>
+          <th style="width:30%">Konstruktor</th>
+          <th>Hinweis</th>
+        </tr>
+        <tr><td><strong>Liste</strong></td><td><code>lst = [1, 2, 3]</code></td><td><code>list((1,2,3))</code></td><td>Geordnet, änderbar, Duplikate erlaubt</td></tr>
+        <tr><td><strong>Tuple</strong></td><td><code>t = (1, 2, 3)</code></td><td><code>tuple([1,2,3])</code></td><td>Unveränderbar. Einzel-Tuple: <code>(1,)</code> — Komma Pflicht!</td></tr>
+        <tr><td><strong>Dict</strong></td><td><code>d = {'a':1, 'b':2}</code></td><td><code>dict(a=1, b=2)</code></td><td>Schlüssel eindeutig; seit 3.7 eingabe-geordnet</td></tr>
+        <tr><td></td><td><code>dict([('a',1),('b',2)])</code></td><td><code>dict(zip(ks,vs))</code></td><td>Aus Paarliste / aus zwei Listen via <code>zip</code></td></tr>
+        <tr><td></td><td colspan="2"><code>dict.fromkeys(['a','b','c'], 0)</code></td><td>Alle Schlüssel → gleicher Startwert</td></tr>
+        <tr><td><strong>Menge</strong></td><td><code>s = {1, 2, 3}</code></td><td><code>set([1,2,3])</code></td><td>Ungeordnet, keine Duplikate. Leer: <code>set()</code> — <strong>nie <code>{}</code>!</strong></td></tr>
+        <tr><td><strong>Frozenset</strong></td><td>–</td><td><code>frozenset([1,2])</code></td><td>Unveränderbar, hashbar → als Dict-Key nutzbar</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 2: Sequenzen | Listen | range ══ -->
+  <div class="cols cols-3">
+
+    <!-- Sequenz-Ops -->
+    <div class="box b-teal">
+      <div class="box-head">Sequenz-Operationen (str, list, tuple)</div>
+      <div class="box-body">
+        <table>
+          <tr><th>Operation</th><th>Bedeutung</th></tr>
+          <tr><td><code>x in s</code></td><td>Enthält s den Wert x?</td></tr>
+          <tr><td><code>s + t</code></td><td>Zusammenfügen</td></tr>
+          <tr><td><code>s * n</code></td><td>n-maliges Anfügen (flach)</td></tr>
+          <tr><td><code>s[i]</code></td><td>i-tes Element (negativ: v. hinten)</td></tr>
+          <tr><td><code>s[i:j]</code></td><td>Ausschnitt i bis j (j exklusiv)</td></tr>
+          <tr><td><code>s[i:j:k]</code></td><td>Ausschnitt mit Schritt k</td></tr>
+          <tr><td><code>len(s)</code></td><td><strong>Funktion</strong>, nicht Methode!</td></tr>
+          <tr><td><code>min(s)/max(s)</code></td><td>Kleinstes / größtes Element</td></tr>
+          <tr><td><code>s.count(x)</code></td><td>Anzahl Vorkommen von x</td></tr>
+          <tr><td><code>s.index(x)</code></td><td>Kleinster Index k mit s[k]==x</td></tr>
+        </table>
+        <pre># Slicing-Tricks
+nums = [0,1,2,3,4,5]
+nums[2:5] = [0,0,0]  # 3 durch 3 Nullen
+nums[2:5] = [0]      # 3 durch EINE 0 → kürzer
+nums[::-1]           # umgekehrte Kopie</pre>
+      </div>
+    </div>
+
+    <!-- Listen-Methoden -->
+    <div class="box b-indigo">
+      <div class="box-head">Listen – zusätzliche Methoden</div>
+      <div class="box-body">
+        <table>
+          <tr><th>Methode</th><th>Bedeutung</th></tr>
+          <tr><td><code>L[i] = x</code></td><td>Element ersetzen</td></tr>
+          <tr><td><code>del L[i]</code></td><td>Element löschen</td></tr>
+          <tr><td><code>del L[i:j]</code></td><td>Ausschnitt löschen (= <code>L[i:j]=[]</code>)</td></tr>
+          <tr><td><code>L.append(x)</code></td><td>x ans Ende hängen</td></tr>
+          <tr><td><code>L.extend(x)</code></td><td>Alle Elemente von x anhängen</td></tr>
+          <tr><td><code>L.insert(i,x)</code></td><td>x <em>vor</em> Index i einfügen</td></tr>
+          <tr><td><code>L.pop(i=-1)</code></td><td>Entfernen &amp; zurückgeben</td></tr>
+          <tr><td><code>L.remove(x)</code></td><td>Erstes Vorkommen löschen</td></tr>
+          <tr><td><code>L.reverse()</code></td><td>In-place umkehren</td></tr>
+          <tr><td><code>L.sort(key,rev)</code></td><td>In-place – gibt <strong>None</strong> zurück!</td></tr>
+          <tr><td><code>L.clear()</code></td><td>Alle Elemente entfernen</td></tr>
+          <tr><td><code>L.copy()</code></td><td>Flache Kopie (= <code>L[:]</code>)</td></tr>
+        </table>
+        <p class="warn">⚠ L = L.sort() weist None zu! Nutze L.sort() oder L = sorted(L).</p>
+        <p class="note">Flache Kopie: Objekte <em>in</em> der Liste nicht neu erstellt.<br>Tiefe Kopie: <code>import copy; copy.deepcopy(L)</code></p>
+      </div>
+    </div>
+
+    <!-- range / enumerate / zip / print -->
+    <div class="box b-amber">
+      <div class="box-head">range / enumerate / zip / print</div>
+      <div class="box-body">
+        <pre>range(stop)             # 0 … stop-1
+range(start, stop)      # start … stop-1
+range(start, stop, step)# auch negativ
+
+for i, v in enumerate(lst, start=1):
+    pass  # start=0 ist Default
+
+for a, b in zip(lst1, lst2):
+    pass  # stoppt beim kürzeren
+
+# zip rückgängig (unzip)
+pairs = [('a',1), ('b',2)]
+letters, nums = zip(*pairs)
+# letters=('a','b')  nums=(1,2)
+
+print(*lst, sep='\n')
+print(*lst, sep=', ', end='!\n')</pre>
+      </div>
+    </div>
+
+  </div><!-- /cols-3 -->
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 3: Dict | Mengen ══ -->
+  <div class="cols cols-2">
+
+    <div class="box b-coral">
+      <div class="box-head">Dictionaries – Methoden</div>
+      <div class="box-body">
+        <table>
+          <tr><th>Operation</th><th>Bedeutung</th></tr>
+          <tr><td><code>len(d)</code></td><td>Anzahl Einträge</td></tr>
+          <tr><td><code>d[k]</code></td><td>Wert für k (KeyError wenn fehlt)</td></tr>
+          <tr><td><code>d[k] = v</code></td><td>Eintrag setzen / überschreiben</td></tr>
+          <tr><td><code>del d[k]</code></td><td>Eintrag entfernen</td></tr>
+          <tr><td><code>k in d</code></td><td>Prüft <code>d.keys()</code></td></tr>
+          <tr><td><code>d.keys()/values()/items()</code></td><td>Ansicht Schlüssel / Werte / Paare</td></tr>
+          <tr><td><code>d.get(k, x)</code></td><td>d[k] wenn vorhanden, sonst x</td></tr>
+          <tr><td><code>d.setdefault(k,x)</code></td><td>d[k] oder d[k]=x setzen &amp; zurückgeben</td></tr>
+          <tr><td><code>d.pop(k, x)</code></td><td>d[k] zurückgeben &amp; löschen; sonst x</td></tr>
+          <tr><td><code>d.popitem()</code></td><td>Letztes Paar entfernen – LIFO</td></tr>
+          <tr><td><code>d.update(b)</code></td><td>Alle Paare aus b einfügen</td></tr>
+          <tr><td><code>d.copy()</code> / <code>d.clear()</code></td><td>Flache Kopie / leeren</td></tr>
+        </table>
+        <pre>for k, v in d.items(): print(k, '->', v)
+merged = d1 | d2  # Python 3.9+</pre>
+      </div>
+    </div>
+
+    <div class="box b-plain">
+      <div class="box-head">Mengen &amp; Sortieren mit key-Funktionen</div>
+      <div class="box-body">
+        <table class="mengen">
+          <tr><th>Methode / Op.</th><th>Äquiv.</th><th>Bedeutung</th></tr>
+          <tr><td><code>s.issubset(t)</code></td><td><code>s &lt;= t</code></td><td>Alle s-Elemente in t?</td></tr>
+          <tr><td><code>s.issuperset(t)</code></td><td><code>s &gt;= t</code></td><td>Alle t-Elemente in s?</td></tr>
+          <tr><td><code>s.isdisjoint(t)</code></td><td>–</td><td>Keine gemeinsamen Elemente?</td></tr>
+          <tr><td><code>s.union(t)</code></td><td><code>s | t</code></td><td>Alle Elemente aus s und t</td></tr>
+          <tr><td><code>s.intersection(t)</code></td><td><code>s &amp; t</code></td><td>Nur gemeinsame Elemente</td></tr>
+          <tr><td><code>s.difference(t)</code></td><td><code>s - t</code></td><td>In s, nicht in t</td></tr>
+          <tr><td><code>s.symmetric_difference(t)</code></td><td><code>s ^ t</code></td><td>In s oder t, nicht in beiden</td></tr>
+          <tr><td><code>s.add(x)</code> / <code>s.remove(x)</code></td><td>–</td><td>Hinzufügen / Entfernen (KeyError!)</td></tr>
+          <tr><td><code>s.discard(x)</code></td><td>–</td><td>Entfernen, kein Fehler wenn fehlt</td></tr>
+          <tr><td><code>s.update(t)</code></td><td>–</td><td>s mit Vereinigung überschreiben</td></tr>
+        </table>
+        <p class="warn" style="margin-top:4px">⚠ {} erzeugt ein leeres Dict, nicht set()!</p>
+        <table style="margin-top:5px">
+          <tr><th>sort() key-Funktion</th><th>Zweck</th></tr>
+          <tr><td><code>key=len</code></td><td>Nach Länge</td></tr>
+          <tr><td><code>key=str.lower</code></td><td>Case-insensitiv</td></tr>
+          <tr><td><code>key=lambda x: x[1]</code></td><td>Zweites Element (Tupelliste)</td></tr>
+          <tr><td><code>key=lambda d: d.age</code></td><td>Objekt-Attribut</td></tr>
+          <tr><td><code>key=lambda p: (p.name,p.age)</code></td><td>Mehrstufig</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /cols-2 -->
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 4: Comprehensions | Funktionen ══ -->
+  <div class="cols cols-2">
+
+    <div class="box b-green">
+      <div class="box-head">Comprehensions</div>
+      <div class="box-body">
+        <pre># List
+squares = [x**2 for x in range(10)]
+evens   = [x for x in range(20) if x%2==0]
+
+# Dict
+inv = {v: k for k, v in d.items()}
+
+# Set
+unique = {x % 3 for x in range(10)}
+
+# Generator (kein [ ])
+total = sum(x**2 for x in range(100))
+
+# Verschachtelt: Matrix → flache Liste
+matrix = [[1,2,3],[4,5,6],[7,8,9]]
+flat = [x for row in matrix for x in row]
+# Reihenfolge = Einrückung der for-Schleifen
+
+# Mit Mehrfachbedingung
+filtered = [x for row in matrix
+              for x in row if x%2==0]</pre>
+      </div>
+    </div>
+
+    <div class="box b-indigo">
+      <div class="box-head">Funktionen &amp; Parameter</div>
+      <div class="box-body">
+        <pre># Default-Argument
+def greet(name, greeting='Hello'):
+    return f'{greeting}, {name}!'
+greet('Anna')  # Hello, Anna!
+
+# Keyword-Arg – Reihenfolge egal
+def power(base, exponent): return base**exponent
+power(exponent=10, base=2)  # 1024
+
+# *args (Tuple) / **kwargs (Dict)
+def summe(*args): return sum(args)
+def as_dict(**pairs): return pairs
+as_dict(a=1, b=2)  # {'a':1,'b':2}
+
+# Entpacken beim Aufruf
+power(*[2,10])          # power(2,10)
+power(**{'base':2,'exponent':10})
+
+# / und * in Signatur
+def f(pos_only, /, normal, *, kw_only): pass
+# pos_only: nur Positions-Arg.
+# kw_only:  nur Keyword-Arg.
+
+# Funktionen als Objekte / Alias
+funcs = [len, str, type]
+[f([1,2,3]) for f in funcs]  # [3,'[1,2,3]',list]
+from math import sqrt as wurzel</pre>
+      </div>
+    </div>
+
+  </div><!-- /cols-2 -->
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 4b: * und ** Unpacking ══ -->
+  <div class="box b-coral">
+    <div class="box-head">Die Operatoren * und ** — Zerlegen vs. Sammeln</div>
+    <div class="box-body">
+      <p class="note" style="margin:0 0 5px; font-size:7.5pt;">
+        <strong>Kernidee:</strong> Beim <strong>Aufruf</strong> <em>zerlegen</em> die Sterne eine Sammlung in Einzelteile. In der <strong>Definition</strong> <em>sammeln</em> sie umgekehrt beliebig viele Argumente ein. <code>*</code> arbeitet mit Listen/Tupeln (Position), <code>**</code> mit Dictionaries (Keyword).
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:var(--coral);margin-bottom:2px;letter-spacing:.06em;">① BEIM AUFRUF → ZERLEGEN</p>
+          <pre style="margin-top:2px"># * zerlegt Liste/Tupel in Positionsargumente
+def addiere(a, b, c):
+    return a + b + c
+
+zahlen = [1, 2, 3]
+addiere(*zahlen)      # → addiere(1, 2, 3) = 6
+# statt addiere(zahlen[0], zahlen[1], zahlen[2])
+
+# ** zerlegt Dict in Keyword-Argumente
+def begruessung(name, alter):
+    print(f"Hallo {name}, {alter} Jahre.")
+
+daten = {'name': 'Max', 'alter': 25}
+begruessung(**daten)  # → begruessung(name='Max', alter=25)</pre>
+        </div>
+
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:var(--coral);margin-bottom:2px;letter-spacing:.06em;">② IN DER DEFINITION → SAMMELN</p>
+          <pre style="margin-top:2px"># *args sammelt Positionsargumente → TUPEL
+# **kwargs sammelt Keyword-Argumente → DICT
+def f(*args, **kwargs):
+    print('Tupel:', args)
+    print('Dict: ', kwargs)
+
+f(1, 2, 3, a='Apfel', b='Birne')
+# Tupel: (1, 2, 3)
+# Dict:  {'a': 'Apfel', 'b': 'Birne'}
+
+# Namen frei wählbar (*args/**kwargs nur Konvention),
+# der Stern macht die Arbeit, nicht der Name.</pre>
+        </div>
+
+      </div>
+
+      <table style="margin-top:5px">
+        <tr><th style="width:22%">Schreibweise</th><th style="width:16%">Kontext</th><th>Zweck</th></tr>
+        <tr><td><code>addiere(*liste)</code></td><td>Aufruf</td><td>Zerlegt Liste/Tupel in einzelne Positionswerte</td></tr>
+        <tr><td><code>begruessung(**dict)</code></td><td>Aufruf</td><td>Zerlegt Dict in Keyword-Argumente (<code>key=value</code>)</td></tr>
+        <tr><td><code>def f(*args)</code></td><td>Definition</td><td>Sammelt beliebig viele Positionsargumente im <strong>Tupel</strong></td></tr>
+        <tr><td><code>def f(**kwargs)</code></td><td>Definition</td><td>Sammelt beliebig viele Keyword-Argumente im <strong>Dict</strong></td></tr>
+      </table>
+
+      <p class="note" style="margin-top:4px;font-size:7.2pt;">
+        <strong>Faustregel:</strong> <code>*</code> für Listen, deren Elemente einzeln an eine Funktion sollen. <code>**</code> für Konfigurations-Dicts, deren Werte direkt als Parameter weitergereicht werden. Auch beim Entpacken in Strukturen nutzbar: <code>[*a, *b]</code>, <code>{**d1, **d2}</code>, <code>a, *rest = [1,2,3,4]</code> → <code>rest=[2,3,4]</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 5: f-Strings | Klassen | Dunder ══ -->
+  <div class="cols cols-3">
+
+    <div class="box b-amber">
+      <div class="box-head">f-Strings &amp; Formatierung</div>
+      <div class="box-body">
+        <pre>name='Welt'; pi=3.14159
+
+f'Hallo, {name}!'      # Ausdruck
+f'{pi:.2f}'            # → 3.14
+f'{pi:8.2f}'           # →     3.14
+f'{42:05d}'            # → 00042
+f'{name!r}'            # → 'Welt' (repr)
+f'{name!s}'            # → Welt  (str)
+f'{2**10 = }'          # → 2**10 = 1024</pre>
+      </div>
+    </div>
+
+    <div class="box b-teal" style="grid-column: span 2">
+      <div class="box-head">Klassen &amp; Dunder-Methoden</div>
+      <div class="box-body" style="display:grid; grid-template-columns:1.25fr 1fr; gap:10px;">
+        <pre style="margin:0">class Dog:
+    species = 'Canis...'   # Klassenattribut
+
+    def __init__(self, name, age):
+        self.name = name   # Instanzattribut
+        self.age  = age
+
+    def __repr__(self):    # maschinenlesbar
+        return f'Dog({self.name!r},{self.age!r})'
+
+    def __str__(self):     # menschenlesbar
+        return f'{self.name} ({self.age} J.)'
+
+    def __len__(self): return self.age
+
+data = [('Rex',5),('Bella',2)]
+dogs = [Dog(*x) for x in data]
+dogs.sort(key=lambda d: d.age, reverse=True)</pre>
+        <table style="align-self:start">
+          <tr><th>Dunder</th><th>Überladt</th></tr>
+          <tr><td><code>__init__</code></td><td>Konstruktor <code>A()</code></td></tr>
+          <tr><td><code>__repr__</code></td><td><code>repr(obj)</code></td></tr>
+          <tr><td><code>__str__</code></td><td><code>str()</code> / print()</td></tr>
+          <tr><td><code>__len__</code></td><td><code>len(obj)</code></td></tr>
+          <tr><td><code>__add__</code></td><td>Operator <code>+</code></td></tr>
+          <tr><td><code>__sub__</code></td><td>Operator <code>-</code></td></tr>
+          <tr><td><code>__lt__</code>/<code>__le__</code></td><td><code>&lt;</code> / <code>&lt;=</code></td></tr>
+          <tr><td><code>__contains__</code></td><td><code>x in obj</code></td></tr>
+          <tr><td><code>__call__</code></td><td><code>obj()</code></td></tr>
+          <tr><td><code>__getattr__</code></td><td><code>obj.name</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /cols-3 -->
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 6: Dateien ══ -->
+  <div class="box b-plain">
+    <div class="box-head">Dateien lesen &amp; schreiben</div>
+    <div class="box-body" style="display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:10px;">
+      <div>
+        <p style="font-size:7pt;font-weight:600;color:var(--ink-soft);margin-bottom:3px;">MODI (mode-Parameter)</p>
+        <table>
+          <tr><td><code>'r'</code></td><td>Lesen</td></tr>
+          <tr><td><code>'w'</code></td><td>Schreiben, überschreibt</td></tr>
+          <tr><td><code>'a'</code></td><td>Anhängen</td></tr>
+          <tr><td><code>'x'</code></td><td>Neu erstellen, Fehler wenn vorhanden</td></tr>
+          <tr><td><code>'b'</code></td><td>Binär, kombinierbar: <code>'rb'</code></td></tr>
+        </table>
+        <p class="note" style="margin-top:5px">Immer <code>with open(...) as f:</code> nutzen — schließt automatisch, auch bei Ausnahmen. Ohne <code>with</code>: <code>f.close()</code> manuell.</p>
+      </div>
+      <div>
+        <pre style="margin:0">
+# TXT schreiben
+with open('f.txt','w',
+          encoding='utf-8') as f:
+    f.write('Zeile 1\n')
+    f.writelines(['Z2\n','Z3\n'])
+
+# TXT lesen
+with open('f.txt','r',
+          encoding='utf-8') as f:
+    inhalt = f.read()      # ganzer String
+    zeilen = f.readlines() # Liste
+    # for line in f:       # zeilenweise</pre>
+      </div>
+      <div>
+        <pre style="margin:0">
+import csv
+
+# CSV schreiben
+with open('d.csv','w',
+          newline='') as f:
+    w = csv.writer(f)
+    w.writerow(['Name','Alter'])
+    w.writerows([['Rex',5]])
+
+# CSV lesen (als Dict)
+with open('d.csv',newline='') as f:
+    for row in csv.DictReader(f):
+        print(row['Name'])</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 7: try/except | Importe & Module ══ -->
+  <div class="cols cols-2">
+
+    <div class="box b-coral">
+      <div class="box-head">Fehlerbehandlung – try / except / finally</div>
+      <div class="box-body">
+        <pre>try:
+    x = int(eingabe)          # Code, der fehlschlagen kann
+except ValueError:
+    print('Keine gültige Zahl')   # genau dieser Fehlertyp
+except (TypeError, KeyError) as e:
+    print('Fehler:', e)       # mehrere Typen, e = Objekt
+except Exception as e:
+    print('Sonstiger:', e)    # Auffangnetz (alle übrigen)
+else:
+    print('Kein Fehler')      # nur wenn KEIN except auslöste
+finally:
+    print('Läuft IMMER')      # Aufräumen, immer ausgeführt
+
+raise ValueError('Meldung')   # Fehler selbst auslösen</pre>
+        <p class="note">Reihenfolge: spezifische <code>except</code> zuerst, <code>Exception</code> zuletzt. <code>else</code> nur ohne Fehler, <code>finally</code> in jedem Fall (auch bei <code>return</code>/<code>raise</code>).</p>
+      </div>
+    </div>
+
+    <div class="box b-indigo">
+      <div class="box-head">Importe &amp; Module</div>
+      <div class="box-body">
+        <table>
+          <tr><th style="width:32%">Begriff</th><th>Bedeutung</th></tr>
+          <tr><td><strong>Modul</strong></td><td>Jede <code>.py</code>-Datei ist ein Modul</td></tr>
+          <tr><td><strong>Paket</strong></td><td>Ordner mit <code>.py</code>-Dateien + (leerer) <code>__init__.py</code></td></tr>
+        </table>
+        <p class="note" style="margin:5px 0 2px;">Beispiel: <code>function()</code> liegt in <code>data/utils.py</code></p>
+        <pre>import data.utils
+data.utils.function()      # voller Pfad nötig
+
+from data.utils import function
+function()                 # direkt nutzbar
+
+from data.utils import function as f
+f()                        # unter Alias
+
+import data.utils as u     # ganzes Modul als Alias
+u.function()
+
+from data.utils import *   # alle Namen (unsauber!)</pre>
+      </div>
+    </div>
+
+  </div><!-- /cols-2 -->
+
+  <div class="row-gap"></div>
+
+  <!-- ══ ROW 8: lambda & Higher-Order ══ -->
+  <div class="box b-green" style="break-inside:auto;">
+    <div class="box-head">lambda &amp; Funktionen höherer Ordnung (key, map, filter)</div>
+    <div class="box-body">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:#0d6b3f;margin-bottom:2px;letter-spacing:.06em;">LAMBDA – ANONYME FUNKTION</p>
+          <pre style="margin-top:2px"># lambda parameter: ausdruck
+# → ein einziger Ausdruck, KEIN return, kein Name
+double = lambda x: x * 2          # double(5) → 10
+mult   = lambda x, y: x * y       # beliebig viele Args
+const  = lambda: 42               # auch ohne Argument
+
+# Entspricht:  def double(x): return x * 2
+# Einsatz: direkt als key-/Argumentfunktion, wo sich
+# keine eigene def-Funktion lohnt.</pre>
+        </div>
+
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:#0d6b3f;margin-bottom:2px;letter-spacing:.06em;">min / max / sorted MIT key=</p>
+          <pre style="margin-top:2px">nums = [3, -7, 2, -1]
+min(nums)                     # -7  (nach Wert)
+max(nums, key=abs)            # -7  (nach Betrag)
+
+# Liste von Dicts – key wählt das Vergleichsfeld
+data = [{'name':'A','age':5}, {'name':'B','age':2}]
+min(data, key=lambda x: x['age'])  # {'name':'B','age':2}
+max(data, key=lambda x: x['age'])
+
+# Dict: min/max laufen über die SCHLÜSSEL
+d = {'a': 5, 'b': 2}
+min(d)                        # 'a'  (kleinster Schlüssel)
+min(d, key=d.get)             # 'b'  (Schlüssel mit kl. Wert)
+min(d.values())               # 2    (kleinster Wert)</pre>
+        </div>
+
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:#0d6b3f;margin-bottom:2px;letter-spacing:.06em;">map – AUF JEDES ELEMENT ANWENDEN</p>
+          <pre style="margin-top:2px"># map(funktion, iterable) → Iterator
+list(map(lambda x: x**2, [1,2,3]))  # [1, 4, 9]
+list(map(str, [1,2,3]))             # ['1','2','3']</pre>
+        </div>
+        <div>
+          <p style="font-size:7pt;font-weight:700;color:#0d6b3f;margin-bottom:2px;letter-spacing:.06em;">filter – ELEMENTE AUSWÄHLEN</p>
+          <pre style="margin-top:2px"># filter(funktion, iterable) → Iterator
+list(filter(lambda x: x>0, [-1,2,-3,4]))  # [2,4]
+list(filter(None, [0,1,'','a']))    # [1,'a'] (truthy)</pre>
+        </div>
+      </div>
+      <p class="note" style="margin-top:4px;"><code>map</code>/<code>filter</code> liefern <strong>Iteratoren</strong> → mit <code>list(...)</code> umwandeln (oft auch als Comprehension: <code>[x**2 for x in nums]</code>). <code>key=</code> erwartet eine Funktion mit einem Argument.</p>
+    </div>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>
