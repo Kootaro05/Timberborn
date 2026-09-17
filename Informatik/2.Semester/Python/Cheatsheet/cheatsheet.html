@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python-Prüfung · Cheatsheet (2 Seiten A4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#191d2b; --ink-soft:#454b5e; --paper:#fbfaf6; --line:#e4e0d6;
+    --amber:#e08a1e; --amber-bg:#fdf3e1; --amber-edge:#f3d9a8;
+    --indigo:#3a4cf0; --indigo-bg:#eef0ff; --indigo-edge:#c5ccff;
+    --green:#179a5c; --green-bg:#e9faf0; --green-edge:#b5e8cd;
+    --red:#d4452f; --red-bg:#fdecea;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font-family:'Inter',system-ui,sans-serif; font-size:7pt; line-height:1.3;
+        -webkit-font-smoothing:antialiased; }
+
+  .toolbar{ position:sticky; top:0; z-index:5; display:flex; justify-content:space-between; align-items:center;
+    gap:12px; flex-wrap:wrap; padding:10px 20px; background:rgba(251,250,246,.9); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line); font-size:12px; }
+  .toolbar span{ font-family:'JetBrains Mono',monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); }
+  .toolbar button{ font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--ink); color:#fff;
+    border:none; border-radius:8px; padding:8px 14px; cursor:pointer; }
+  .toolbar button:focus-visible{ outline:3px solid var(--indigo); outline-offset:2px; }
+
+  .sheet{ width:210mm; margin:18px auto 40px; background:#fff; padding:8mm 8mm;
+          box-shadow:0 2px 14px rgba(25,29,43,.08); }
+
+  header.top{ display:flex; justify-content:space-between; align-items:flex-end; gap:8px;
+              border-bottom:2px solid var(--indigo); padding-bottom:2.2mm; margin-bottom:2.2mm; }
+  header.top h1{ font-family:'Space Grotesk',sans-serif; font-size:15pt; line-height:1; margin:0; letter-spacing:-.01em; }
+  header.top h1 span{ color:var(--indigo); }
+  .leg{ display:flex; gap:9px; font-family:'JetBrains Mono',monospace; font-size:6pt; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
+  .leg i{ display:inline-block; width:7px; height:7px; border-radius:2px; margin-right:3px; vertical-align:-1px; }
+
+  .cols{ column-count:2; column-gap:4mm; column-rule:1px solid var(--line); }
+
+  .sec{ break-inside:avoid; }
+  .sh{ display:flex; align-items:center; gap:5px; margin:0 0 1.4mm;
+       font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:10pt; }
+  .sh .n{ flex:none; width:15px; height:15px; border-radius:50%; background:var(--indigo); color:#fff;
+          display:flex; align-items:center; justify-content:center; font-size:8pt; }
+  .sh small{ font-family:'Inter',sans-serif; font-weight:500; font-size:6.5pt; color:var(--ink-soft); }
+
+  .blk{ break-inside:avoid; border-left:2.5px solid var(--indigo); background:#fff;
+        padding:.5mm 0 .8mm 2mm; margin:0 0 1.6mm; }
+  .blk.var{ border-left-color:var(--amber); background:var(--amber-bg); }
+  .bh{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:6.4pt; letter-spacing:.03em;
+       color:var(--indigo); margin-bottom:.3mm; }
+  .var .bh{ color:#a9620c; }
+  .bh b{ color:var(--ink); }
+
+  pre{ margin:0; font-family:'JetBrains Mono',monospace; font-size:6.35pt; line-height:1.27;
+       white-space:pre; overflow:hidden; font-weight:500; font-variant-ligatures:none; }
+  p{ margin:.4mm 0; }
+  code{ font-family:'JetBrains Mono',monospace; font-variant-ligatures:none; font-size:6.3pt; background:var(--indigo-bg); padding:0 2px; border-radius:2px; }
+  .var code{ background:#fbe6c2; }
+
+  .trap{ break-inside:avoid; background:var(--red-bg); border-left:2.5px solid var(--red);
+         padding:.6mm 1.6mm .7mm 2mm; margin:0 0 1.6mm; font-size:6.6pt; }
+  .trap b{ color:var(--red); }
+  .trap code{ background:#f9d3cd; }
+
+  table.fmt{ border-collapse:collapse; width:100%; font-family:'JetBrains Mono',monospace; font-size:6.3pt; font-variant-ligatures:none; }
+  table.fmt td{ padding:.25mm 1mm .25mm 0; border-bottom:1px dashed var(--line); vertical-align:top; white-space:pre; }
+  table.fmt tr:last-child td{ border-bottom:none; }
+  table.fmt td.o{ color:var(--green); }
+
+  /* Syntax-Farben */
+  .tk{ color:var(--indigo); font-weight:700; }
+  .ts{ color:#0f7a47; }
+  .tc{ color:#80879a; }
+  .tm{ color:#b3650c; }
+  .tb{ color:#7a2fc0; }
+  .tdec{ color:#a9620c; }
+
+  @media print{
+    @page{ size:A4; margin:8mm; }
+    body{ background:#fff; }
+    .toolbar{ display:none !important; }
+    .sheet{ width:auto; margin:0; padding:0; box-shadow:none; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+  @media screen and (max-width:820px){
+    .sheet{ width:auto; margin:0; padding:12px; font-size:12px; }
+    .cols{ column-count:1; }
+    pre, code, table.fmt{ font-size:11px; }
+    pre{ overflow-x:auto; }
+    .bh{ font-size:11px; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span>Python &middot; Cheatsheet &middot; 2 Seiten A4</span>
+  <button onclick="window.print()">Als PDF speichern / drucken</button>
+</div>
+
+<div class="sheet">
+<header class="top">
+  <h1>Python-Prüfung <span>Cheatsheet</span></h1>
+  <div class="leg">
+    <span style="color:var(--indigo)"><i style="background:var(--indigo)"></i>Protokoll-Aufgabe</span>
+    <span style="color:#a9620c"><i style="background:var(--amber)"></i>Mögliche Abweichung</span>
+    <span style="color:var(--red)"><i style="background:var(--red)"></i>Falle</span>
+  </div>
+</header>
+
+<div class="cols">
+
+<!-- ================= AUFGABE 1 ================= -->
+<div class="sec">
+<div class="sh"><span class="n">1</span>Listen · Dict · Sets · Formatierung</div>
+<div class="blk"><div class="bh"><b>1.1</b> Liste mit range(start, stop, step)</div>
+<pre class="py">L = list(range(100, 2301, 200))   # stop ist EXKLUSIV
+# → [100, 300, 500, ..., 2300]  (12 Elemente)</pre></div>
+</div>
+
+<div class="blk"><div class="bh"><b>1.2</b> Umkehren – jede Art = Zusatzpunkt</div>
+<pre class="py">L[::-1]                        # Slicing → neue Liste
+list(reversed(L))              # Iterator → Liste
+sorted(L, reverse=True)        # klappt, weil L sortiert
+list(range(2300, 99, -200))    # neu erzeugen
+[L[i] for i in range(len(L)-1, -1, -1)]
+[L[-i] for i in range(1, len(L)+1)]
+R = L.copy(); R.reverse()      # in-place, gibt None!
+R = []
+for x in L: R.insert(0, x)     # vorne einfügen</pre></div>
+
+<div class="blk"><div class="bh"><b>1.3</b> Dict: ascii_uppercase ab „D“ → L</div>
+<pre class="py">import string
+keys = string.ascii_uppercase[3:]        # 'DEF...Z'
+d = dict(zip(keys, L))                   # zip stoppt am kürzeren
+d = {k: v for k, v in zip(keys, L)}
+d = {chr(ord("D") + i): v for i, v in enumerate(L)}
+# → {'D': 100, 'E': 300, ..., 'O': 2300}</pre></div>
+
+<div class="blk var"><div class="bh">≈ Dict-Varianten</div>
+<pre class="py">string.ascii_uppercase.index("D")   # 3
+string.ascii_lowercase; string.digits
+{k: str(v) for k, v in zip(keys, L)}       # Werte als str
+{v: k for k, v in d.items()}               # invertieren
+{k: v for k, v in d.items() if v > 1000}   # filtern
+dict(sorted(d.items(), key=lambda kv: kv[1], reverse=True))
+d.update({"P": 2500});  d2 = d | {"P": 2500}  # merge
+for k, v in d.items(): ...    # d.keys() / d.values()
+list(d)[0]; len(d); del d["D"]; d.pop("E")</pre></div>
+
+<div class="blk"><div class="bh"><b>1.4</b> Sets: Methode ↔ Operator</div>
+<pre class="py">s1 = {1, 2, 3, 4, 5};  s2 = {4, 5, 6, 7}
+s1.intersection(s2)          # s1 &amp; s2 → {4, 5}
+s1.difference(s2)            # s1 - s2 → {1, 2, 3}
+s2.difference(s1)            # s2 - s1 → {6, 7}
+s1.union(s2)                 # s1 | s2 → {1, ..., 7}
+s1.symmetric_difference(s2)  # s1 ^ s2 → {1, 2, 3, 6, 7}</pre></div>
+
+<div class="blk var"><div class="bh">≈ Set-Varianten</div>
+<pre class="py">s1.issubset(s2)    # s1 &lt;= s2   (echt: s1 &lt; s2)
+s1.issuperset(s2)  # s1 &gt;= s2
+s1.isdisjoint(s2)  # keine Gemeinsamkeit?
+s1.add(8); s1.discard(9)   # remove(9) → KeyError
+s1 &amp;= s2          # = s1.intersection_update(s2)
+leer = set()       # {} ist ein leeres DICT!
+set(L); len(set(L)) == len(L)   # Duplikate?</pre></div>
+
+<div class="blk"><div class="bh"><b>1.5</b> Key fehlt – Fehler in einer Zeile</div>
+<pre class="py">d["Z"]                     # KeyError (nicht ValueError!)
+d.get("Z")                 # → None, kein Fehler
+d.get("Z", "fehlt")        # → beliebiges Objekt
+d.get("Z", Person("?", 0))
+# ValueError werfen – Einzeiler mit Hilfsfunktion:
+def fail(e): raise e
+v = d["Z"] if "Z" in d else fail(ValueError("Z fehlt"))
+# ohne Hilfsfunktion (hacky, funktioniert):
+v = d["Z"] if "Z" in d else exec("raise ValueError('Z')")
+# klassisch:
+try: v = d["Z"]
+except KeyError: raise ValueError("Z fehlt") from None</pre></div>
+
+<div class="blk var"><div class="bh">≈ weitere Zugriffe</div>
+<pre class="py">"Z" in d                  # True/False
+d.setdefault("Z", 0)      # legt Key AN, falls fehlt
+d.pop("Z", None)          # entfernen ohne Fehler
+from collections import defaultdict
+dd = defaultdict(int)     # dd["x"] → 0 statt KeyError</pre></div>
+
+<div class="blk"><div class="bh"><b>1.6</b> f-Strings: a = 100, b = 2.57878</div>
+<table class="fmt">
+<tr><td class="o">100 2.57878</td><td>f"{a} {b}"</td></tr>
+<tr><td class="o">100 2.57878 100</td><td>f"{a} {b} {a}" · "{0} {1} {0}".format(a, b)</td></tr>
+<tr><td class="o">' 2.58'</td><td>f"{b:5.2f}"  ← Breite 5, 2 Nachkommast.</td></tr>
+<tr><td class="o">0000100</td><td>f"{a:07d}" · f"{a:07}" · str(a).zfill(7)</td></tr>
+<tr><td class="o">200</td><td>f"{a*2}" · f"{a+a}"  ← Ausdruck im f-String</td></tr>
+</table>
+<p>Aufbau: <code>{wert:[füll][&lt;&gt;^][+][0][breite][,][.präz][typ]}</code> · typ: <code>d f e % x b o s</code></p>
+</div>
+
+<div class="blk var"><div class="bh">≈ Format-Varianten</div>
+<table class="fmt">
+<tr><td>f"{b:.3f}"</td><td class="o">'2.579'</td><td>f"{b:e}"</td><td class="o">'2.578780e+00'</td></tr>
+<tr><td>f"{b:08.3f}"</td><td class="o">'0002.579'</td><td>f"{b:.1%}"</td><td class="o">'257.9%'</td></tr>
+<tr><td>f"{a:&gt;7}"</td><td class="o">'    100'</td><td>f"{a:&lt;7}|"</td><td class="o">'100    |'</td></tr>
+<tr><td>f"{a:*^9}"</td><td class="o">'***100***'</td><td>f"{a:+d}"</td><td class="o">'+100'</td></tr>
+<tr><td>f"{a:x} {a:b} {a:o}"</td><td class="o">'64 1100100 144'</td><td>f"{a:#x}"</td><td class="o">'0x64'</td></tr>
+<tr><td>f"{1234567:,}"</td><td class="o">'1,234,567'</td><td>f"{a=}"</td><td class="o">'a=100'</td></tr>
+<tr><td>"%d %.2f" % (a, b)</td><td class="o">'100 2.58'</td><td>f"{{a}}"</td><td class="o">'{a}'</td></tr>
+<tr><td>round(b, 2)</td><td class="o">2.58 (float)</td><td>f"{b!r}"</td><td class="o">repr(b)</td></tr>
+</table></div>
+
+<!-- ================= AUFGABE 2 ================= -->
+<div class="sec">
+<div class="sh"><span class="n">2</span>CSV einlesen &amp; Funktionen</div>
+<div class="blk"><div class="bh"><b>2.1</b> read_csv_file – Grundversion</div>
+<pre class="py">import csv
+
+def read_csv_file(filename):
+    names, heights = [], []
+    with open(filename, newline="", encoding="utf-8") as f:
+        reader = csv.reader(f)       # delimiter=";" ?
+        next(reader)                 # Kopfzeile weg
+        for row in reader:           # keine feste Zeilenzahl
+            if not row:              # → personen_kurz.csv ok
+                continue
+            names.append(row[0].strip())
+            heights.append(float(row[1]))  # cm? → int()
+    return names, heights
+
+names, heights = read_csv_file("personen.csv")</pre></div>
+</div>
+
+<div class="blk var"><div class="bh">≈ ohne csv-Modul / als Dict</div>
+<pre class="py">with open(filename, encoding="utf-8") as f:
+    f.readline()                          # Kopfzeile
+    for line in f:
+        line = line.strip()
+        if not line: continue
+        name, h = line.split(",")
+        names.append(name); heights.append(float(h))
+return dict(zip(names, heights))  # Extra: Dict zurück
+# gleiche Namen → späterer überschreibt früheren!</pre></div>
+
+<div class="blk"><div class="bh"><b>2.2</b> Extra: Spalten vertauscht (Kopfzeile nutzen)</div>
+<pre class="py">def read_csv_file(filename, sep=","):
+    names, heights = [], []
+    with open(filename, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f, delimiter=sep,
+                                  skipinitialspace=True):
+            names.append(row["Name"])      # Reihenfolge
+            heights.append(float(row["Größe"]))  # egal
+    return names, heights
+# Alternative: Index aus Kopfzeile bestimmen
+header = [h.strip().lower() for h in next(reader)]
+i_n = header.index("name");  i_h = 1 - i_n
+names.append(row[i_n]); heights.append(float(row[i_h]))</pre></div>
+
+<div class="blk var"><div class="bh">≈ ohne bekannte Spaltennamen: Zahl erkennen</div>
+<pre class="py">def is_num(s):
+    try: float(s.replace(",", ".")); return True
+    except ValueError: return False
+a, b = row[0].strip(), row[1].strip()   # Kopfzeile vorher weg
+name, h = (a, b) if is_num(b) else (b, a)</pre></div>
+
+<div class="blk"><div class="bh"><b>2.3</b> mean · shortest · tallest</div>
+<pre class="py">def mean(heights):
+    return sum(heights) / len(heights)   # leer → ZeroDivisionError
+
+def shortest_person(names, heights):
+    i = heights.index(min(heights))
+    return names[i], heights[i]          # Tupel
+
+def tallest_person(names, heights):
+    i = heights.index(max(heights))
+    return names[i], heights[i]
+
+name, h = tallest_person(names, heights)  # entpacken</pre></div>
+
+<div class="blk"><div class="bh"><b>2.4</b> Extra: min/max als Parameter · mehrere Treffer</div>
+<pre class="py">def min_max_person(names, heights, func):
+    i = heights.index(func(heights))
+    return names[i], heights[i]
+min_max_person(names, heights, min)   # min OHNE () / ""!
+
+def min_max_persons(names, heights, func):
+    ziel = func(heights)
+    return [n for n, h in zip(names, heights) if h == ziel]
+min_max_persons(names, heights, max)  # ['Ben', 'Dennis']</pre></div>
+
+<div class="blk var"><div class="bh">≈ weitere Auswertungen</div>
+<pre class="py">min(zip(heights, names))           # (1.59, 'Carla')
+max(zip(names, heights), key=lambda p: p[1])
+min(d, key=d.get)                  # Dict: Key mit min. Wert
+sorted(zip(names, heights), key=lambda p: p[1], reverse=True)
+[n for n, h in zip(names, heights) if h > mean(heights)]
+round(mean(heights), 2)            # 1.7120000000000002 → 1.71
+import statistics as st            # st.mean / median / stdev
+s = sorted(heights); m = len(s) // 2
+med = s[m] if len(s) % 2 else (s[m-1] + s[m]) / 2
+func.__name__                      # 'min' bzw. 'max'
+with open("out.csv", "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f); w.writerow(["Name", "Größe"])
+    w.writerows(zip(names, heights))</pre></div>
+
+<div class="trap"><b>Fallen:</b> Pfad relativ zum <i>Startordner</i> → <code>FileNotFoundError</code> ·
+<code>"1,85"</code> → <code>float</code> scheitert → <code>.replace(",", ".")</code> ·
+BOM aus Excel macht Key zu <code>"\ufeffName"</code> → <code>encoding="utf-8-sig"</code> ·
+Leerzeile am Dateiende → <code>if not row</code> · Werte aus CSV sind immer <code>str</code>.</div>
+
+<!-- ================= AUFGABE 3 ================= -->
+<div class="sec">
+<div class="sh"><span class="n">3</span>Klassen &amp; Vererbung</div>
+<div class="blk"><div class="bh"><b>3.1</b> Person · BesserePerson · __repr__</div>
+<pre class="py">class Person:
+    def __init__(self, name, height):
+        self.name = name
+        self.height = height
+
+    def grow(self, amount):
+        self.height += amount
+
+    def __repr__(self):                  # muss str RETURNEN
+        cls = self.__class__.__name__    # Extra: Klassenname
+        return f"{cls}({self.name}, {self.height})"
+
+class BesserePerson(Person):             # erbt __init__/__repr__
+    def grow(self, amount):
+        if not 0 &lt; amount &lt; 10:
+            raise ValueError(f"0 &lt; amount &lt; 10, war {amount}")
+        super().grow(amount)             # Eltern-Methode
+
+persons = {n: Person(n, h) for n, h in zip(names, heights)}
+print(persons["Anna"])             # Person(Anna, 1.68)
+print(BesserePerson("Max", 180))   # BesserePerson(Max, 180)
+p = BesserePerson("Max", 180)
+try:
+    p.grow(12)
+except ValueError as e:
+    print("Fehler:", e)</pre></div>
+</div>
+
+<div class="trap"><b>Fallen:</b> <code>__repr__(self)</code> – nicht <code>__repr(self)__</code> · <code>self</code> nie vergessen ·
+<code>{self.name!r}</code> gibt <code>Person('Anna', 1.68)</code> mit Anführungszeichen ·
+Grenzen: „größer 0 und kleiner 10“ = <code>0 &lt; x &lt; 10</code> (0 und 10 selbst → Fehler) · <code>raise ValueError</code>, nicht <code>return</code>.</div>
+
+<div class="blk var"><div class="bh">≈ Klassen-Varianten</div>
+<pre class="py">def __str__(self):          # print() nimmt __str__, sonst
+    return f"{self.name} ist {self.height} groß"  # __repr__
+# Listen/Dicts in print zeigen IMMER __repr__ der Elemente
+def __eq__(self, other): return self.height == other.height
+def __lt__(self, other): return self.height &lt; other.height
+sorted(persons.values())    # braucht __lt__
+max(persons.values(), key=lambda p: p.height)
+
+class Student(Person):      # Unterklasse mit mehr Attributen
+    def __init__(self, name, height, matnr):
+        super().__init__(name, height)
+        self.matnr = matnr
+
+class Person:
+    anzahl = 0              # Klassenattribut (alle Instanzen)
+    def __init__(self, name, height):
+        Person.anzahl += 1
+        self.name, self.height = name, height
+
+    @property               # Getter/Setter mit Prüfung
+    def height(self): return self._height
+    @height.setter
+    def height(self, v):
+        if v &lt; 0: raise ValueError("negativ")
+        self._height = v
+
+    @classmethod            # alternativer Konstruktor
+    def from_row(cls, row): return cls(row[0], float(row[1]))
+    @staticmethod
+    def ok(x): return 0 &lt; x &lt; 10
+
+isinstance(p, Person)            # True auch für BesserePerson
+issubclass(BesserePerson, Person)
+class GroesseError(ValueError): pass   # eigene Exception
+for name, p in persons.items(): p.grow(1)</pre></div>
+
+<!-- ================= AUFGABE 4 ================= -->
+<div class="sec">
+<div class="sh"><span class="n">4</span>Package „height“</div>
+<div class="blk"><div class="bh"><b>4.1</b> Struktur</div>
+<pre>projekt/
+├── main.py          ← von HIER starten: python main.py
+├── personen.csv
+└── height/          ← Ordnername = Paketname
+    ├── __init__.py  ← macht Ordner zum Paket (darf leer)
+    ├── read.py      ← read_csv_file (+ import csv)
+    └── calc.py      ← mean, shortest_person, tallest_person</pre></div>
+</div>
+
+<div class="blk"><div class="bh"><b>4.2</b> Imports (main.py) &amp; Aliase</div>
+<pre class="py">from height.read import read_csv_file   # OHNE ()!
+from height.calc import mean
+names, heights = read_csv_file("personen.csv")
+print(mean(heights))
+# --- unter anderen Namen ---
+import height.read as rd          # rd.read_csv_file(...)
+import height.calc as hc          # hc.mean(heights)
+from height import read, calc     # calc.mean(heights)
+from height import calc as rechner
+from height.calc import mean as mittelwert</pre></div>
+
+<div class="blk"><div class="bh"><b>4.3</b> height/__init__.py</div>
+<pre class="py">from . import read, calc          # import height → height.calc
+from . import calc as rechnen     # from height import rechnen
+from .read import read_csv_file   # from height import read_csv_file
+from .calc import mean, shortest_person, tallest_person
+__all__ = ["read_csv_file", "mean",       # from height import *
+           "shortest_person", "tallest_person"]</pre></div>
+
+<div class="blk var"><div class="bh">≈ Paket-Varianten</div>
+<pre class="py"># in calc.py etwas aus read.py nutzen:
+from .read import read_csv_file         # relativ
+from height.read import read_csv_file   # absolut
+if __name__ == "__main__":        # nur beim direkten Start
+    print(mean([1.7, 1.8]))
+# Unterpaket: height/tools/__init__.py + height/tools/x.py
+from height.tools.x import f;   from ..read import read_csv_file
+# Terminal: python -m height.calc  (Modul im Paket starten)
+import sys; sys.path.append("pfad/zu/projekt")
+from pathlib import Path          # CSV neben dem Modul:
+pfad = Path(__file__).parent / "personen.csv"</pre></div>
+
+<div class="trap"><b>Fallen:</b> Klammern im Import = <code>SyntaxError</code> · aus <code>height/</code> heraus starten → <code>ModuleNotFoundError</code> ·
+Datei mit <code>from .x import</code> direkt starten → <code>ImportError</code> (→ <code>python -m</code>) ·
+Alias aus <code>__init__</code> ist nur Attribut: <code>import height.rechnen</code> geht NICHT ·
+Module nie <code>csv.py</code>, <code>string.py</code>, <code>statistics.py</code> nennen (überschattet Standardmodul).</div>
+
+<div class="blk var"><div class="bh">≈ Allgemein: Exceptions · Comprehensions · Funktionen</div>
+<pre class="py">try:
+    x = int(input("Zahl: "))
+except (ValueError, TypeError) as e:
+    print("Fehler:", e)
+else:                  # nur wenn KEIN Fehler
+    print(x)
+finally:               # immer
+    print("fertig")
+[x**2 for x in L if x % 3 == 0]      # Liste mit Filter
+["gerade" if x % 2 == 0 else "ungerade" for x in L]
+{x % 7 for x in L};  (x for x in L)  # Set / Generator
+def f(*args, **kwargs): ...          # Tupel / Dict
+f = lambda x, y=2: x * y             # Default-Parameter
+list(map(str, L)); list(filter(lambda x: x &gt; 500, L))
+for i, (n, h) in enumerate(zip(names, heights), start=1): ...</pre></div>
+
+<div class="blk var"><div class="bh">≈ Listen &amp; Strings kompakt</div>
+<pre class="py">L.append(x); L.extend([1, 2]); L.insert(0, x)
+L.pop(); L.pop(0); L.remove(300)  # remove: 1. Treffer / ValueError
+L.index(500); L.count(100); 500 in L
+L.sort(reverse=True)              # in-place → None
+sorted(L)                         # neue Liste
+L[2:5]; L[:3]; L[-3:]; L[::2]     # Start inkl., Ende exkl.
+K = L.copy()                      # K = L → DIESELBE Liste!
+list(zip(*[(1, "a"), (2, "b")]))  # [(1, 2), ('a', 'b')]
+" Anna ".strip(); "a;b".split(";"); ", ".join(names)
+s.upper(); s.lower(); s.replace("a", "b"); s[::-1]
+s.startswith("A"); s.isdigit(); s.count("n"); len(s)</pre></div>
+
+</div><!-- /cols -->
+</div><!-- /sheet -->
+
+<script>
+/* Mini-Syntax-Highlighter für Python-Blöcke (rein optisch) */
+(function(){
+  var KW = new Set("def class return if elif else for while in not and or is try except finally raise with as import from pass lambda None True False yield del assert break continue global".split(" "));
+  var BI = new Set("print len range list dict set tuple str int float sum min max sorted reversed zip enumerate open isinstance issubclass super round type chr ord map filter next exec input".split(" "));
+  var RE = /(#.*$)|([rRbBfF]{0,2}"(?:[^"\\\n]|\\.)*"|[rRbBfF]{0,2}'(?:[^'\\\n]|\\.)*')|(@\w+)|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)\b/gm;
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  document.querySelectorAll("pre.py").forEach(function(pre){
+    var src = pre.textContent, out = "", last = 0, m;
+    RE.lastIndex = 0;
+    while ((m = RE.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      var t = esc(m[0]), cls = null;
+      if (m[1]) cls = "tc";
+      else if (m[2]) cls = "ts";
+      else if (m[3]) cls = "tdec";
+      else if (m[4]) cls = "tm";
+      else if (m[5]) cls = KW.has(m[5]) ? "tk" : (BI.has(m[5]) ? "tb" : null);
+      out += cls ? '<span class="' + cls + '">' + t + '</span>' : t;
+      last = RE.lastIndex;
+    }
+    pre.innerHTML = out + esc(src.slice(last));
+  });
+})();
+</script>
+</body>
+</html>
