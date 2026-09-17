@@ -118,27 +118,21 @@
 <div class="sh"><span class="n">1</span>Listen · Dict · Sets · Formatierung</div>
 <div class="blk"><div class="bh"><b>1.1</b> Liste mit range(start, stop, step)</div>
 <pre class="py">L = list(range(100, 2301, 200))   # stop ist EXKLUSIV
+L = [100 + 200*i for i in range(12)]
 # → [100, 300, 500, ..., 2300]  (12 Elemente)</pre></div>
 </div>
 
 <div class="blk"><div class="bh"><b>1.2</b> Umkehren – jede Art = Zusatzpunkt</div>
 <pre class="py">L[::-1]                        # Slicing → neue Liste
 list(reversed(L))              # Iterator → Liste
-sorted(L, reverse=True)        # klappt, weil L sortiert
-list(range(2300, 99, -200))    # neu erzeugen
-[L[i] for i in range(len(L)-1, -1, -1)]
-[L[-i] for i in range(1, len(L)+1)]
-R = L.copy(); R.reverse()      # in-place, gibt None!
-R = []
-for x in L: R.insert(0, x)     # vorne einfügen</pre></div>
+sorted(L, reverse=True)        # reverse, NICHT reversed!
+R = L.copy(); R.reverse()      # in-place, gibt None!</pre></div>
 
 <div class="blk"><div class="bh"><b>1.3</b> Dict: ascii_uppercase ab „D“ → L</div>
 <pre class="py">import string
-keys = string.ascii_uppercase[3:]        # 'DEF...Z'
-d = dict(zip(keys, L))                   # zip stoppt am kürzeren
-d = {k: v for k, v in zip(keys, L)}
-d = {chr(ord("D") + i): v for i, v in enumerate(L)}
-# → {'D': 100, 'E': 300, ..., 'O': 2300}</pre></div>
+keys = string.ascii_uppercase[3:]
+d = dict(zip(keys, L))
+d = {string.ascii_uppercase[3+i]: v for i, v in enumerate(L)}</pre></div>
 
 <div class="blk var"><div class="bh">≈ Dict-Varianten</div>
 <pre class="py">string.ascii_uppercase.index("D")   # 3
@@ -191,8 +185,8 @@ dd = defaultdict(int)     # dd["x"] → 0 statt KeyError</pre></div>
 
 <div class="blk"><div class="bh"><b>1.6</b> f-Strings: a = 100, b = 2.57878</div>
 <table class="fmt">
-<tr><td class="o">100 2.57878</td><td>f"{a} {b}"</td></tr>
-<tr><td class="o">100 2.57878 100</td><td>f"{a} {b} {a}" · "{0} {1} {0}".format(a, b)</td></tr>
+<tr><td class="o">100 2.57878</td><td>f"{a:&lt;4}{b}"</td></tr>
+<tr><td class="o">100 2.57878 100</td><td>f"{a:&lt;4}{b}{a:&gt;4}"</td></tr>
 <tr><td class="o">' 2.58'</td><td>f"{b:5.2f}"  ← Breite 5, 2 Nachkommast.</td></tr>
 <tr><td class="o">0000100</td><td>f"{a:07d}" · f"{a:07}" · str(a).zfill(7)</td></tr>
 <tr><td class="o">200</td><td>f"{a*2}" · f"{a+a}"  ← Ausdruck im f-String</td></tr>
@@ -252,20 +246,37 @@ return dict(zip(names, heights))  # Extra: Dict zurück
                                   skipinitialspace=True):
             names.append(row["Name"])      # Reihenfolge
             heights.append(float(row["Größe"]))  # egal
-    return names, heights
-# Alternative: Index aus Kopfzeile bestimmen
-header = [h.strip().lower() for h in next(reader)]
-i_n = header.index("name");  i_h = 1 - i_n
-names.append(row[i_n]); heights.append(float(row[i_h]))</pre></div>
+    return names, heights</pre></div>
 
-<div class="blk var"><div class="bh">≈ ohne bekannte Spaltennamen: Zahl erkennen</div>
-<pre class="py">def is_num(s):
-    try: float(s.replace(",", ".")); return True
-    except ValueError: return False
-a, b = row[0].strip(), row[1].strip()   # Kopfzeile vorher weg
-name, h = (a, b) if is_num(b) else (b, a)</pre></div>
+<div class="blk"><div class="bh"><b>2.3</b> Alle Spalten generisch (DictReader + Typerkennung)</div>
+<pre class="py">import csv
+from collections import defaultdict
+def parse_value(val):
+    try:
+        return int(val)
+    except ValueError:
+        try:
+            return float(val)
+        except ValueError:
+            return val
+def read_csv_file(filename):
+    columns = defaultdict(list)
+    with open(filename, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            for header, value in row.items():
+                columns[header.strip()].append(
+                    parse_value(value.strip()))
+    return dict(columns)
+read_csv_file("personen.csv")
+# → {'Name': ['Anna', ...], 'Größe': [1.68, ...]}
+cols = read_csv_file("personen.csv")
+names, heights = cols["Name"], cols["Größe"]</pre></div>
 
-<div class="blk"><div class="bh"><b>2.3</b> mean · shortest · tallest</div>
+<div class="trap"><b>Falle zu 2.3:</b> <code>names, heights = read_csv_file(...)</code> entpackt die <i>Keys</i> → <code>names == "Name"</code>, <code>heights == "Größe"</code> ·
+ohne <code>encoding="utf-8"</code> kann „Größe“ unter Windows kaputtgehen.</div>
+
+<div class="blk"><div class="bh"><b>2.4</b> mean · shortest · tallest</div>
 <pre class="py">def mean(heights):
     return sum(heights) / len(heights)   # leer → ZeroDivisionError
 
@@ -279,7 +290,7 @@ def tallest_person(names, heights):
 
 name, h = tallest_person(names, heights)  # entpacken</pre></div>
 
-<div class="blk"><div class="bh"><b>2.4</b> Extra: min/max als Parameter · mehrere Treffer</div>
+<div class="blk"><div class="bh"><b>2.5</b> Extra: min/max als Parameter · mehrere Treffer</div>
 <pre class="py">def min_max_person(names, heights, func):
     i = heights.index(func(heights))
     return names[i], heights[i]

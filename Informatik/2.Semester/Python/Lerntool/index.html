@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python-Prüfung · Übung</title>
+<style>
+  :root{
+    --ink:#191d2b; --soft:#5b6172; --paper:#fbfaf6; --line:#e4e0d6; --card:#fff;
+    --accent:#3a4cf0; --accent-bg:#eef0ff;
+    --ok:#179a5c; --ok-bg:#e9faf0; --bad:#d4452f; --bad-bg:#fdecea; --wait:#b9bdc8;
+    --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  button{ font:inherit; cursor:pointer; }
+  button:focus-visible, textarea:focus-visible, a:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  code{ font-family:var(--mono); font-size:.9em; background:var(--accent-bg); padding:1px 5px; border-radius:4px; }
+
+  .wrap{ max-width:860px; margin:0 auto; padding:0 18px 60px; }
+  header{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:18px 0 10px; }
+  header h1{ font-size:18px; margin:0; letter-spacing:-.01em; }
+  .status{ font-size:13px; color:var(--soft); display:flex; align-items:center; gap:7px; }
+  .status i{ width:8px; height:8px; border-radius:50%; background:var(--wait); display:inline-block; }
+  .status.ready i{ background:var(--ok); } .status.err i{ background:var(--bad); }
+
+  nav.map{ display:flex; flex-wrap:wrap; gap:6px 14px; padding:10px 0 16px; border-bottom:1px solid var(--line); }
+  .grp{ display:flex; align-items:center; gap:4px; }
+  .grp b{ font-size:12px; color:var(--soft); margin-right:3px; font-weight:600; }
+  .dot{ width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:#fff; font-size:11px; color:var(--soft); padding:0; }
+  .dot.passed{ background:var(--ok); border-color:var(--ok); color:#fff; }
+  .dot.failed{ background:var(--bad-bg); border-color:#f0b8ae; color:var(--bad); }
+  .dot.cur{ box-shadow:0 0 0 2px var(--accent); }
+  .reportbtn{ margin-left:auto; background:none; border:1px solid var(--line); border-radius:8px; padding:4px 12px; font-size:13px; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin-top:18px; }
+  .meta{ font-size:12.5px; color:var(--soft); }
+  .card h2{ font-size:21px; margin:2px 0 10px; letter-spacing:-.01em; }
+  .q{ margin:0 0 14px; }
+  .box{ margin:0 0 14px; }
+  .box span{ display:block; font-size:12px; color:var(--soft); margin-bottom:4px; }
+  .box pre{ margin:0; font:13px/1.5 var(--mono); background:#f6f5f0; border:1px solid var(--line); border-radius:8px; padding:9px 12px; overflow-x:auto; white-space:pre; }
+
+  label.f{ display:block; font:12.5px var(--mono); color:var(--soft); margin:12px 0 4px; }
+  textarea{ width:100%; min-height:190px; resize:vertical; font:13.5px/1.5 var(--mono); tab-size:4;
+            border:1px solid #cfcabd; border-radius:8px; padding:10px 12px; background:#fffefb; color:var(--ink); }
+  textarea.small{ min-height:90px; }
+
+  .actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .btn{ border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px 14px; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .btn.primary:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn.ghost{ border-color:transparent; background:none; color:var(--soft); }
+  .hint{ font-size:12px; color:var(--soft); }
+  .spacer{ flex:1; }
+
+  .result{ margin-top:16px; border-radius:10px; padding:12px 14px; }
+  .result.ok{ background:var(--ok-bg); border:1px solid #b5e8cd; }
+  .result.bad{ background:var(--bad-bg); border:1px solid #f3c4bc; }
+  .result h3{ margin:0 0 6px; font-size:15px; }
+  .result.ok h3{ color:var(--ok); } .result.bad h3{ color:var(--bad); }
+  .result ul{ margin:0; padding:0; list-style:none; }
+  .result li{ padding:2px 0 2px 22px; position:relative; font-size:14px; }
+  .result li::before{ position:absolute; left:2px; font-weight:700; }
+  .result li.y::before{ content:"✓"; color:var(--ok); }
+  .result li.n::before{ content:"✗"; color:var(--bad); }
+  .result li.i::before{ content:"i"; color:var(--soft); font-style:italic; }
+  .result pre{ margin:8px 0 0; font:12.5px/1.45 var(--mono); background:rgba(255,255,255,.7); border-radius:6px; padding:8px 10px; white-space:pre-wrap; max-height:240px; overflow:auto; }
+  .result .lbl{ font-size:12px; color:var(--soft); margin-top:8px; display:block; }
+  .solution{ margin-top:14px; }
+
+  .summary{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:6px 0 16px; }
+  .summary .big{ font-size:40px; font-weight:700; letter-spacing:-.02em; }
+  .bar{ height:8px; background:#eceae3; border-radius:4px; overflow:hidden; margin:4px 0 2px; }
+  .bar i{ display:block; height:100%; background:var(--ok); }
+  table.rep{ width:100%; border-collapse:collapse; margin:4px 0 18px; font-size:14px; }
+  table.rep td{ padding:6px 4px; border-bottom:1px solid var(--line); }
+  table.rep td:last-child{ text-align:right; white-space:nowrap; }
+  table.rep a{ color:var(--ink); text-decoration:none; } table.rep a:hover{ text-decoration:underline; }
+  .tag{ font-size:12px; padding:1px 8px; border-radius:10px; }
+  .tag.passed{ background:var(--ok-bg); color:var(--ok); } .tag.failed{ background:var(--bad-bg); color:var(--bad); } .tag.open{ background:#f0efe9; color:var(--soft); }
+  h4.part{ margin:14px 0 2px; font-size:14px; display:flex; justify-content:space-between; }
+  [hidden]{ display:none !important; }
+
+  @media (max-width:600px){ .card{ padding:16px; } .reportbtn{ margin-left:0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Python-Prüfung · Übung</h1>
+    <div class="status" id="status"><i></i><span>Python wird geladen …</span></div>
+  </header>
+  <nav class="map" id="map" aria-label="Fragen"></nav>
+  <main id="view"></main>
+</div>
+
+<script type="text/python" id="harness">import sys, io, os, re, json, math, string, shutil, importlib, traceback
+
+WORK = globals().get("WORK_DIR", "/work")
+USER_MARK = "<dein Code>"
+
+# ---------------------------------------------------------------- Dateien
+def _ref_parse(text):
+    lines = [l for l in text.strip().splitlines() if l.strip()]
+    names, heights = [], []
+    for line in lines[1:]:
+        n, h = line.split(",")
+        names.append(n.strip()); heights.append(float(h))
+    return names, heights
+
+def _swap(text):
+    out = []
+    for line in text.strip().splitlines():
+        if line.strip():
+            n, h = line.split(",")
+            out.append(f"{h.strip()},{n.strip()}")
+    return "\n".join(out) + "\n"
+
+FILES = dict(CSV_FILES)
+FILES["personen_vertauscht.csv"] = _swap(FILES["personen.csv"])
+NAMES, HEIGHTS = _ref_parse(FILES["personen.csv"])
+NAMES_K, HEIGHTS_K = _ref_parse(FILES["personen_kurz.csv"])
+
+REF_READ = '''import csv
+
+def read_csv_file(filename):
+    names, heights = [], []
+    with open(filename, newline="", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            if row:
+                names.append(row[0].strip())
+                heights.append(float(row[1]))
+    return names, heights
+'''
+REF_CALC = '''def mean(heights):
+    return sum(heights) / len(heights)
+
+def shortest_person(names, heights):
+    i = heights.index(min(heights))
+    return names[i], heights[i]
+
+def tallest_person(names, heights):
+    i = heights.index(max(heights))
+    return names[i], heights[i]
+'''
+
+class RefPerson:
+    def __init__(self, name, height):
+        self.name = name
+        self.height = height
+    def grow(self, amount):
+        self.height += amount
+RefPerson.__name__ = "Person"
+RefPerson.__qualname__ = "Person"
+
+def reset_env():
+    os.makedirs(WORK, exist_ok=True)
+    os.chdir(WORK)
+    if WORK not in sys.path:
+        sys.path.insert(0, WORK)
+    for name in list(sys.modules):
+        if name == "height" or name.startswith("height."):
+            del sys.modules[name]
+    pkg = os.path.join(WORK, "height")
+    if os.path.isdir(pkg):
+        shutil.rmtree(pkg)
+    for fn, content in FILES.items():
+        with open(os.path.join(WORK, fn), "w", encoding="utf-8") as f:
+            f.write(content)
+    importlib.invalidate_caches()
+
+def write_package(files):
+    os.makedirs(os.path.join(WORK, "height"), exist_ok=True)
+    for rel, content in files.items():
+        with open(os.path.join(WORK, rel), "w", encoding="utf-8") as f:
+            f.write(content or "")
+    importlib.invalidate_caches()
+
+# ---------------------------------------------------------------- Ausführen
+def _is_user_frame(fn):
+    return fn == USER_MARK or fn.startswith(os.path.join(WORK, "height"))
+
+def fmt_exc(e):
+    if isinstance(e, SyntaxError) and (e.filename == USER_MARK or _is_user_frame(e.filename or "")):
+        where = "" if e.filename == USER_MARK else os.path.basename(e.filename) + ", "
+        return f"{where}Zeile {e.lineno}: SyntaxError: {e.msg}"
+    frames = [f for f in traceback.extract_tb(e.__traceback__) if _is_user_frame(f.filename)]
+    head = "".join(traceback.format_exception_only(type(e), e)).strip()
+    if frames:
+        f = frames[-1]
+        where = "" if f.filename == USER_MARK else os.path.basename(f.filename) + ", "
+        return f"{where}Zeile {f.lineno}: {head}"
+    return head
+
+class Captured:
+    def __init__(self):
+        self.buf = io.StringIO()
+    def __enter__(self):
+        self.old = sys.stdout, sys.stderr, sys.stdin
+        sys.stdout = sys.stderr = self.buf
+        sys.stdin = io.StringIO("")
+        return self
+    def __exit__(self, *a):
+        sys.stdout, sys.stderr, sys.stdin = self.old
+        return False
+
+def execute(code, env=None):
+    g = {"__name__": "__main__"}
+    if env:
+        g.update(env)
+    exc = None
+    with Captured() as cap:
+        try:
+            exec(compile(code, USER_MARK, "exec"), g)
+        except BaseException as e:
+            exc = e
+    return g, cap.buf.getvalue(), exc
+
+def call(f, *args):
+    """Ruft eine Funktion des Nutzers auf -> (wert, exception, ausgabe)."""
+    with Captured() as cap:
+        try:
+            return f(*args), None, cap.buf.getvalue()
+        except BaseException as e:
+            return None, e, cap.buf.getvalue()
+
+def approx(x, y, tol=1e-6):
+    try:
+        return math.isclose(float(x), float(y), rel_tol=tol, abs_tol=tol)
+    except (TypeError, ValueError):
+        return False
+
+def num_list_eq(a, b):
+    return isinstance(a, (list, tuple)) and len(a) == len(b) and all(
+        isinstance(x, (int, float)) and not isinstance(x, bool) and approx(x, y) for x, y in zip(a, b))
+
+def show(v, n=70):
+    s = repr(v)
+    return s if len(s) <= n else s[:n] + " …"
+
+# ---------------------------------------------------------------- Bewertung
+class Grade:
+    def __init__(self):
+        self.checks = []
+        self.output = ""
+        self.error = None
+    def check(self, cond, ok, bad=None):
+        cond = bool(cond)
+        self.checks.append({"ok": cond, "msg": ok if cond else (bad or ok)})
+        return cond
+    def fail(self, msg):
+        return self.check(False, msg)
+    def note(self, msg):
+        self.checks.append({"ok": None, "msg": msg})
+    def run(self, code, env=None, label=None):
+        g, out, exc = execute(code, env)
+        prefix = f"[{label}]\n" if label else ""
+        if out or label:
+            self.output += prefix + out
+        if exc is not None and self.error is None:
+            self.error = (f"[{label}] " if label else "") + fmt_exc(exc)
+        return g, out, exc
+    def need(self, g, name, kind="var"):
+        if name not in g:
+            return self.fail(f"`{name}` ist nicht definiert.")
+        if kind == "func" and not callable(g[name]):
+            return self.fail(f"`{name}` ist keine Funktion.")
+        if kind == "class" and not isinstance(g[name], type):
+            return self.fail(f"`{name}` ist keine Klasse.")
+        return True
+    def result(self):
+        hard = [c for c in self.checks if c["ok"] is not None]
+        return {"passed": bool(hard) and all(c["ok"] for c in hard),
+                "checks": self.checks, "output": self.output, "error": self.error}
+
+TASKS = {}
+def task(tid):
+    def deco(f):
+        TASKS[tid] = f
+        return f
+    return deco
+
+def crashed(G, exc):
+    if exc is not None:
+        G.fail("Dein Code bricht mit einem Fehler ab (siehe unten).")
+        return True
+    return False
+
+L_REF = list(range(100, 2301, 200))
+D_REF = dict(zip(string.ascii_uppercase[3:], L_REF))
+
+# ======================= Aufgabe 1 =======================
+@task("1.1")
+def t11(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "L"):
+        return
+    L = g["L"]
+    G.check(isinstance(L, list), "`L` ist eine Liste.", f"`L` ist keine Liste, sondern {type(L).__name__}. Tipp: list(range(...)).")
+    G.check(list(L) == L_REF if isinstance(L, (list, tuple, range)) else False,
+            "`L` enthält genau 100, 300, …, 2300.",
+            f"`L` ist {show(L)} – erwartet [100, 300, …, 2300] (12 Elemente, stop ist exklusiv).")
+
+@task("1.2")
+def t12(code, G):
+    g, out, exc = G.run(code, {"L": list(L_REF)})
+    if crashed(G, exc):
+        return
+    rev = str(L_REF[::-1])
+    hits = sum(1 for line in out.splitlines() if line.strip() == rev)
+    techniques = [
+        (r"\[\s*:\s*:\s*-\s*1\s*\]", "Slicing [::-1]"),
+        (r"\breversed\s*\(", "reversed()"),
+        (r"\bsorted\s*\([^)]*reverse\s*=\s*True", "sorted(..., reverse=True)"),
+        (r"\.reverse\s*\(\s*\)", ".reverse()"),
+        (r"\brange\s*\([^)]*-\s*\d+\s*\)", "range mit negativer Schrittweite"),
+        (r"\.insert\s*\(\s*0", "insert(0, ...)"),
+    ]
+    found = [name for pat, name in techniques if re.search(pat, code)]
+    if G.check(hits >= 1, f"{hits} korrekte Ausgabe(n) der umgekehrten Liste.",
+               "Keine Ausgabezeile entspricht der umgekehrten Liste. Achtung: print(reversed(L)) zeigt nur ein Iterator-Objekt, print(L.reverse()) zeigt None."):
+        if re.search(r"sorted\s*\([^)]*reversed\s*=", code):
+            G.note("`sorted(..., reversed=True)` ist falsch – der Parameter heißt `reverse`.")
+        G.note("Erkannte Methoden: " + (", ".join(found) if found else "keine bekannte") +
+               (" – jede weitere Art bringt einen Zusatzpunkt." if len(found) < 3 else ""))
+
+@task("1.3")
+def t13(code, G):
+    g, out, exc = G.run(code, {"L": list(L_REF)})
+    if crashed(G, exc) or not G.need(g, "d"):
+        return
+    d = g["d"]
+    if not G.check(isinstance(d, dict), "`d` ist ein Dictionary.", f"`d` ist kein Dict, sondern {type(d).__name__}."):
+        return
+    if d == D_REF:
+        G.check(True, "`d` = {'D': 100, 'E': 300, …, 'O': 2300}.")
+    else:
+        if isinstance(d, dict) and {k: str(v) for k, v in D_REF.items()} == d:
+            G.fail("Die Werte sind Strings – sie sollen die Zahlen aus L sein.")
+        else:
+            G.fail(f"`d` ist {show(d)} – erwartet {{'D': 100, 'E': 300, …, 'O': 2300}}.")
+
+def _sets(code, G, mode):
+    g, out, exc = G.run(code)
+    if crashed(G, exc):
+        return
+    for n in ("s1", "s2", "schnitt", "diff_12", "diff_21", "vereinigung"):
+        if not G.need(g, n):
+            return
+    s1, s2 = g["s1"], g["s2"]
+    if not G.check(isinstance(s1, set) and isinstance(s2, set), "`s1` und `s2` sind Sets.", "`s1` und `s2` müssen Sets sein."):
+        return
+    G.check(s1 & s2 and s1 != s2, "Die Sets unterscheiden sich und haben gemeinsame Elemente.",
+            "Die Sets sollen verschieden sein und einige gemeinsame Elemente haben.")
+    for n, exp in (("schnitt", s1 & s2), ("diff_12", s1 - s2), ("diff_21", s2 - s1), ("vereinigung", s1 | s2)):
+        G.check(g[n] == exp, f"`{n}` = {show(exp)}", f"`{n}` ist {show(g[n])}, erwartet {show(exp)}.")
+    if mode == "method":
+        for m in ("intersection", "difference", "union"):
+            G.check(re.search(r"\." + m + r"\s*\(", code), f"Methode `.{m}()` verwendet.", f"Methode `.{m}()` fehlt.")
+    else:
+        used_methods = [m for m in ("intersection", "difference", "union") if re.search(r"\." + m + r"\s*\(", code)]
+        G.check(not used_methods, "Keine Set-Methoden verwendet.", "Hier bitte Operatoren statt " + ", ".join(f".{m}()" for m in used_methods) + ".")
+        for op, name in (("&", "Schnittmenge"), ("-", "Differenz"), ("|", "Vereinigung")):
+            G.check(op in code, f"Operator `{op}` für die {name} verwendet.", f"Operator `{op}` für die {name} fehlt.")
+
+@task("1.4")
+def t14(code, G): _sets(code, G, "method")
+
+@task("1.5")
+def t15(code, G): _sets(code, G, "op")
+
+def _keyrun(code, G, k):
+    return G.run(code, {"d": dict(D_REF), "k": k}, label=f"k = {k!r}")
+
+@task("1.6")
+def t16(code, G):
+    g, _, exc = _keyrun(code, G, "E")
+    if crashed(G, exc) or not G.need(g, "wert"):
+        return
+    G.check(g["wert"] == 300, "Mit k = 'E' ist `wert` = 300.", f"Mit k = 'E' ist `wert` = {show(g['wert'])}, erwartet 300.")
+    g, _, exc = _keyrun(code, G, "Z")
+    if exc is not None:
+        return G.fail(f"Mit k = 'Z' entsteht ein Fehler ({type(exc).__name__}) – es soll aber keiner entstehen.")
+    G.check("wert" in g and g["wert"] is None, "Mit k = 'Z' ist `wert` = None, ohne Fehler.",
+            f"Mit k = 'Z' ist `wert` = {show(g.get('wert'))}, erwartet None.")
+
+@task("1.7")
+def t17(code, G):
+    g, _, exc = _keyrun(code, G, "E")
+    if crashed(G, exc) or not G.need(g, "wert"):
+        return
+    G.check(g["wert"] == 300, "Mit k = 'E' ist `wert` = 300.", f"Mit k = 'E' ist `wert` = {show(g['wert'])}, erwartet 300.")
+    g, _, exc = _keyrun(code, G, "Z")
+    if exc is not None:
+        return G.fail(f"Mit k = 'Z' entsteht ein Fehler ({type(exc).__name__}) – es soll aber keiner entstehen.")
+    G.check("wert" in g and g["wert"] is not None, f"Mit k = 'Z' ist `wert` = {show(g.get('wert'))}, ohne Fehler.",
+            "Mit k = 'Z' ist `wert` None – gesucht ist ein anderes Ersatzobjekt.")
+
+@task("1.8")
+def t18(code, G):
+    g, _, exc = _keyrun(code, G, "E")
+    if crashed(G, exc) or not G.need(g, "wert"):
+        return
+    G.check(g["wert"] == 300, "Mit k = 'E' ist `wert` = 300.", f"Mit k = 'E' ist `wert` = {show(g['wert'])}, erwartet 300.")
+    g, _, exc = execute(code, {"d": dict(D_REF), "k": "Z"})
+    G.output += "[k = 'Z']\n"
+    if exc is None:
+        G.fail("Mit k = 'Z' wird kein Fehler geworfen – erwartet ValueError.")
+    elif isinstance(exc, KeyError):
+        G.fail("Mit k = 'Z' kommt ein KeyError – verlangt ist ein ValueError.")
+    elif isinstance(exc, ValueError):
+        G.check(True, f"Mit k = 'Z' wird ein ValueError geworfen ({exc}).")
+        G.output += fmt_exc(exc) + "\n"
+    else:
+        G.fail(f"Mit k = 'Z' kommt {type(exc).__name__} statt ValueError: {exc}")
+
+@task("1.9")
+def t19(code, G):
+    g, out, exc = G.run(code, {"a": 100, "b": 2.57878})
+    if crashed(G, exc):
+        return
+    if re.search(r"2\.57878|0000100|2\.58", code):
+        G.fail("Die Zahlen bitte aus `a` und `b` formatieren, nicht als festen Text schreiben.")
+    lines = out.split("\n")
+    expected = [("100 2.57878",), ("100 2.57878 100",), (" 2.58", "' 2.58'"), ("0000100",), ("200",)]
+    for i, exp in enumerate(expected):
+        got = lines[i].rstrip() if i < len(lines) else None
+        G.check(got in exp, f"Zeile {i+1}: {exp[0]!r}",
+                f"Zeile {i+1}: erwartet {exp[0]!r}, bekommen " + ("keine Ausgabe." if not got else f"{got!r}."))
+
+# ======================= Aufgabe 2 =======================
+def _read_check(G, f, fn, names, heights):
+    res, exc, _ = call(f, fn)
+    if exc is not None:
+        return G.fail(f"read_csv_file({fn!r}) → Fehler: {fmt_exc(exc)}")
+    if isinstance(res, dict):
+        return G.fail(f"read_csv_file({fn!r}) gibt ein Dict zurück – `names, heights = …` entpackt dann nur die Keys.")
+    if not (isinstance(res, (tuple, list)) and len(res) == 2):
+        return G.fail(f"read_csv_file({fn!r}) soll zwei Listen zurückgeben, bekommen: {show(res)}")
+    n, h = res
+    ok_n = isinstance(n, list) and [str(x).strip() for x in n] == names
+    ok_h = num_list_eq(h, heights)
+    if ok_n and ok_h:
+        return G.check(True, f"{fn}: {len(names)} Namen und Größen korrekt.")
+    if not ok_n:
+        G.fail(f"{fn}: Namen sind {show(n)}, erwartet {show(names)}.")
+    if not ok_h:
+        hint = " (Größen müssen Zahlen sein, nicht Strings)" if isinstance(h, list) and h and isinstance(h[0], str) else ""
+        G.fail(f"{fn}: Größen sind {show(h)}, erwartet {show(heights)}{hint}.")
+    return False
+
+@task("2.1")
+def t21(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "read_csv_file", "func"):
+        return
+    f = g["read_csv_file"]
+    _read_check(G, f, "personen.csv", NAMES, HEIGHTS)
+    _read_check(G, f, "personen_kurz.csv", NAMES_K, HEIGHTS_K)
+
+@task("2.2")
+def t22(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "read_csv_file", "func"):
+        return
+    f = g["read_csv_file"]
+    _read_check(G, f, "personen.csv", NAMES, HEIGHTS)
+    _read_check(G, f, "personen_kurz.csv", NAMES_K, HEIGHTS_K)
+    _read_check(G, f, "personen_vertauscht.csv", NAMES, HEIGHTS)
+
+@task("2.3")
+def t23(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "read_csv_dict", "func"):
+        return
+    f = g["read_csv_dict"]
+    for fn, names, heights in (("personen.csv", NAMES, HEIGHTS), ("personen_kurz.csv", NAMES_K, HEIGHTS_K)):
+        res, exc, _ = call(f, fn)
+        if exc is not None:
+            G.fail(f"read_csv_dict({fn!r}) → Fehler: {fmt_exc(exc)}"); continue
+        if not isinstance(res, dict):
+            G.fail(f"read_csv_dict({fn!r}) gibt kein Dict zurück: {show(res)}"); continue
+        form_a = [str(k).strip() for k in res.keys()] == names and num_list_eq(list(res.values()), heights)
+        vals = {str(k).strip(): v for k, v in res.items()}
+        form_b = (len(vals) == 2 and isinstance(vals.get("Name"), list)
+                  and [str(x).strip() for x in vals["Name"]] == names
+                  and any(num_list_eq(v, heights) for k, v in vals.items() if k != "Name"))
+        if form_a:
+            G.check(True, f"{fn}: {{Name: Größe}} korrekt.")
+        elif form_b:
+            G.check(True, f"{fn}: {{Spalte: Werte}} korrekt.")
+        else:
+            G.fail(f"{fn}: {show(res)} – erwartet z. B. {{'Anna': 168.5, …}} oder {{'Name': [...], 'Größe': [...]}}.")
+
+def _func_task(code, G, name, cases):
+    g, out, exc = G.run(code, {"names": list(NAMES), "heights": list(HEIGHTS)})
+    if crashed(G, exc) or not G.need(g, name, "func"):
+        return None
+    return g[name]
+
+@task("2.4")
+def t24(code, G):
+    f = _func_task(code, G, "mean", None)
+    if not f:
+        return
+    exp = sum(HEIGHTS) / len(HEIGHTS)
+    for arg, e in ((list(HEIGHTS), exp), ([1, 2, 3, 4], 2.5), ([180.0], 180.0)):
+        res, exc, _ = call(f, arg)
+        if exc is not None:
+            G.fail(f"mean({show(arg, 40)}) → Fehler: {fmt_exc(exc)}"); continue
+        G.check(approx(res, e), f"mean({show(arg, 40)}) = {res}", f"mean({show(arg, 40)}) = {show(res)}, erwartet {e}.")
+
+def _pair_ok(res, names_ok, h):
+    return isinstance(res, (tuple, list)) and len(res) == 2 and res[0] in names_ok and approx(res[1], h)
+
+def _extreme_cases(which):
+    fn = min if which == "min" else max
+    cases = [(list(NAMES), list(HEIGHTS)), (["X", "Y", "Z"], [180, 150, 170]), (["P"], [99.5])]
+    out = []
+    for n, h in cases:
+        target = fn(h)
+        out.append((n, h, [a for a, b in zip(n, h) if b == target], target))
+    return out
+
+def _extreme_task(code, G, name, which, pass_func=False):
+    f = _func_task(code, G, name, None)
+    if not f:
+        return
+    variants = [which] if not pass_func else ["min", "max"]
+    for w in variants:
+        for n, h, winners, target in _extreme_cases(w):
+            args = (n, h) if not pass_func else (n, h, min if w == "min" else max)
+            label = f"{name}({show(n, 25)}, {show(h, 25)}" + (f", {w})" if pass_func else ")")
+            res, exc, _ = call(f, *args)
+            if exc is not None:
+                G.fail(f"{label} → Fehler: {fmt_exc(exc)}"); continue
+            G.check(_pair_ok(res, winners, target), f"{label} → {show(res)}",
+                    f"{label} → {show(res)}, erwartet ({winners[0]!r}, {target}).")
+
+@task("2.5")
+def t25(code, G): _extreme_task(code, G, "shortest_person", "min")
+
+@task("2.6")
+def t26(code, G): _extreme_task(code, G, "tallest_person", "max")
+
+@task("2.7")
+def t27(code, G): _extreme_task(code, G, "min_max_person", None, pass_func=True)
+
+@task("2.8")
+def t28(code, G):
+    f = _func_task(code, G, "min_max_persons", None)
+    if not f:
+        return
+    cases = [(list(NAMES), list(HEIGHTS)), (["A", "B", "C", "D"], [150, 160, 150, 160])]
+    for n, h in cases:
+        for w, fn in (("min", min), ("max", max)):
+            target = fn(h)
+            winners = [a for a, b in zip(n, h) if b == target]
+            label = f"min_max_persons({show(n, 22)}, …, {w})"
+            res, exc, _ = call(f, n, h, fn)
+            if exc is not None:
+                G.fail(f"{label} → Fehler: {fmt_exc(exc)}"); continue
+            got = res[0] if isinstance(res, tuple) and res and isinstance(res[0], list) else res
+            G.check(isinstance(got, list) and sorted(map(str, got)) == sorted(winners),
+                    f"{label} → {show(got)}", f"{label} → {show(res)}, erwartet Liste {winners}.")
+
+# ======================= Aufgabe 3 =======================
+def _new(G, cls, *args):
+    obj, exc, _ = call(cls, *args)
+    if exc is not None:
+        G.fail(f"{cls.__name__}{args!r} → Fehler: {fmt_exc(exc)}")
+    return obj
+
+@task("3.1")
+def t31(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "Person", "class"):
+        return
+    p = _new(G, g["Person"], "Anna", 170)
+    if p is None:
+        return
+    G.check(getattr(p, "name", None) == "Anna" and getattr(p, "height", None) == 170,
+            "Person('Anna', 170) hat name = 'Anna' und height = 170.",
+            f"Attribute stimmen nicht: name = {show(getattr(p, 'name', '—'))}, height = {show(getattr(p, 'height', '—'))}.")
+    if not G.check(callable(getattr(p, "grow", None)), "Methode grow() vorhanden.", "Methode grow() fehlt."):
+        return
+    _, exc, _ = call(p.grow, 5)
+    if exc is not None:
+        return G.fail(f"p.grow(5) → Fehler: {fmt_exc(exc)}")
+    _, exc, _ = call(p.grow, 2.5)
+    G.check(exc is None and approx(getattr(p, "height", 0), 177.5), "Nach grow(5) und grow(2.5) ist height = 177.5.",
+            f"Nach grow(5) und grow(2.5) ist height = {show(getattr(p, 'height', None))}, erwartet 177.5.")
+
+@task("3.2")
+def t32(code, G):
+    g, out, exc = G.run(code, {"Person": RefPerson})
+    if crashed(G, exc) or not G.need(g, "BesserePerson", "class"):
+        return
+    BP, P = g["BesserePerson"], g.get("Person", RefPerson)
+    G.check(issubclass(BP, P), "BesserePerson erbt von Person.", "BesserePerson erbt nicht von Person.")
+    p = _new(G, BP, "Max", 180)
+    if p is None:
+        return
+    _, exc, _ = call(p.grow, 5)
+    G.check(exc is None and approx(p.height, 185), "grow(5) erhöht auf 185.",
+            f"grow(5) → height = {show(getattr(p, 'height', None))}" + (f", Fehler: {fmt_exc(exc)}" if exc else ", erwartet 185."))
+    for bad in (0, 10, -3, 12):
+        before = p.height
+        _, exc, _ = call(p.grow, bad)
+        if exc is None:
+            G.fail(f"grow({bad}) wirft keinen Fehler – erwartet ValueError.")
+        elif not isinstance(exc, ValueError):
+            G.fail(f"grow({bad}) wirft {type(exc).__name__} statt ValueError.")
+        else:
+            G.check(approx(p.height, before), f"grow({bad}) → ValueError, Größe unverändert.",
+                    f"grow({bad}) wirft ValueError, verändert aber vorher die Größe.")
+
+@task("3.3")
+def t33(code, G):
+    g, out, exc = G.run(code, {"Person": RefPerson, "names": list(NAMES), "heights": list(HEIGHTS)})
+    if crashed(G, exc) or not G.need(g, "persons"):
+        return
+    ps, P = g["persons"], g.get("Person", RefPerson)
+    if not G.check(isinstance(ps, dict), "`persons` ist ein Dictionary.", "`persons` ist kein Dict."):
+        return
+    G.check(list(ps.keys()) == NAMES, "Keys sind die Namen aus `names`.", f"Keys sind {show(list(ps.keys()))}, erwartet {show(NAMES)}.")
+    ok = all(isinstance(ps.get(n), P) for n in NAMES)
+    if G.check(ok, "Alle Werte sind Person-Instanzen.", "Nicht alle Werte sind Person-Instanzen."):
+        G.check(all(ps[n].name == n and approx(ps[n].height, h) for n, h in zip(NAMES, HEIGHTS)),
+                "Name und Größe jeder Person passen.", "Name oder Größe mindestens einer Person passt nicht.")
+
+def _repr_ok(s, cls, name, h):
+    return s in (f"{cls}({name}, {h})", f"{cls}({name!r}, {h})")
+
+@task("3.4")
+def t34(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "Person", "class"):
+        return
+    p = _new(G, g["Person"], "Anna", 168.5)
+    if p is None:
+        return
+    r, exc, _ = call(repr, p)
+    if exc is not None:
+        return G.fail(f"repr() → Fehler: {fmt_exc(exc)}")
+    G.check(_repr_ok(r, "Person", "Anna", 168.5), f"repr → {r}", f"repr → {r!r}, erwartet 'Person(Anna, 168.5)'.")
+    s, exc, _ = call(str, p)
+    if exc is None:
+        G.check(_repr_ok(s, "Person", "Anna", 168.5), "print(Person('Anna', 168.5)) zeigt Person(Anna, 168.5).",
+                f"print zeigt {s!r} – ist evtl. ein anderes __str__ definiert?")
+
+@task("3.5")
+def t35(code, G):
+    g, out, exc = G.run(code)
+    if crashed(G, exc) or not G.need(g, "Person", "class") or not G.need(g, "BesserePerson", "class"):
+        return
+    P, BP = g["Person"], g["BesserePerson"]
+    G.check(issubclass(BP, P), "BesserePerson erbt von Person.", "BesserePerson erbt nicht von Person.")
+    G.check("__repr__" not in BP.__dict__, "BesserePerson definiert kein eigenes __repr__.",
+            "BesserePerson definiert ein eigenes __repr__ – das soll gerade nicht nötig sein.")
+    for cls, name, h in ((P, "Anna", 168.5), (BP, "Max", 180)):
+        obj = _new(G, cls, name, h)
+        if obj is None:
+            continue
+        r, exc, _ = call(repr, obj)
+        if exc is not None:
+            G.fail(f"repr({cls.__name__}) → Fehler: {fmt_exc(exc)}"); continue
+        G.check(_repr_ok(r, cls.__name__, name, h), f"repr → {r}", f"repr → {r!r}, erwartet '{cls.__name__}({name}, {h})'.")
+    Kind = type("Kind", (P,), {})
+    obj = _new(G, Kind, "Tim", 120)
+    if obj is not None:
+        r, exc, _ = call(repr, obj)
+        G.check(exc is None and _repr_ok(r, "Kind", "Tim", 120),
+                "Auch eine beliebige weitere Unterklasse zeigt ihren eigenen Namen.",
+                f"Für eine weitere Unterklasse „Kind“ kommt {r!r} – der Klassenname ist wohl fest eingetragen. Tipp: self.__class__.__name__.")
+
+# ======================= Aufgabe 4 =======================
+MAIN_41 = '''from height.read import read_csv_file
+names, heights = read_csv_file("personen.csv")
+from height.calc import mean, shortest_person, tallest_person
+'''
+
+@task("4.1")
+def t41(files, G):
+    write_package(files)
+    g, out, exc = execute(MAIN_41)
+    G.output += out
+    if exc is not None:
+        G.error = fmt_exc(exc)
+        if isinstance(exc, ImportError):
+            G.fail("Der Import klappt nicht – liegen die Funktionen in der richtigen Datei?")
+        else:
+            G.fail("Beim Importieren/Einlesen entsteht ein Fehler (siehe unten).")
+        return
+    G.check(True, "from height.read import read_csv_file funktioniert.")
+    G.check(True, "from height.calc import mean, shortest_person, tallest_person funktioniert.")
+    G.check(getattr(g["read_csv_file"], "__module__", "") == "height.read", "read_csv_file ist in read.py definiert.",
+            "read_csv_file soll in read.py definiert sein.")
+    G.check(all(getattr(g[n], "__module__", "") == "height.calc" for n in ("mean", "shortest_person", "tallest_person")),
+            "Die Rechenfunktionen sind in calc.py definiert.", "Die Rechenfunktionen sollen in calc.py definiert sein.")
+    n, h = g.get("names"), g.get("heights")
+    if not (G.check(n == NAMES and num_list_eq(h, HEIGHTS), "names, heights = read_csv_file('personen.csv') liefert die richtigen Daten.",
+                    f"read_csv_file liefert {show(n, 40)}, {show(h, 40)}.")):
+        return
+    for fname, args, check_fn, exp in (
+        ("mean", (list(HEIGHTS),), lambda r: approx(r, sum(HEIGHTS) / len(HEIGHTS)), round(sum(HEIGHTS) / len(HEIGHTS), 2)),
+        ("shortest_person", (list(NAMES), list(HEIGHTS)), lambda r: _pair_ok(r, ["Greta"], 155.9), "('Greta', 155.9)"),
+        ("tallest_person", (list(NAMES), list(HEIGHTS)), lambda r: _pair_ok(r, ["David", "Jonas"], 190.2), "('David', 190.2)"),
+    ):
+        res, exc, _ = call(g[fname], *args)
+        if exc is not None:
+            G.fail(f"{fname}(…) → Fehler: {fmt_exc(exc)}"); continue
+        G.check(check_fn(res), f"{fname}(…) → {show(res)}", f"{fname}(…) → {show(res)}, erwartet {exp}.")
+
+@task("4.2")
+def t42(code, G):
+    write_package({"height/__init__.py": "", "height/read.py": REF_READ, "height/calc.py": REF_CALC})
+    g, out, exc = G.run(code)
+    if crashed(G, exc):
+        return
+    import types
+    r = g.get("rechner")
+    G.check(isinstance(r, types.ModuleType) and r.__name__ == "height.calc", "`rechner` ist das Modul height.calc.",
+            f"`rechner` ist {show(r)} – erwartet das Modul height.calc.")
+    le = g.get("lesen")
+    G.check(callable(le) and getattr(le, "__name__", "") == "read_csv_file" and getattr(le, "__module__", "") == "height.read",
+            "`lesen` ist read_csv_file aus height.read.", f"`lesen` ist {show(le)} – erwartet read_csv_file aus height.read.")
+    if G.need(g, "ergebnis"):
+        exp = sum(HEIGHTS) / len(HEIGHTS)
+        G.check(approx(g["ergebnis"], exp), f"`ergebnis` = {g['ergebnis']}", f"`ergebnis` = {show(g['ergebnis'])}, erwartet {exp}.")
+
+# ---------------------------------------------------------------- Einstieg
+def grade_json(payload_json):
+    p = json.loads(payload_json)
+    G = Grade()
+    try:
+        reset_env()
+        TASKS[p["task"]](p["code"], G)
+    except BaseException as e:
+        G.fail("Unerwarteter Fehler beim Prüfen: " + "".join(traceback.format_exception_only(type(e), e)).strip())
+    finally:
+        try:
+            os.chdir(WORK)
+        except Exception:
+            pass
+    res = G.result()
+    if len(res["output"]) > 6000:
+        res["output"] = res["output"][:6000] + "\n… (gekürzt)"
+    return json.dumps(res, ensure_ascii=False)
+
+reset_env()
+</script>
+<script type="application/json" id="csvdata">{
+ "personen.csv": "Name,Größe\nAnna,168.5\nBen,182.0\nClara,175.3\nDavid,190.2\nEmma,160.7\nFinn,182.0\nGreta,155.9\nHannes,178.4\nIda,171.0\nJonas,190.2\n",
+ "personen_kurz.csv": "Name,Größe\nAnna,168.5\nBen,182.0\nClara,175.3\n"
+}</script>
+<script type="application/json" id="solutions">{
+ "1.1": "L = list(range(100, 2301, 200))",
+ "1.2": "print(L[::-1])\nprint(list(reversed(L)))\nprint(sorted(L, reverse=True))\nR = L.copy(); R.reverse()\nprint(R)",
+ "1.3": "import string\nkeys = string.ascii_uppercase[3:]\nd = dict(zip(keys, L))",
+ "1.4": "s1 = {1, 2, 3, 4, 5}\ns2 = {4, 5, 6, 7}\nschnitt = s1.intersection(s2)\ndiff_12 = s1.difference(s2)\ndiff_21 = s2.difference(s1)\nvereinigung = s1.union(s2)",
+ "1.5": "s1 = {1, 2, 3, 4, 5}\ns2 = {4, 5, 6, 7}\nschnitt = s1 & s2\ndiff_12 = s1 - s2\ndiff_21 = s2 - s1\nvereinigung = s1 | s2",
+ "1.6": "wert = d.get(k)",
+ "1.7": "wert = d.get(k, \"fehlt\")",
+ "1.8": "def fail(e): raise e\nwert = d[k] if k in d else fail(ValueError(f\"Key {k} fehlt\"))",
+ "1.9": "print(f\"{a:<4}{b}\")\nprint(f\"{a:<4}{b}{a:>4}\")\nprint(f\"{b:5.2f}\")\nprint(f\"{a:07d}\")\nprint(f\"{a*2}\")",
+ "2.1": "import csv\n\ndef read_csv_file(filename):\n    names, heights = [], []\n    with open(filename, newline=\"\", encoding=\"utf-8\") as f:\n        reader = csv.reader(f)\n        next(reader)\n        for row in reader:\n            if not row:\n                continue\n            names.append(row[0].strip())\n            heights.append(float(row[1]))\n    return names, heights",
+ "2.2": "import csv\n\ndef read_csv_file(filename):\n    names, heights = [], []\n    with open(filename, newline=\"\", encoding=\"utf-8-sig\") as f:\n        for row in csv.DictReader(f, skipinitialspace=True):\n            names.append(row[\"Name\"])\n            heights.append(float(row[\"Größe\"]))\n    return names, heights",
+ "2.3": "import csv\nfrom collections import defaultdict\n\ndef parse_value(val):\n    try:\n        return int(val)\n    except ValueError:\n        try:\n            return float(val)\n        except ValueError:\n            return val\n\ndef read_csv_dict(filename):\n    columns = defaultdict(list)\n    with open(filename, \"r\", encoding=\"utf-8\") as f:\n        reader = csv.DictReader(f)\n        for row in reader:\n            for header, value in row.items():\n                columns[header.strip()].append(parse_value(value.strip()))\n    return dict(columns)",
+ "2.4": "def mean(heights):\n    return sum(heights) / len(heights)",
+ "2.5": "def shortest_person(names, heights):\n    i = heights.index(min(heights))\n    return names[i], heights[i]",
+ "2.6": "def tallest_person(names, heights):\n    i = heights.index(max(heights))\n    return names[i], heights[i]",
+ "2.7": "def min_max_person(names, heights, func):\n    i = heights.index(func(heights))\n    return names[i], heights[i]",
+ "2.8": "def min_max_persons(names, heights, func):\n    ziel = func(heights)\n    return [n for n, h in zip(names, heights) if h == ziel]",
+ "3.1": "class Person:\n    def __init__(self, name, height):\n        self.name = name\n        self.height = height\n\n    def grow(self, amount):\n        self.height += amount",
+ "3.2": "class BesserePerson(Person):\n    def grow(self, amount):\n        if not 0 < amount < 10:\n            raise ValueError(f\"0 < amount < 10, war {amount}\")\n        super().grow(amount)",
+ "3.3": "persons = {n: Person(n, h) for n, h in zip(names, heights)}",
+ "3.4": "class Person:\n    def __init__(self, name, height):\n        self.name = name\n        self.height = height\n\n    def grow(self, amount):\n        self.height += amount\n\n    def __repr__(self):\n        return f\"Person({self.name}, {self.height})\"",
+ "3.5": "class Person:\n    def __init__(self, name, height):\n        self.name = name\n        self.height = height\n\n    def grow(self, amount):\n        self.height += amount\n\n    def __repr__(self):\n        cls = self.__class__.__name__\n        return f\"{cls}({self.name}, {self.height})\"\n\n\nclass BesserePerson(Person):\n    def grow(self, amount):\n        if not 0 < amount < 10:\n            raise ValueError(f\"0 < amount < 10, war {amount}\")\n        super().grow(amount)",
+ "4.1": {
+  "height/__init__.py": "",
+  "height/read.py": "import csv\n\ndef read_csv_file(filename):\n    names, heights = [], []\n    with open(filename, newline=\"\", encoding=\"utf-8\") as f:\n        reader = csv.reader(f)\n        next(reader)\n        for row in reader:\n            if row:\n                names.append(row[0].strip())\n                heights.append(float(row[1]))\n    return names, heights\n",
+  "height/calc.py": "def mean(heights):\n    return sum(heights) / len(heights)\n\ndef shortest_person(names, heights):\n    i = heights.index(min(heights))\n    return names[i], heights[i]\n\ndef tallest_person(names, heights):\n    i = heights.index(max(heights))\n    return names[i], heights[i]\n"
+ },
+ "4.2": "import height.calc as rechner\nfrom height.read import read_csv_file as lesen\nergebnis = rechner.mean(lesen(\"personen.csv\")[1])"
+}</script>
+<script>
+const TASKS = [
+  { id:"1.1", part:1, title:"Liste erstellen",
+    text:"Erstelle mit `range()` die Liste `L = [100, 300, 500, …, 2300]`." },
+  { id:"1.2", part:1, title:"Liste umkehren",
+    text:"Gib `L` in umgekehrter Reihenfolge mit `print()` aus. Jede weitere Methode in einer eigenen `print`-Zeile bringt einen Zusatzpunkt.",
+    given:"L = [100, 300, 500, …, 2300]" },
+  { id:"1.3", part:1, title:"Dictionary aus Buchstaben",
+    text:"Erstelle ein Dictionary `d`: Die Keys sind die Großbuchstaben aus `string.ascii_uppercase` ab „D“, die Werte die Elemente von `L`.",
+    given:"L = [100, 300, 500, …, 2300]", expect:"{'D': 100, 'E': 300, …, 'O': 2300}" },
+  { id:"1.4", part:1, title:"Sets mit Methoden",
+    text:"Lege zwei verschiedene Sets `s1` und `s2` an, die einige gemeinsame Elemente haben. Berechne mit Set-Methoden: `schnitt` (Schnittmenge), `diff_12` (s1 ohne s2), `diff_21` (s2 ohne s1) und `vereinigung`." },
+  { id:"1.5", part:1, title:"Sets mit Operatoren",
+    text:"Wie 1.4, aber mit Operatoren statt Methoden. Lege `s1` und `s2` wieder selbst an und berechne `schnitt`, `diff_12`, `diff_21` und `vereinigung`." },
+  { id:"1.6", part:1, title:"Key fehlt → None",
+    text:"Speichere in einer Zeile den Wert zum Key `k` aus `d` in `wert`. Existiert der Key nicht, soll kein Fehler entstehen, sondern `wert` den Wert `None` haben.",
+    given:"d = {'D': 100, 'E': 300, …, 'O': 2300}\nk = 'E'   # dein Code läuft einmal mit k = 'E' und einmal mit k = 'Z'" },
+  { id:"1.7", part:1, title:"Key fehlt → Ersatzobjekt",
+    text:"Wie 1.6, aber bei fehlendem Key soll `wert` ein beliebiges anderes Objekt sein (nicht `None`), z. B. `\"fehlt\"`.",
+    given:"d = {'D': 100, 'E': 300, …, 'O': 2300}\nk = 'E'   # dein Code läuft einmal mit k = 'E' und einmal mit k = 'Z'" },
+  { id:"1.8", part:1, title:"Key fehlt → ValueError",
+    text:"Speichere den Wert zum Key `k` in `wert`. Existiert der Key nicht, soll ein `ValueError` geworfen werden – kein `KeyError`. Gefragt ist eine Zeile; eine kleine Hilfsfunktion darfst du davor definieren.",
+    given:"d = {'D': 100, 'E': 300, …, 'O': 2300}\nk = 'E'   # dein Code läuft einmal mit k = 'E' und einmal mit k = 'Z'" },
+  { id:"1.9", part:1, title:"Ausgabe formatieren",
+    text:"Gib mit f-Strings nacheinander die fünf Zeilen unten aus. Die dritte Zeile beginnt mit einem Leerzeichen (im Protokoll als `' 2.58'` notiert).",
+    given:"a = 100\nb = 2.57878", expect:"100 2.57878\n100 2.57878 100\n 2.58\n0000100\n200" },
+
+  { id:"2.1", part:2, title:"CSV einlesen",
+    text:"Schreibe `read_csv_file(filename)`. Die Funktion liest die CSV-Datei ein und gibt zwei Listen zurück: die Namen und die Größen als Zahlen. `names, heights = read_csv_file(\"personen.csv\")` muss funktionieren – ebenso mit `personen_kurz.csv`.",
+    given:"Dateien im Arbeitsordner: personen.csv, personen_kurz.csv\n\nName,Größe\nAnna,168.5\nBen,182.0\n…" },
+  { id:"2.2", part:2, title:"Spalten vertauscht",
+    text:"Schreibe `read_csv_file(filename)` so, dass sie auch funktioniert, wenn die Spalten vertauscht sind. Getestet wird mit `personen.csv`, `personen_kurz.csv` und `personen_vertauscht.csv`.",
+    given:"personen_vertauscht.csv:\nGröße,Name\n168.5,Anna\n182.0,Ben\n…" },
+  { id:"2.3", part:2, title:"Rückgabe als Dictionary",
+    text:"Schreibe `read_csv_dict(filename)`, die Namen und Größen als Dictionary zurückgibt – entweder `{Name: Größe}` oder `{Spalte: Liste der Werte}`.",
+    given:"Dateien im Arbeitsordner: personen.csv, personen_kurz.csv" },
+  { id:"2.4", part:2, title:"Mittelwert",
+    text:"Schreibe `mean(heights)`, die den Mittelwert aller Größen zurückgibt.",
+    given:"names   = ['Anna', 'Ben', 'Clara', …]   # aus personen.csv\nheights = [168.5, 182.0, 175.3, …]" },
+  { id:"2.5", part:2, title:"Kleinste Person",
+    text:"Schreibe `shortest_person(names, heights)`, die Name und Größe der kleinsten Person zurückgibt.",
+    given:"names   = ['Anna', 'Ben', 'Clara', …]\nheights = [168.5, 182.0, 175.3, …]" },
+  { id:"2.6", part:2, title:"Größte Person",
+    text:"Schreibe `tallest_person(names, heights)`, die Name und Größe der größten Person zurückgibt.",
+    given:"names   = ['Anna', 'Ben', 'Clara', …]\nheights = [168.5, 182.0, 175.3, …]" },
+  { id:"2.7", part:2, title:"min oder max als Parameter",
+    text:"Schreibe `min_max_person(names, heights, func)`. Übergeben wird die Funktion `min` oder `max` selbst (kein String). So ermittelt dieselbe Funktion die kleinste oder die größte Person.",
+    given:"names   = ['Anna', 'Ben', 'Clara', …]\nheights = [168.5, 182.0, 175.3, …]" },
+  { id:"2.8", part:2, title:"Mehrere gleich große Personen",
+    text:"Schreibe `min_max_persons(names, heights, func)`. Haben mehrere Personen dieselbe minimale bzw. maximale Größe, gibt die Funktion alle ihre Namen als Liste zurück.",
+    given:"names   = ['Anna', 'Ben', 'Clara', …]\nheights = [168.5, 182.0, 175.3, …]   # David und Jonas: 190.2" },
+
+  { id:"3.1", part:3, title:"Klasse Person",
+    text:"Erstelle die Klasse `Person` mit den Attributen `name` und `height` und der Methode `grow(amount)`, die `height` um `amount` erhöht." },
+  { id:"3.2", part:3, title:"Klasse BesserePerson",
+    text:"Erstelle `BesserePerson`, die von `Person` erbt. `grow(amount)` prüft, ob `amount` größer als 0 und kleiner als 10 ist – sonst wird ein `ValueError` geworfen.",
+    given:"class Person:   # mit __init__(self, name, height) und grow(self, amount)" },
+  { id:"3.3", part:3, title:"Dictionary persons",
+    text:"Erstelle das Dictionary `persons`: Keys sind die Namen aus `names`, Werte die passenden `Person`-Instanzen.",
+    given:"class Person   # wie in 3.1\nnames   = ['Anna', 'Ben', 'Clara', …]\nheights = [168.5, 182.0, 175.3, …]" },
+  { id:"3.4", part:3, title:"__repr__",
+    text:"Schreibe die Klasse `Person` mit einer `__repr__`-Methode, sodass `print(Person(\"Anna\", 168.5))` die Ausgabe `Person(Anna, 168.5)` erzeugt." },
+  { id:"3.5", part:3, title:"__repr__ mit Klassenname",
+    text:"Schreibe `Person` und `BesserePerson` so, dass `print(BesserePerson(\"Max\", 180))` automatisch `BesserePerson(Max, 180)` ausgibt – ohne `__repr__` in `BesserePerson` zu definieren." },
+
+  { id:"4.1", part:4, title:"Package anlegen",
+    text:"Lege das Paket `height` an: `read.py` enthält `read_csv_file`, `calc.py` enthält `mean`, `shortest_person` und `tallest_person`. Danach muss der Code unten funktionieren.",
+    given:"from height.read import read_csv_file\nnames, heights = read_csv_file(\"personen.csv\")\nfrom height.calc import mean\nmean(heights)",
+    files:["height/__init__.py", "height/read.py", "height/calc.py"] },
+  { id:"4.2", part:4, title:"Import unter anderem Namen",
+    text:"Das Paket `height` ist vorhanden. Importiere das Modul `calc` unter dem Namen `rechner` und die Funktion `read_csv_file` unter dem Namen `lesen`. Speichere dann `ergebnis = rechner.mean(lesen(\"personen.csv\")[1])`.",
+    given:"height/\n├── __init__.py\n├── read.py   # read_csv_file\n└── calc.py   # mean, shortest_person, tallest_person" }
+];
+const PARTS = {1:"Listen, Dict, Sets & Formatierung", 2:"CSV einlesen & auswerten", 3:"Klassen & Vererbung", 4:"Package"};
+
+
+const PYODIDE_URLS = [
+  "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
+  "https://cdn.jsdelivr.net/npm/pyodide@0.29.3/"
+];
+const TIMEOUT_MS = 8000;
+const STORE_KEY = "python-pruefung-uebung-v1";
+const SOLUTIONS = JSON.parse(document.getElementById("solutions").textContent);
+const CSV_FILES = JSON.parse(document.getElementById("csvdata").textContent);
+const HARNESS = document.getElementById("harness").textContent;
+
+/* ---------------- Python-Laufzeit (Web Worker, damit Endlosschleifen abbrechbar sind) ---------------- */
+const WORKER_SRC = `
+let py = null;
+self.onmessage = async (e) => {
+  const m = e.data;
+  if (m.type === "init") {
+    let lastErr = null;
+    for (const url of m.urls) {
+      try {
+        importScripts(url + "pyodide.js");
+        py = await loadPyodide({ indexURL: url });
+        break;
+      } catch (err) { lastErr = err; py = null; }
+    }
+    if (!py) { postMessage({ type: "init-error", error: String(lastErr) }); return; }
+    try {
+      py.globals.set("CSV_FILES", py.toPy(m.files));
+      py.runPython(m.harness);
+      postMessage({ type: "ready" });
+    } catch (err) { postMessage({ type: "init-error", error: String(err) }); }
+  } else if (m.type === "grade") {
+    try {
+      py.globals.set("_payload", JSON.stringify(m.payload));
+      const res = py.runPython("grade_json(_payload)");
+      postMessage({ type: "result", id: m.id, result: JSON.parse(res) });
+    } catch (err) {
+      postMessage({ type: "result", id: m.id, result: { passed: false, checks: [{ ok: false, msg: "Interner Fehler: " + err }], output: "", error: null } });
+    }
+  }
+};`;
+
+const runtime = {
+  worker: null, ready: false, pending: null, seq: 0,
+  start() {
+    this.ready = false;
+    setStatus("load");
+    let w;
+    try {
+      w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" })));
+    } catch (err) {
+      setStatus("err", "Web Worker nicht verfügbar: " + err.message);
+      return;
+    }
+    this.worker = w;
+    w.onmessage = (e) => this.onMessage(e.data);
+    w.onerror = (e) => setStatus("err", "Python konnte nicht starten (" + (e.message || "Worker-Fehler") + ")");
+    w.postMessage({ type: "init", urls: PYODIDE_URLS, files: CSV_FILES, harness: HARNESS });
+  },
+  onMessage(m) {
+    if (m.type === "ready") { this.ready = true; setStatus("ready"); const b = document.getElementById("check"); if (b) b.disabled = false; }
+    else if (m.type === "init-error") { setStatus("err", "Python konnte nicht geladen werden – Internetverbindung prüfen. (" + m.error + ")"); }
+    else if (m.type === "result" && this.pending && this.pending.id === m.id) {
+      clearTimeout(this.pending.timer);
+      const done = this.pending.resolve; this.pending = null;
+      done(m.result);
+    }
+  },
+  grade(task, code) {
+    return new Promise((resolve) => {
+      const id = ++this.seq;
+      const timer = setTimeout(() => {
+        this.pending = null;
+        this.worker.terminate();
+        resolve({ passed: false, checks: [{ ok: false, msg: `Zeitlimit von ${TIMEOUT_MS / 1000} s überschritten – vermutlich eine Endlosschleife. Python wird neu gestartet.` }], output: "", error: null });
+        this.start();
+      }, TIMEOUT_MS);
+      this.pending = { id, resolve, timer };
+      this.worker.postMessage({ type: "grade", id, payload: { task, code } });
+    });
+  }
+};
+
+function setStatus(kind, text) {
+  const el = document.getElementById("status");
+  el.className = "status" + (kind === "ready" ? " ready" : kind === "err" ? " err" : "");
+  el.querySelector("span").textContent = text || (kind === "ready" ? "Python bereit" : "Python wird geladen …");
+}
+
+/* ---------------- Zustand ---------------- */
+let state = { cur: 0, view: "task", answers: {} };
+try { const s = JSON.parse(localStorage.getItem(STORE_KEY)); if (s && s.answers) state = Object.assign(state, s); } catch (e) {}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+function ans(t) {
+  if (!state.answers[t.id]) state.answers[t.id] = { code: t.files ? Object.fromEntries(t.files.map(f => [f, ""])) : "", status: "open", tries: 0, peeked: false, last: null };
+  return state.answers[t.id];
+}
+
+/* ---------------- Darstellung ---------------- */
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+
+function renderMap() {
+  const map = document.getElementById("map");
+  let html = "";
+  for (const p of [1, 2, 3, 4]) {
+    html += `<div class="grp"><b>A${p}</b>`;
+    TASKS.forEach((t, i) => {
+      if (t.part !== p) return;
+      const a = ans(t);
+      const cls = ["dot", a.status, state.view === "task" && i === state.cur ? "cur" : ""].join(" ");
+      html += `<button class="${cls}" data-go="${i}" title="${esc(t.id + " " + t.title)}">${t.id.split(".")[1]}</button>`;
+    });
+    html += `</div>`;
+  }
+  html += `<button class="reportbtn" data-report="1">Auswertung</button>`;
+  map.innerHTML = html;
+}
+
+function resultHTML(r) {
+  if (!r) return "";
+  const items = r.checks.map(c => `<li class="${c.ok === true ? "y" : c.ok === false ? "n" : "i"}">${md(c.msg)}</li>`).join("");
+  let extra = "";
+  if (r.error) extra += `<span class="lbl">Fehler</span><pre>${esc(r.error)}</pre>`;
+  if (r.output && r.output.trim()) extra += `<span class="lbl">Ausgabe</span><pre>${esc(r.output)}</pre>`;
+  return `<div class="result ${r.passed ? "ok" : "bad"}" role="status">
+    <h3>${r.passed ? "✓ Gelöst" : "✗ Noch nicht gelöst"}</h3><ul>${items}</ul>${extra}</div>`;
+}
+
+function renderTask() {
+  const t = TASKS[state.cur], a = ans(t);
+  const partTasks = TASKS.filter(x => x.part === t.part);
+  let editors;
+  if (t.files) {
+    editors = t.files.map(f => `<label class="f" for="ed-${f}">${esc(f)}${f.endsWith("__init__.py") ? " (darf leer bleiben)" : ""}</label>
+      <textarea id="ed-${f}" data-file="${esc(f)}" class="${f.endsWith("__init__.py") ? "small" : ""}" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(a.code[f] || "")}</textarea>`).join("");
+  } else {
+    editors = `<label class="f" for="ed">Dein Code</label>
+      <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(a.code)}</textarea>`;
+  }
+  const sol = SOLUTIONS[t.id];
+  const solText = typeof sol === "string" ? sol : Object.entries(sol).map(([f, c]) => `# ── ${f} ──\n${c}`).join("\n\n");
+  document.getElementById("view").innerHTML = `
+  <section class="card">
+    <div class="meta">Aufgabe ${t.part} · ${esc(PARTS[t.part])} · Frage ${state.cur + 1} von ${TASKS.length}</div>
+    <h2>${esc(t.id)} ${esc(t.title)}</h2>
+    <p class="q">${md(t.text)}</p>
+    ${t.given ? `<div class="box"><span>Vorgegeben</span><pre>${esc(t.given)}</pre></div>` : ""}
+    ${t.expect ? `<div class="box"><span>Erwartet</span><pre>${esc(t.expect)}</pre></div>` : ""}
+    ${editors}
+    <div class="actions">
+      <button class="btn primary" id="check" ${runtime.ready ? "" : "disabled"}>Prüfen</button>
+      <span class="hint">Strg/⌘ + Enter</span>
+      <span class="spacer"></span>
+      <button class="btn ghost" id="peek">${a.showSol ? "Lösung ausblenden" : "Lösung zeigen"}</button>
+      <button class="btn" id="prev" ${state.cur === 0 ? "disabled" : ""}>← Zurück</button>
+      <button class="btn" id="next">${state.cur === TASKS.length - 1 ? "Auswertung →" : "Weiter →"}</button>
+    </div>
+    <div id="res">${resultHTML(a.last)}</div>
+    <div class="solution box" ${a.showSol ? "" : "hidden"}><span>Musterlösung (eine von mehreren Möglichkeiten)</span><pre>${esc(solText)}</pre></div>
+  </section>`;
+  document.querySelectorAll("#view textarea").forEach(setupEditor);
+}
+
+function renderReport() {
+  const counts = { passed: 0, failed: 0, open: 0 };
+  TASKS.forEach(t => counts[ans(t).status]++);
+  const pct = Math.round(100 * counts.passed / TASKS.length);
+  let parts = "";
+  for (const p of [1, 2, 3, 4]) {
+    const ts = TASKS.filter(t => t.part === p);
+    const ok = ts.filter(t => ans(t).status === "passed").length;
+    parts += `<h4 class="part"><span>Aufgabe ${p} · ${esc(PARTS[p])}</span><span>${ok} / ${ts.length}</span></h4>
+      <div class="bar"><i style="width:${100 * ok / ts.length}%"></i></div>
+      <table class="rep">${ts.map(t => {
+        const a = ans(t), i = TASKS.indexOf(t);
+        const label = { passed: "gelöst", failed: "nicht gelöst", open: "offen" }[a.status];
+        const info = [a.tries ? `${a.tries} Versuch${a.tries > 1 ? "e" : ""}` : "", a.peeked ? "Lösung angesehen" : ""].filter(Boolean).join(" · ");
+        return `<tr><td><a href="#" data-go="${i}">${esc(t.id)} ${esc(t.title)}</a></td><td class="hint">${info}</td><td><span class="tag ${a.status}">${label}</span></td></tr>`;
+      }).join("")}</table>`;
+  }
+  const firstOpen = TASKS.findIndex(t => ans(t).status !== "passed");
+  document.getElementById("view").innerHTML = `
+  <section class="card">
+    <div class="meta">Auswertung</div>
+    <div class="summary"><span class="big">${counts.passed} / ${TASKS.length}</span>
+      <span>gelöst (${pct} %) · ${counts.failed} nicht gelöst · ${counts.open} offen</span></div>
+    ${parts}
+    <div class="actions">
+      ${firstOpen >= 0 ? `<button class="btn primary" data-go="${firstOpen}">Nächste ungelöste Frage</button>` : ""}
+      <button class="btn" data-go="${state.cur}">Zurück zu den Fragen</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" id="reset">Fortschritt zurücksetzen</button>
+    </div>
+  </section>`;
+}
+
+function render() {
+  renderMap();
+  state.view === "report" ? renderReport() : renderTask();
+}
+
+/* ---------------- Editor-Komfort ---------------- */
+function setupEditor(ta) {
+  const t = TASKS[state.cur];
+  ta.addEventListener("input", () => {
+    const a = ans(t);
+    if (ta.dataset.file) a.code[ta.dataset.file] = ta.value; else a.code = ta.value;
+    save();
+  });
+  ta.addEventListener("keydown", (e) => {
+    const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); doCheck(); return; }
+    if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      ta.setRangeText("    ", s, en, "end");
+      ta.dispatchEvent(new Event("input"));
+    } else if (e.key === "Tab" && e.shiftKey) {
+      e.preventDefault();
+      const ls = v.lastIndexOf("\n", s - 1) + 1;
+      const n = (v.slice(ls).match(/^ {1,4}/) || [""])[0].length;
+      if (n) { ta.setRangeText("", ls, ls + n, "preserve"); ta.selectionStart = ta.selectionEnd = Math.max(ls, s - n); ta.dispatchEvent(new Event("input")); }
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      const ls = v.lastIndexOf("\n", s - 1) + 1;
+      const line = v.slice(ls, s);
+      let indent = line.match(/^\s*/)[0];
+      if (/:\s*(#.*)?$/.test(line)) indent += "    ";
+      e.preventDefault();
+      ta.setRangeText("\n" + indent, s, en, "end");
+      ta.dispatchEvent(new Event("input"));
+    }
+  });
+}
+
+/* ---------------- Aktionen ---------------- */
+async function doCheck() {
+  const btn = document.getElementById("check");
+  if (!runtime.ready || !btn || btn.disabled) return;
+  const idx = state.cur, t = TASKS[idx], a = ans(t);
+  btn.disabled = true; btn.textContent = "Prüfe …";
+  document.getElementById("res").innerHTML = "";
+  const r = await runtime.grade(t.id, a.code);
+  a.tries++; a.last = r;
+  a.status = r.passed ? "passed" : "failed";
+  save();
+  if (state.view === "task" && state.cur === idx) {
+    renderMap();
+    document.getElementById("res").innerHTML = resultHTML(r);
+    const b = document.getElementById("check");
+    if (b) { b.disabled = !runtime.ready; b.textContent = "Prüfen"; }
+  }
+}
+
+document.addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]");
+  if (go) { e.preventDefault(); state.cur = +go.dataset.go; state.view = "task"; save(); render(); window.scrollTo(0, 0); return; }
+  if (e.target.closest("[data-report]")) { state.view = "report"; save(); render(); return; }
+  const id = e.target.id;
+  if (id === "check") doCheck();
+  else if (id === "prev") { state.cur--; save(); render(); }
+  else if (id === "next") {
+    if (state.cur === TASKS.length - 1) state.view = "report"; else state.cur++;
+    save(); render(); window.scrollTo(0, 0);
+  }
+  else if (id === "peek") {
+    const a = ans(TASKS[state.cur]);
+    a.showSol = !a.showSol; if (a.showSol) a.peeked = true;
+    save(); render();
+  }
+  else if (id === "reset") {
+    if (confirm("Alle Eingaben und Ergebnisse löschen?")) { state = { cur: 0, view: "task", answers: {} }; save(); render(); }
+  }
+});
+
+render();
+runtime.start();
+</script>
+</body>
+</html>
