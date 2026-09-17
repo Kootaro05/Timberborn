@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spickzettel: Datenverarbeitung (Java) – Modul 5CS-DPDL-20</title>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      packages: {'[+]': ['ams']}
+    },
+    chtml: { scale: 1.0 },
+    startup: {
+      ready() {
+        MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(function () {
+          if (window.__fitMath) window.__fitMath(false);
+        });
+      }
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+<script>
+  /* Passt jede Formel an die verfügbare Breite an */
+  (function () {
+    var PRINT_W = 680;
+    function fitMath(forPrint) {
+      var nodes = document.querySelectorAll('mjx-container');
+      for (var i = 0; i < nodes.length; i++) {
+        var c = nodes[i];
+        c.style.fontSize = '';
+        var math = c.querySelector('mjx-math') || c;
+        var natural = math.getBoundingClientRect().width;
+        if (!natural) continue;
+        var avail;
+        if (forPrint) {
+          avail = PRINT_W;
+        } else {
+          var p = c.parentElement;
+          avail = p ? p.clientWidth : natural;
+        }
+        if (avail > 0 && natural > avail) {
+          var scale = Math.max(0.5, (avail / natural) * 0.96);
+          c.style.fontSize = (scale * 100).toFixed(1) + '%';
+        }
+      }
+    }
+    window.__fitMath = fitMath;
+
+    var t;
+    window.addEventListener('resize', function () {
+      clearTimeout(t);
+      t = setTimeout(function () { fitMath(false); }, 120);
+    });
+    window.addEventListener('load', function () { fitMath(false); });
+    window.addEventListener('beforeprint', function () { fitMath(true); });
+    window.addEventListener('afterprint', function () { fitMath(false); });
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#191d2b;
+    --ink-soft:#454b5e;
+    --paper:#fbfaf6;
+    --line:#e4e0d6;
+
+    --amber:#e08a1e;
+    --amber-bg:#fdf3e1;
+    --amber-edge:#f3d9a8;
+
+    --indigo:#3a4cf0;
+    --indigo-bg:#eef0ff;
+    --indigo-edge:#c5ccff;
+
+    --green:#179a5c;
+    --green-bg:#e9faf0;
+    --green-edge:#b5e8cd;
+
+    --red:#d4452f;
+    --red-bg:#fdecea;
+  }
+
+  *{box-sizing:border-box;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    word-wrap: break-word;
+  }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:48px 28px 90px; }
+
+  .toolbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    gap:16px; flex-wrap:wrap;
+    background:rgba(251,250,246,.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:12px 28px;
+  }
+  .toolbar .brand{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+  .toolbar a.back{ color:var(--indigo); text-decoration:none; font-weight:600; font-size:13px; }
+  .toolbar a.back:hover{ text-decoration:underline; }
+  .printbtn{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.06em;
+    background:var(--ink); color:#fff; border:none; border-radius:8px;
+    padding:9px 16px; cursor:pointer; transition:transform .12s ease, opacity .12s;
+  }
+  .printbtn:hover{ transform:translateY(-1px); opacity:.9; }
+  .printbtn:focus-visible{ outline:3px solid var(--indigo); outline-offset:2px; }
+
+  .cover{ padding:18px 0 8px; }
+  .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--indigo); margin:0 0 14px; }
+  h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(38px,6.5vw,72px); line-height:1.02; letter-spacing:-.02em;
+    margin:0 0 6px;
+  }
+  h1 .sub{ display:block; color:var(--indigo); font-size:0.75em; margin-top:4px; }
+  .tag{ color:var(--ink-soft); font-size:18px; max-width:54ch; margin:14px 0 0; }
+
+  .legend{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px; }
+  .chip{ border:1px solid var(--line); border-radius:14px; padding:16px 16px 15px; background:#fff; }
+  .chip .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  .chip .dot{ width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .chip p{ margin:9px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
+  .chip.a .lbl{ color:var(--amber); } .chip.a .dot{ background:var(--amber); }
+  .chip.k .lbl{ color:var(--indigo); } .chip.k .dot{ background:var(--indigo); }
+  .chip.b .lbl{ color:var(--green); } .chip.b .dot{ background:var(--green); }
+
+  .vorwort{ margin-top:34px; }
+  .vorwort h2{ font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); font-weight:600; margin:0 0 12px; }
+  .vorwort p{ margin:0 0 14px; }
+
+  hr.div{ border:none; border-top:1px solid var(--line); margin:46px 0; }
+
+  .aufgabe{
+    position:relative;
+    border-left:3px solid var(--indigo);
+    padding:6px 0 8px 34px;
+    margin:0 0 32px;
+  }
+  .aufgabe + .aufgabe{ margin-top:32px; }
+  .a-head{ display:flex; align-items:center; gap:18px; margin:18px 0 18px -52px; }
+  .a-num{
+    flex:none;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--indigo); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px;
+    box-shadow:0 0 0 6px var(--paper);
+  }
+  .a-titles .ey{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--indigo); }
+  .a-titles h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; letter-spacing:-.01em; margin:2px 0 0; }
+
+  h3{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; margin:26px 0 10px; }
+  h4{ font-family:'Inter',sans-serif; font-weight:700; font-size:15px; margin:18px 0 6px; }
+  p{ margin:0 0 12px; }
+  .muted{ color:var(--ink-soft); }
+  strong{ font-weight:700; }
+
+  .erklaer{
+    background:var(--amber-bg);
+    border:1px solid var(--amber-edge);
+    border-left:5px solid var(--amber);
+    border-radius:14px;
+    padding:18px 20px 18px 20px;
+    margin:6px 0 14px;
+    display:flex; gap:14px;
+  }
+  .erklaer .ico{ font-size:24px; line-height:1.2; flex:none; }
+  .erklaer .body{ flex:1; }
+  .erklaer p:last-child{ margin-bottom:0; }
+
+  .grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:22px; margin:18px 0; align-items:start; }
+  .weg, .safe { min-width: 0; } 
+  .weg h3:first-child, .weg h4:first-child{ margin-top:0; }
+
+  .safe{
+    background:var(--indigo-bg);
+    border:1px solid var(--indigo-edge);
+    border-radius:14px;
+    position:relative;
+    background-image:
+      linear-gradient(var(--indigo-bg),var(--indigo-bg)),
+      linear-gradient(rgba(58,76,240,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(58,76,240,.07) 1px, transparent 1px);
+    background-size:100% 100%, 22px 22px, 22px 22px;
+    background-blend-mode:normal;
+  }
+  .safe .safe-head{
+    background:var(--indigo); color:#fff;
+    border-radius: 13px 13px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:9px 16px; display:flex; align-items:center; gap:8px;
+  }
+  .safe .safe-body{ 
+    padding:14px 16px 14px; 
+    overflow:visible; 
+  }
+  .safe ol{ margin:2px 0 12px; padding-left:20px; }
+  .safe li{ margin:0 0 10px; }
+  .safe p{ margin:0 0 10px; }
+  .safe p:last-child { margin-bottom: 0; }
+  .safe .note{ font-size:13.5px; color:var(--ink-soft); }
+
+  .ref{
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:6px 20px; margin:16px 0;
+    overflow:visible;
+  }
+  .ref .rule{ padding:11px 0; border-bottom:1px dashed var(--line); }
+  .ref .rule:last-child{ border-bottom:none; }
+  .ref .rname{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--indigo); display:block; margin-bottom:3px; font-weight:700; }
+
+  .achtung{
+    background:var(--red-bg); border:1px solid #f3c4bc; border-left:5px solid var(--red);
+    border-radius:12px; padding:13px 16px; margin:14px 0; font-size:14.5px;
+  }
+  .achtung b{ color:var(--red); }
+
+  .beispiel{
+    background:var(--green-bg);
+    border:1px solid var(--green-edge);
+    border-radius:16px;
+    margin:22px 0 14px;
+  }
+  .beispiel .b-head{
+    background:var(--green); color:#fff;
+    border-radius: 15px 15px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:10px 20px; display:flex; align-items:center; gap:9px;
+  }
+  .beispiel .b-body{ 
+    padding:12px 22px 14px; 
+    overflow:visible; 
+  }
+  .beispiel .b-body h4{ color:#0d6b3f; }
+  .schritt{ margin:14px 0; }
+  .schritt .stitle{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; letter-spacing:.05em; color:#0d6b3f; text-transform:uppercase; margin-bottom: 6px; }
+  .result{
+    background:#fff; border:1px dashed var(--green); border-radius:10px;
+    padding:8px 16px; margin:8px 0; font-weight:600;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: #f1f0ea;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--indigo);
+  }
+  pre {
+    background: #f4f2ec;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.42;
+    margin: 8px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .safe pre {
+    background: rgba(255,255,255,0.7);
+    border-color: var(--indigo-edge);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13.5px;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f1f0ea;
+    font-weight: 600;
+  }
+
+  mjx-container{ 
+    overflow:visible !important; 
+    max-width: 100%; 
+    padding: 6px 0; 
+  }
+  mjx-container[display="true"]{ margin:10px 0 !important; }
+
+  footer{ margin-top:60px; padding-top:18px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:720px){
+    .wrap{ padding:30px 16px 70px; }
+    .legend{ grid-template-columns:1fr; }
+    .grid{ grid-template-columns:1fr; }
+    .aufgabe{ padding-left:22px; }
+    .a-head{ margin-left:-40px; gap:12px; }
+    .a-num{ width:44px; height:44px; font-size:20px; }
+    .a-titles h2{ font-size:24px; }
+    body{ font-size:15.5px; }
+  }
+
+  /* ---------- PRINT OPTIMIERUNGEN ---------- */
+  @media print{
+    @page{ size:A4; margin:14mm 14mm 16mm; }
+    html,body{ background:#fff; font-size:10pt; line-height:1.38; }
+    .toolbar{ display:none !important; }
+    .wrap{ max-width:none; padding:0; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    .aufgabe{
+      break-before:page; page-break-before:always;
+      padding:4px 0 6px 28px;
+      border-left:2px solid var(--indigo);
+      margin-bottom:0;
+    }
+    #a1{ break-before:auto; page-break-before:auto; }
+
+    .a-head{ margin:14px 0 14px -28px; gap:12px; }
+    .a-num{ width:40px; height:40px; font-size:20px; box-shadow:0 0 0 4px #fff; }
+    .a-titles h2{ font-size:22px; }
+
+    h1{ font-size:32pt; line-height:1; }
+    .tag{ font-size:11pt; }
+    .legend{ gap:10px; margin:16px 0 6px; }
+
+    .grid{ grid-template-columns:1fr; gap:12px; margin:12px 0; }
+    .safe .safe-body{ font-size:9.5pt; }
+
+    .erklaer,.ref,.achtung,.chip,.schritt,.result,.beispiel,.safe{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    .grid,.weg,.b-body,.safe-body{ break-inside:auto; }
+    .b-head,.safe-head{ break-after:avoid; page-break-after:avoid; }
+    .b-body,.safe-body{ break-before:avoid; page-break-before:avoid; }
+    .beispiel .b-body .schritt:first-child,
+    .b-body > p:first-child,
+    .safe-body > *:first-child{ break-before:avoid; page-break-before:avoid; }
+
+    .a-head,h3,h4{ break-after:avoid; }
+    p,li{ orphans:3; widows:3; }
+    mjx-container{ font-size:90%; }
+    mjx-container[display="true"]{ margin:8px 0 !important; }
+
+    .safe .safe-body, .beispiel .b-body, .ref, mjx-container{
+      overflow:visible !important;
+      white-space:normal !important;
+    }
+    a{ color:inherit; text-decoration:none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="toolbar">
+  <a class="back" href="../../../../index.php">&larr; Archiv</a>
+  <span class="brand">Datenverarbeitung (Java) &middot; Klausur-Guide</span>
+  <button class="printbtn" onclick="window.print()">Als PDF speichern / drucken</button>
+</div>
+
+<div class="wrap">
+  <header class="cover">
+    <p class="eyebrow">DHSN LEIPZIG &middot; MODUL 5CS-DPDL-20 &middot; PROF. DR. DEWEß</p>
+    <h1>Datenverarbeitung (Java)<span class="sub">Klausur-Spickzettel &amp; Syntax-Guide (120 Min)</span></h1>
+    <p class="tag">Der vollständige Spickzettel-Begleiter für den 120-minütigen Java-Prüfungsteil: Alle praxiserprobten Schablonen, Vorlesungs-Fallen und Logik-Leitplanken auf einen Blick.</p>
+  </header>
+
+  <div class="legend">
+    <div class="chip a"><span class="lbl"><span class="dot"></span>Erklärkasten</span><p>Konzepte, Sinn &amp; Vorlesungshintergründe verständlich erklärt.</p></div>
+    <div class="chip k"><span class="lbl"><span class="dot"></span>Klausur-Safe</span><p>Kompakte Syntax-Schablonen für das handschriftliche DIN-A4-Blatt.</p></div>
+    <div class="chip b"><span class="lbl"><span class="dot"></span>Klausur-Beispiel</span><p>Vollständige, lauffähige Code-Beispiele aus den Übungen &amp; Prüfungen.</p></div>
+  </div>
+
+  <section class="vorwort">
+    <h2>Vorwort &amp; Prüfungsrahmen</h2>
+    <p>Die Modulprüfung <strong>„Datenverarbeitung und Datenbankzugriffssprachen"</strong> teilt sich in zwei Blöcke: 120 Minuten Datenverarbeitung (Java) und 60 Minuten Datenbankzugriffssprachen (SQL/ERM). Für den Java-Teil stehen insgesamt 115 Punkte (100 reguläre Punkte + 15 Zusatzpunkte) zur Verfügung.</p>
+    <p><strong>Prüfungsumgebung:</strong> Windows-PC mit persönlichem Home-Laufwerk <code>H:\</code>, VS Code, keine Internetverbindung. Die Vorlesungsfolien und Skripte stehen lokal zur Verfügung. <strong>Einziges zugelassenes Hilfsmittel:</strong> Genau 1 DIN-A4-Blatt, beidseitig ausschließlich handschriftlich beschrieben.</p>
+  </section>
+  <hr class="div">
+
+  <!-- ==================== AUFGABE 1 ==================== -->
+  <section class="aufgabe" id="a1">
+    <div class="a-head">
+      <div class="a-num">1</div>
+      <div class="a-titles"><div class="ey">Thema 1</div><h2>Projekt-Setup, Packages &amp; VS Code Hacks</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In der Prüfung muss das Projekt auf dem Netzlaufwerk <code>H:\Datenverarbeitung</code> angelegt werden. Die häufigste Fehlerquelle zu Beginn sind Package-Mismatch-Fehler in VS Code sowie falsche relative Pfade beim Einlesen von Dateien.</p>
+      </div>
+    </div>
+
+    <h3>Regeln &amp; Syntax</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">1.1 &middot; Ordnerstruktur</span><code>src/de/dhsn/klausur/Start.java</code></div>
+      <div class="rule"><span class="rname">1.2 &middot; Paketdeklaration</span>Erste Zeile jeder Quelldatei muss lauten: <code>package de.dhsn.klausur;</code></div>
+      <div class="rule"><span class="rname">1.3 &middot; Arbeitsverzeichnis</span>Der Java-Prozess läuft standardmäßig im <strong>Projekt-Root</strong> (dem Verzeichnis direkt über <code>src/</code>).</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Vorgehen in VS Code</h3>
+        <p>Erstelle das Projekt über die Befehlspalette: <code>Strg + Shift + P</code> &rarr; <em>Java: Create Java Project</em> &rarr; <em>No build tools</em> &rarr; Ordner auf <code>H:\Datenverarbeitung</code> wählen &rarr; Name z. B. <code>Klausur</code>.</p>
+        <p>Tritt der Fehler <em>"The declared package does not match the expected package"</em> auf, klicke auf die rote Welle in der ersten Zeile und drücke <code>Strg + .</code> &rarr; <em>Move to package...</em>.</p>
+        <div class="result">Root-Pfad im Code abfragen: <code>Path.of(System.getProperty("user.dir"));</code></div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Setup</div>
+        <div class="safe-body">
+          <ol>
+            <li>Paket: <code>package de.dhsn.klausur;</code></li>
+            <li>Dateien wie <code>cargo.xml</code> im Projekt-Root ablegen (neben <code>src/</code>) &rarr; Zugriff einfach via <code>"cargo.xml"</code>.</li>
+            <li>Liegt die Datei in <code>src/</code>, muss sie mit <code>"src/cargo.xml"</code> angesprochen werden.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Achtung:</b> Niemals Pfade hart auf <code>C:\...</code> codieren! Auf dem Prüfungs-PC existiert nur Laufwerk <code>H:\</code> für Benutzerdaten.</div>
+  </section>
+
+  <!-- ==================== AUFGABE 2 ==================== -->
+  <section class="aufgabe" id="a2">
+    <div class="a-head">
+      <div class="a-num">2</div>
+      <div class="a-titles"><div class="ey">Thema 2 &middot; Vorlesung Thema 12</div><h2>Threads, Lifecycle &amp; Concurrency</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Ein Thread repräsentiert einen sequentiellen Ausführungsstrang innerhalb eines Prozesses. In Java starten wir Threads am kompaktesten mittels <code>Runnable</code>-Lambda. Bei Zugriffen auf gemeinsame Variablen drohen Race Conditions, die synchronisiert oder atomar gelöst werden müssen.</p>
+      </div>
+    </div>
+
+    <h3>Regeln &amp; Methoden</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">2.1 &middot; Thread-Start</span><code>t.start()</code> erzeugt einen neuen Betriebssystem-Thread und ruft darin <code>run()</code> auf. <code>t.run()</code> führt den Code lediglich sequentiell im aktuellen Thread aus!</div>
+      <div class="rule"><span class="rname">2.2 &middot; Warten auf Beendigung</span><code>t.join()</code> blockiert den aufrufenden Thread, bis <code>t</code> fertig terminiert ist. Wirft <code>InterruptedException</code>.</div>
+      <div class="rule"><span class="rname">2.3 &middot; Thread-Zustände</span><code>t.getState()</code> liefert: <code>NEW</code>, <code>RUNNABLE</code>, <code>BLOCKED</code>, <code>WAITING</code>, <code>TIMED_WAITING</code>, <code>TERMINATED</code>.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Synchronisation &amp; Race Conditions</h3>
+        <p>Greifen mehrere Threads ungesichert schreibend auf dieselbe Variable zu (z. B. <code>counter++</code>), kommt es zu Datenverlust, da <code>counter++</code> aus drei Einzelschritten besteht (Read-Modify-Write).</p>
+        <p><strong>Lösungsweg 1:</strong> <code>public static synchronized void increment() { counter++; }</code> (Monitor sperrt Methode).</p>
+        <p><strong>Lösungsweg 2 (Lock-frei):</strong> <code>AtomicInteger</code> aus <code>java.util.concurrent.atomic</code>.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Threads &amp; Lambda</div>
+        <div class="safe-body">
+<pre>Thread t1 = new Thread(() -> {
+    for (int i = 1; i <= 10; i++) {
+        System.out.println(Thread.currentThread().getName() + ": " + i);
+    }
+}, "Thread-1");
+
+t1.start();
+try {
+    t1.join(); // IMMER nach start()!
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> Klausur-Beispiel: Atomarer Zähler (Thread-Safe)</div>
+      <div class="b-body">
+        <div class="schritt">
+          <div class="stitle">Klassenvariable und nebenläufige Erhöhung</div>
+<pre>public class Start {
+    // ACHTUNG: Auf Klassenebene deklarieren, NICHT lokal in main()!
+    private static AtomicInteger safeCounter = new AtomicInteger(0);
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread a = new Thread(() -> { for(int i=0; i<1000; i++) safeCounter.incrementAndGet(); });
+        Thread b = new Thread(() -> { for(int i=0; i<1000; i++) safeCounter.incrementAndGet(); });
+        a.start(); b.start();
+        a.join(); b.join();
+        System.out.println("Ergebnis: " + safeCounter.get()); // Garantiert 2000
+    }
+}</pre>
+        </div>
+        <div class="result">Sicherer Endwert ohne Race Conditions: 2.000</div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Klausurfalle:</b> <code>t1.join()</code> VOR <code>t1.start()</code> aufgerufen &rarr; <code>join()</code> kehrt sofort wirkungslos zurück; der Thread läuft nie los oder die Reihenfolge stimmt nicht!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 3 ==================== -->
+  <section class="aufgabe" id="a3">
+    <div class="a-head">
+      <div class="a-num">3</div>
+      <div class="a-titles"><div class="ey">Thema 3 &middot; Vorlesung Thema 2</div><h2>Verschachtelte Klassen (Nested Classes)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In Java kann eine Klasse in einer anderen definiert werden. Der Hauptunterschied liegt darin, ob die eingebettete Klasse das Schlüsselwort <code>static</code> trägt oder nicht. Dies entscheidet über die Notwendigkeit eines äußeren Objekts.</p>
+      </div>
+    </div>
+
+    <h3>Klassifikation &amp; Instanzierung</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">3.1 &middot; Static Nested Class</span><code>Outer.StaticNested s = new Outer.StaticNested();</code> &mdash; Benötigt <strong>keine</strong> Instanz der umschließenden Klasse. Zugriff nur auf statische Outer-Mitglieder.</div>
+      <div class="rule"><span class="rname">3.2 &middot; Inner Member Class</span><code>Outer o = new Outer(); Outer.Inner i = o.new Inner();</code> &mdash; Benötigt existierende Outer-Instanz. Hat vollen Zugriff auf alle Outer-Instanzvariablen!</div>
+      <div class="rule"><span class="rname">3.3 &middot; Java 16+ Neuerung</span>Seit Java 16 dürfen auch nicht-statische innere Member- und Local-Klassen <code>public static</code> Attribute (z. B. Zähler) besitzen.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Typische Klausuraufgabe (LockerSystem)</h3>
+        <p>Gefordert ist meist ein umschließendes System (z. B. <code>LockerSystem</code>) mit einer Liste von inneren Objekten (z. B. <code>Locker</code>). Die innere Klasse erhält einen statischen <code>counter</code>, der bei jeder Erzeugung die eigene <code>id</code> vergibt und hochzählt.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Member Inner Class mit Counter</div>
+        <div class="safe-body">
+<pre>public class LockerSystem {
+    private List<Locker> lockers = new ArrayList<>();
+
+    public class Locker {
+        private int capacity;
+        private int lockerId;
+        private static int counter = 1; // Java 16+
+
+        public Locker(int cap) {
+            this.capacity = cap;
+            this.lockerId = counter++;
+        }
+        @Override
+        public String toString() {
+            return "Locker #" + lockerId + " (" + capacity + "L)";
+        }
+    }
+
+    public void addLocker(int cap) {
+        lockers.add(new Locker(cap)); // o.new Locker(cap)
+    }
+    public void display() {
+        for (Locker l : lockers) System.out.println(l);
+    }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Achtung:</b> Aus einer <code>static nested class</code> heraus kann man <strong>nicht</strong> direkt auf Instanzvariablen der äußeren Klasse zugreifen, es sei denn, man übergibt ein Outer-Objekt als Parameter.</div>
+  </section>
+
+  <!-- ==================== AUFGABE 4 ==================== -->
+  <section class="aufgabe" id="a4">
+    <div class="a-head">
+      <div class="a-num">4</div>
+      <div class="a-titles"><div class="ey">Thema 4 &middot; Vorlesung Thema 2</div><h2>Entwurfsmuster: Java Builder Pattern</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das Builder Pattern dient der sauberen Erzeugung von unveränderlichen (immutable) Objekten mit vielen optionalen Parametern gleichen Typs. Es verhindert fehleranfällige Riesen-Konstruktoren mit Vertauschungsgefahr.</p>
+      </div>
+    </div>
+
+    <h3>Strukturprinzip</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">4.1 &middot; Privater Konstruktor</span>Das eigentliche Objekt besitzt einen privaten Konstruktor, der den <code>Builder</code> entgegennimmt.</div>
+      <div class="rule"><span class="rname">4.2 &middot; Statische Innere Builder-Klasse</span>Pflichtparameter werden im Konstruktor des Builders übergeben; optionale Werte über verkettbare Methoden (Fluent API), die <code>return this;</code> liefern.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Vorteile &amp; Verwendung</h3>
+        <p>Alle Felder der Zielklasse können als <code>final</code> deklariert werden. Der Aufruf liest sich wie natürliche Sprache:</p>
+        <div class="result"><code>Locker l = new Locker.Builder(1).volume(500).label("Groß").build();</code></div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Builder Schablone</div>
+        <div class="safe-body">
+<pre>public class Locker {
+    private final int id;        // Pflicht
+    private final int volume;    // Optional
+    private final String label;  // Optional
+
+    private Locker(Builder b) {
+        this.id = b.id;
+        this.volume = b.volume;
+        this.label = b.label;
+    }
+
+    public static class Builder {
+        private int id;
+        private int volume = 100;        // Default
+        private String label = "Normal"; // Default
+
+        public Builder(int id) { this.id = id; }
+        public Builder volume(int v) { this.volume = v; return this; }
+        public Builder label(String l) { this.label = l; return this; }
+        public Locker build() { return new Locker(this); }
+    }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 5 ==================== -->
+  <section class="aufgabe" id="a5">
+    <div class="a-head">
+      <div class="a-num">5</div>
+      <div class="a-titles"><div class="ey">Thema 5 &middot; Vorlesung Thema 3</div><h2>Enums (Aufzählungstypen mit Feldern &amp; Methoden)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In Java sind Enums keine simplen Integer-Aliase wie in C, sondern vollwertige Spezialklassen, die von <code>java.lang.Enum</code> erben. Sie können eigene Felder, Konstruktoren und Methoden besitzen.</p>
+      </div>
+    </div>
+
+    <h3>Regeln &amp; Eingebaute Methoden</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">5.1 &middot; values()</span>Liefert ein Array aller Enum-Konstanten in Deklarationsreihenfolge: <code>LockerType.values()</code></div>
+      <div class="rule"><span class="rname">5.2 &middot; name() vs toString()</span><code>name()</code> liefert exakt den Bezeichner der Konstante als String (z. B. <code>"SMALL"</code>). <code>ordinal()</code> liefert den 0-basierten Index.</div>
+      <div class="rule"><span class="rname">5.3 &middot; valueOf(String)</span>Parst einen String in die passende Enum-Konstante: <code>LockerType.valueOf("SMALL")</code></div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Architektur-Grundsatz</h3>
+        <p>Enum-Instanzen sind per Definition konstant und unveränderlich (immutable). Daher gilt:</p>
+        <ul>
+          <li>Instanzvariablen immer als <code>private final</code> deklarieren!</li>
+          <li>Der Konstruktor ist implizit <code>private</code>.</li>
+          <li><strong>Ausschließlich Getter implementieren, NIEMALS Setter!</strong></li>
+        </ul>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Enum mit Feldern &amp; Ctor</div>
+        <div class="safe-body">
+<pre>public enum LockerType {
+    SMALL("Klein", 50),
+    MEDIUM("Mittelgroß", 100),
+    LARGE("Groß", 150);
+
+    private final String label;
+    private final int fee;
+
+    private LockerType(String l, int fee) {
+        this.label = l;
+        this.fee = fee;
+    }
+    public String getLabel() { return label; }
+    public int getFee() { return fee; }
+}
+
+// Iteration in main():
+for (LockerType lt : LockerType.values()) {
+    System.out.println(lt.name() + ": " + lt.getLabel() + " (" + lt.getFee() + "€)");
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Klausurfalle:</b> Das Schreiben eines Setters in einem Enum führt zu massivem Punktabzug wegen Verletzung des Unveränderlichkeits-Prinzips!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 6 ==================== -->
+  <section class="aufgabe" id="a6">
+    <div class="a-head">
+      <div class="a-num">6</div>
+      <div class="a-titles"><div class="ey">Thema 6 &middot; Vorlesung Thema 4</div><h2>Collections, Sets, Queue &amp; Häufigkeitszähler</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das Java Collections Framework (JCF) bietet Datenstrukturen wie <code>List</code>, <code>Set</code>, <code>Queue</code> und <code>Map</code>. Der absolute Klassiker in Klausuren ist die Häufigkeitszählung über eine <code>HashMap</code>.</p>
+      </div>
+    </div>
+
+    <h3>Übersicht Spezial-Collections</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">6.1 &middot; TreeMap / TreeSet</span>Sortiert Elemente automatisch nach natürlicher Ordnung (benötigt <code>Comparable</code>) oder <code>Comparator</code>. Erlaubt keine <code>null</code>-Werte. <code>subMap(from, to)</code> schneidet Teilbereiche heraus.</div>
+      <div class="rule"><span class="rname">6.2 &middot; EnumSet</span>Hocheffizientes Set für Enums: <code>EnumSet.range(A, B)</code>, <code>EnumSet.allOf(E.class)</code>, <code>EnumSet.of(...)</code>.</div>
+      <div class="rule"><span class="rname">6.3 &middot; Queue-Methoden</span>
+        <table>
+          <tr><th>Operation</th><th>Wirft Exception</th><th>Liefert null / false</th></tr>
+          <tr><td>Einfügen (Tail)</td><td><code>add(e)</code></td><td><code>offer(e)</code></td></tr>
+          <tr><td>Entfernen (Head)</td><td><code>remove()</code></td><td><code>poll()</code></td></tr>
+          <tr><td>Prüfen (Head)</td><td><code>element()</code></td><td><code>peek()</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Die Häufigkeitszähler-Falle</h3>
+        <p>Wer <code>map.put(key, map.get(key) + 1);</code> schreibt, erhält beim ersten Auftreten eines Elements unweigerlich eine <code>NullPointerException</code>, weil <code>map.get(key)</code> <code>null</code> liefert und das automatische Unboxing zu <code>int</code> fehlschlägt!</p>
+        <p>Auch <code>map.replace(key, count++)</code> scheitert, da <code>replace</code> nur existierende Schlüssel aktualisiert, aber keine neuen einfügt.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Null-sichere Häufigkeitszählung</div>
+        <div class="safe-body">
+<pre>public static Map<String, Integer> count(List<String> list) {
+    Map<String, Integer> map = new HashMap<>();
+    for (String item : list) {
+        // getOrDefault verhindert NullPointerException!
+        map.put(item, map.getOrDefault(item, 0) + 1);
+    }
+    return map;
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> Klausur-Beispiel: Queue mit LinkedList</div>
+      <div class="b-body">
+        <div class="schritt">
+          <div class="stitle">Warteschlange bedienen</div>
+<pre>Queue<String> q = new LinkedList<>();
+q.offer("Gast 1");
+q.offer("Gast 2");
+System.out.println("Nächster: " + q.peek());   // Gast 1
+System.out.println("Bedient: "  + q.poll());   // Entfernt Gast 1
+System.out.println("Leer?: "    + q.isEmpty());// false</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 7 ==================== -->
+  <section class="aufgabe" id="a7">
+    <div class="a-head">
+      <div class="a-num">7</div>
+      <div class="a-titles"><div class="ey">Thema 7 &middot; Vorlesung Thema 5</div><h2>Generics, Typgrenzen &amp; Wildcards (PECS)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Generics ermöglichen typsichere Wiederverwendbarkeit. Durch Typgrenzen (Bounds) schränken wir Typparameter ein, z. B. auf vergleichbare Typen. Wildcards (<code>?</code>) steuern die Lese- und Schreibrechte bei Vererbungshierarchien.</p>
+      </div>
+    </div>
+
+    <h3>Regeln &amp; Prinzipien</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">7.1 &middot; Bounded Type Parameter</span><code>&lt;T extends Comparable&lt;T&gt;&gt;</code> garantiert, dass auf Elementen vom Typ <code>T</code> die Methode <code>compareTo()</code> aufgerufen werden darf. Mehrfachgrenzen: <code>&lt;T extends Number &amp; Comparable&lt;T&gt;&gt;</code>.</div>
+      <div class="rule"><span class="rname">7.2 &middot; Invarianz</span><code>List&lt;Integer&gt;</code> ist in Java <strong>kein</strong> Untertyp von <code>List&lt;Number&gt;</code>! Zuweisung <code>List&lt;Number&gt; l = new ArrayList&lt;Integer&gt;();</code> führt zu einem Compilerfehler.</div>
+      <div class="rule"><span class="rname">7.3 &middot; PECS-Regel</span><strong>Producer Extends, Consumer Super</strong>:
+        <br>&bull; <code>&lt;? extends T&gt;</code>: <strong>Lesen</strong> (Quelle liefert T). Keine Schreibzugriffe erlaubt (außer <code>null</code>)!
+        <br>&bull; <code>&lt;? super T&gt;</code>: <strong>Schreiben</strong> (Ziel nimmt T auf). Sicher Elemente vom Typ T einfügen!</div>
+      <div class="rule"><span class="rname">7.4 &middot; Type Erasure</span>Generics existieren nur zur Compilezeit. Zur Laufzeit wird der Typ durch den Bound (oder <code>Object</code>) ersetzt. Daher ist <code>new T()</code> verboten!</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Extremwert-Suche (Min / Max)</h3>
+        <p>Die Klausur verlangt oft eine generische Methode, die je nach Boolean-Flag entweder das kleinste oder das größte Element einer Liste liefert.</p>
+        <p><code>res.compareTo(e)</code> liefert eine Zahl <code>&gt; 0</code>, wenn <code>res &gt; e</code> ist, und <code>&lt; 0</code>, wenn <code>res &lt; e</code> ist.</p>
+        <div class="result">Leerlisten-Check vorab ist Pflicht: <code>if (list == null || list.isEmpty()) return null;</code></div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Generische Extremum-Methode</div>
+        <div class="safe-body">
+<pre>public static <T extends Comparable<T>> T findExtremum(List<T> list, boolean returnMin) {
+    if (list == null || list.isEmpty()) return null; // PFLICHT!
+    
+    T res = list.getFirst(); // oder list.get(0)
+    for (T e : list) {
+        if (returnMin) {
+            if (res.compareTo(e) > 0) res = e; // neues Minimum
+        } else {
+            if (res.compareTo(e) < 0) res = e; // neues Maximum
+        }
+    }
+    return res;
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Klausurfalle:</b> <code>list.getFirst()</code> oder <code>list.get(0)</code> auf einer leeren Liste aufrufen wirft sofort eine <code>NoSuchElementException</code> bzw. <code>IndexOutOfBoundsException</code>!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 8 ==================== -->
+  <section class="aufgabe" id="a8">
+    <div class="a-head">
+      <div class="a-num">8</div>
+      <div class="a-titles"><div class="ey">Thema 8 &middot; Vorlesung Thema 11</div><h2>java.time &amp; Zeitzonen (Modernes Datum &amp; Zeit)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das mit Java 8 eingeführte Paket <code>java.time</code> ersetzt die veralteten Klassen <code>Date</code> und <code>Calendar</code> vollständig. Alle Klassen sind <strong>unveränderlich (immutable)</strong> und thread-sicher.</p>
+      </div>
+    </div>
+
+    <h3>Klassen &amp; Methoden</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">8.1 &middot; Typen-Hierarchie</span>
+        <code>LocalDate</code> (Datum: Jahr, Monat, Tag), <code>LocalTime</code> (Uhrzeit), <code>LocalDateTime</code> (Kombi ohne Zone), <code>ZonedDateTime</code> (mit Sommerzeit/Zone), <code>Instant</code> (UTC-Zeitstempel ab 1970-01-01).</div>
+      <div class="rule"><span class="rname">8.2 &middot; Duration vs Period</span>
+        &bull; <code>Duration</code>: Zeitbasiert (Sekunden, Nanosekunden) &rarr; <code>Duration.between(start, end).toNanos()</code>.
+        <br>&bull; <code>Period</code>: Kalenderbasiert (Jahre, Monate, Tage) &rarr; <code>Period.between(d1, d2).getYears()</code>.</div>
+      <div class="rule"><span class="rname">8.3 &middot; Zeitzonenwechsel</span>
+        <code>ZonedDateTime.now(ZoneId.of("Asia/Tokyo"))</code>. Mit <code>z.withZoneSameInstant(ZoneId.of("Europe/Berlin"))</code> rechnet man exakt denselben Weltzeit-Moment in eine andere Zeitzone um.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>DateTimeFormatter: Die Literal-Falle</h3>
+        <p>Wer feste Wörter in ein Pattern schreibt (z. B. <code>"HH Uhr, mm Minuten"</code>), erntet einen Absturz:</p>
+        <div class="result"><code>IllegalArgumentException: Unknown pattern letter: U</code></div>
+        <p><strong>Regel:</strong> Alle nicht-formatierten Textzeichen MÜSSEN in einfache Hochkommas <code>'...'</code> eingeschlossen werden!</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Zeitzone &amp; Formatierung</div>
+        <div class="safe-body">
+<pre>ZonedDateTime tokyo = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
+
+// Textbestandteile in Single Quotes maskieren:
+DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
+    "HH 'Uhr,' mm 'Minuten und' ss 'Sekunden.'", Locale.GERMAN
+);
+System.out.println(tokyo.format(fmt));
+
+// Nützliche Operationen:
+LocalDate d = LocalDate.now();
+LocalDate next10th = d.withDayOfMonth(10); // Tag auf 10 setzen
+LocalDate future = d.plusYears(1).minusDays(3);</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Achtung:</b> <code>d.plusYears(1)</code> ändert <code>d</code> <strong>nicht</strong>! Man muss das Ergebnis zwingend zuweisen: <code>d = d.plusYears(1);</code>.</div>
+  </section>
+
+  <!-- ==================== AUFGABE 9 ==================== -->
+  <section class="aufgabe" id="a9">
+    <div class="a-head">
+      <div class="a-num">9</div>
+      <div class="a-titles"><div class="ey">Thema 9 &middot; Vorlesung Thema 6</div><h2>Stream API (Deklarative Fluent Pipelines)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Streams erlauben funktionale Massenverarbeitung von Sequenzen ohne explizite Schleifen. Ein Stream speichert keine Daten, sondern verarbeitet Elemente wie auf einem Fließband (Lazy Evaluation).</p>
+      </div>
+    </div>
+
+    <h3>Operationen im Überblick</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">9.1 &middot; Intermediäre Operationen (Lazy)</span>Liefern wieder einen Stream: <code>filter(Predicate)</code>, <code>map(Function)</code>, <code>sorted()</code>, <code>distinct()</code>, <code>skip(n)</code>, <code>limit(n)</code>.</div>
+      <div class="rule"><span class="rname">9.2 &middot; Terminale Operationen</span>Schließen den Stream und liefern ein Ergebnis: <code>count()</code>, <code>collect(Collectors.toList())</code>, <code>forEach(Consumer)</code>, <code>min(Comparator)</code>, <code>max(Comparator)</code>, <code>anyMatch()</code>, <code>allMatch()</code>.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Das Einweg-Prinzip (Pipeline-Bruch)</h3>
+        <p>Ein Stream kann nur <strong>ein einziges Mal</strong> durchlaufen werden. Sobald eine terminale Operation aufgerufen wurde, ist er geschlossen. Wer einen Stream in Variablen zerlegt:</p>
+<pre>Stream<String> s = list.stream();
+s.filter(...);
+s.count(); // WIRFT IllegalStateException!</pre>
+        <p><strong>Lösung:</strong> Immer als eine einzige, ununterbrochene Kette schreiben.</p>
+        <p><strong>Filter-Logik:</strong> <code>filter(p)</code> behält Elemente, für die <code>p == true</code> gilt. Zum Rausfiltern von <code>"priv"</code> muss negiert werden: <code>.filter(w -> !w.equals("priv"))</code>.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Stream Pipeline</div>
+        <div class="safe-body">
+<pre>String[] rawData = {"2026", "priv", "FirmaA", "FirmaB", "priv", "FirmaA"};
+
+long distinctCount = Arrays.stream(rawData)
+    .skip(1)                         // "2026" überspringen
+    .filter(w -> !w.equals("priv"))  // "priv" herausfiltern
+    .distinct()                      // Duplikate entfernen
+    .count();                        // Zählen
+
+System.out.println("Gefunden: " + distinctCount);</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Klausurfalle:</b> <code>distinct()</code> vergleicht Objekte über <code>equals()</code> und <code>hashCode()</code>. Wer eigene Klassen im Stream nutzt, MUSS beide Methoden überschrieben haben, sonst funktioniert <code>distinct()</code> nicht!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 10 ==================== -->
+  <section class="aufgabe" id="a10">
+    <div class="a-head">
+      <div class="a-num">10</div>
+      <div class="a-titles"><div class="ey">Thema 10 &middot; Vorlesung Thema 9</div><h2>NIO.2 Dateisystem &amp; BasicFileAttributes</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das moderne NIO.2 (<code>java.nio.file</code>) ersetzt das alte <code>java.io.File</code>. Zentral sind die Schnittstelle <code>Path</code> und die Hilfsklasse <code>Files</code> für atomare Datei- und Metadaten-Operationen.</p>
+      </div>
+    </div>
+
+    <h3>Wichtige Methoden</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">10.1 &middot; Path Erzeugung &amp; Kombination</span><code>Path p = Path.of("ordner", "sub");</code> &mdash; Mit <code>p.resolve("datei.txt")</code> hängt man Dateinamen mit dem korrekten System-Trennzeichen an.</div>
+      <div class="rule"><span class="rname">10.2 &middot; Files Operationen</span><code>Files.createDirectories(p)</code> (erstellt inkl. Elternordner), <code>Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING)</code>, <code>Files.deleteIfExists(p)</code>.</div>
+      <div class="rule"><span class="rname">10.3 &middot; BasicFileAttributes</span>Ermöglicht den schnellen Zugriff auf Metadaten des Dateisystems (Zeitstempel, Dateigröße, Typ).</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Zeitstempel abfragen (Klausurklassiker)</h3>
+        <p>In der Prüfung muss häufig ein Verzeichnis erstellt und dessen Erstellzeitpunkt sowie letzter Änderungszeitpunkt abgefragt werden.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Verzeichnis &amp; Attribute</div>
+        <div class="safe-body">
+<pre>Path dir = Path.of("klausur_output");
+try {
+    Files.createDirectories(dir); // Erstellt Ordner
+
+    BasicFileAttributes attr = Files.readAttributes(dir, BasicFileAttributes.class);
+    System.out.println("Erstellt:  " + attr.creationTime());
+    System.out.println("Geändert:  " + attr.lastModifiedTime());
+    System.out.println("Ist Ordner: " + attr.isDirectory());
+    System.out.println("Dateigröße: " + attr.size() + " Bytes");
+} catch (IOException e) {
+    e.printStackTrace();
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 11 ==================== -->
+  <section class="aufgabe" id="a11">
+    <div class="a-head">
+      <div class="a-num">11</div>
+      <div class="a-titles"><div class="ey">Thema 11 &middot; Vorlesung Thema 9</div><h2>Klassisches I/O, Scanner &amp; Serialisierung</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Streams aus <code>java.io</code> verbinden die Anwendung mit Datenquellen und -senken. Ressourcen müssen stets über <strong>Try-with-Resources</strong> geschlossen werden, um Ressourcenlecks zu vermeiden.</p>
+      </div>
+    </div>
+
+    <h3>Kernbausteine</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">11.1 &middot; Try-with-Resources</span>Ressourcen in den runden Klammern <code>try (Resource r = ...) { }</code> implementieren <code>AutoCloseable</code> und werden automatisch geschlossen.</div>
+      <div class="rule"><span class="rname">11.2 &middot; Scanner Trennzeichen</span><code>new Scanner(line).useDelimiter("[,;]")</code> teilt eine Zeile nach Komma oder Semikolon auf.</div>
+      <div class="rule"><span class="rname">11.3 &middot; Serialisierung</span>Klassen benötigen <code>implements Serializable</code>. Nicht zu speichernde Felder werden mit <code>private transient</code> markiert.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>CSV-Parsing Schablone</h3>
+        <p>Kombination aus <code>BufferedReader</code> (zeilenweises Lesen) und <code>Scanner</code> (Tokenisieren der Zeile):</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: CSV zeilenweise einlesen</div>
+        <div class="safe-body">
+<pre>try (BufferedReader br = new BufferedReader(new FileReader("daten.csv"))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        Scanner s = new Scanner(line).useDelimiter("[,;]");
+        String name = s.next();
+        int wert = Integer.parseInt(s.next());
+        s.close();
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 12 ==================== -->
+  <section class="aufgabe" id="a12">
+    <div class="a-head">
+      <div class="a-num">12</div>
+      <div class="a-titles"><div class="ey">Thema 12 &middot; Vorlesung Thema 7</div><h2>Reflection API (Introspektion zur Laufzeit)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Reflection erlaubt es einem Programm, seinen eigenen Aufbau (Klassen, Methoden, Felder, Modifizierer) zur Laufzeit dynamisch zu untersuchen und private Kapselungen auszuhebeln.</p>
+      </div>
+    </div>
+
+    <h3>Class-Objekt &amp; Modifizierer</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">12.1 &middot; 3 Wege zum Class-Objekt</span>
+        1. Literal: <code>MyClass.class</code> | 
+        2. Instanz: <code>obj.getClass()</code> | 
+        3. Dynamisch: <code>Class.forName("de.dhsn.klausur.MyClass")</code>
+      </div>
+      <div class="rule"><span class="rname">12.2 &middot; Modifier.toString()</span>Wandelt den Integer-Bitmasken-Wert aus <code>c.getModifiers()</code> in lesbare Strings um (z. B. <code>"public final"</code>).</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Private Felder manipulieren</h3>
+        <p>Mit <code>c.getDeclaredField("name")</code> erhält man auch private Attribute. Durch <code>setAccessible(true)</code> wird der Zugriffsschutz für diesen Aufruf deaktiviert.</p>
+        <div class="result">Dynamische Typ-Prüfung: <code>c.isInstance(obj)</code> entspricht <code>obj instanceof C</code>.</div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Reflection Schablone</div>
+        <div class="safe-body">
+<pre>// 1. Class & Modifizierer
+Class<?> c = Class.forName("java.util.concurrent.ConcurrentHashMap");
+System.out.println("Modifier: " + Modifier.toString(c.getModifiers()));
+
+// 2. Methodenanzahl ermitteln
+Method[] methods = c.getDeclaredMethods();
+System.out.println("Methodenanzahl: " + methods.length);
+
+// 3. Privates Feld lesen & ändern
+Field f = c.getDeclaredField("secretField");
+f.setAccessible(true); // Umgeht private!
+Object val = f.get(myInstance);
+f.set(myInstance, "NeuerWert");</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 13 ==================== -->
+  <section class="aufgabe" id="a13">
+    <div class="a-head">
+      <div class="a-num">13</div>
+      <div class="a-titles"><div class="ey">Thema 13 &middot; Vorlesung Thema 10</div><h2>XML-Verarbeitung mit DOM &amp; XPath</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Der DOM-Parser baut das gesamte XML-Dokument als Baumstruktur im Arbeitsspeicher auf. Mit XPath können gezielte Knotenmengen über Filterausdrücke (Prädikate) abgefragt werden.</p>
+      </div>
+    </div>
+
+    <h3>Die 3 XML-Pakete &amp; XPath-Syntax</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">13.1 &middot; Import-Vorschrift</span>
+        <code>import org.w3c.dom.*;</code> (für <code>Document</code>, <code>Node</code>, <code>NodeList</code>)<br>
+        <code>import javax.xml.parsers.*;</code> (für <code>DocumentBuilderFactory</code>, <code>DocumentBuilder</code>)<br>
+        <code>import javax.xml.xpath.*;</code> (für <code>XPath</code>, <code>XPathFactory</code>, <code>XPathConstants</code>)
+      </div>
+      <div class="rule"><span class="rname">13.2 &middot; XPath Prädikate</span><code>"//item[@weight > 100]"</code> filtert alle <code>&lt;item&gt;</code>-Tags, deren Attribut <code>weight</code> größer als 100 ist.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Die NodeList-Schleifen-Falle</h3>
+        <p><code>NodeList</code> implementiert <strong>nicht</strong> <code>Iterable</code>! Ein Aufruf wie <code>for (Node n : nodeList)</code> scheitert mit einem Kompilierfehler.</p>
+        <p><strong>Lösung:</strong> Ausschließlich die klassische Index-Schleife mit <code>getLength()</code> und <code>item(i)</code> verwenden.</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: DOM &amp; XPath</div>
+        <div class="safe-body">
+<pre>try {
+    // 1. DOM Document parsen
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document doc = db.parse("cargo.xml");
+
+    // 2. XPath auswerten
+    XPath xp = XPathFactory.newInstance().newXPath();
+    String expr = "//item[@weight > 100]";
+    NodeList nl = (NodeList) xp.evaluate(expr, doc, XPathConstants.NODESET);
+
+    // 3. Klassische Index-Schleife!
+    for (int i = 0; i < nl.getLength(); i++) {
+        Node node = nl.item(i);
+        System.out.println(node.getTextContent());
+    }
+} catch (Exception e) {
+    e.printStackTrace();
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Achtung:</b> VS Code importiert bei <code>Document</code> gerne versehentlich <code>javax.swing.text.Document</code>. Kontrolliere immer, dass <code>org.w3c.dom.Document</code> importiert ist!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 14 ==================== -->
+  <section class="aufgabe" id="a14">
+    <div class="a-head">
+      <div class="a-num">14</div>
+      <div class="a-titles"><div class="ey">Thema 14 &middot; Vorlesung Thema 8 &amp; 13</div><h2>Object-Methoden &amp; Logging</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Jede Java-Klasse erbt direkt oder indirekt von <code>java.lang.Object</code>. Für saubere Datenklassen müssen <code>equals()</code> und <code>hashCode()</code> zwingend synchron überschrieben werden. Klonen verlangt bei Referenzen eine tiefe Kopie.</p>
+      </div>
+    </div>
+
+    <h3>Regeln für equals(), hashCode() &amp; clone()</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">14.1 &middot; Äquivalenz-Vertrag</span>Wenn <code>a.equals(b) == true</code>, <strong>muss</strong> zwingend <code>a.hashCode() == b.hashCode()</code> gelten! Umgekehrt dürfen verschiedene Objekte denselben HashCode haben (Kollision).</div>
+      <div class="rule"><span class="rname">14.2 &middot; Tiefe Kopie (Deep Clone)</span>Standard-<code>super.clone()</code> kopiert nur primitive Werte und Referenzen (flach). Enthält das Objekt veränderliche Unterobjekte, müssen diese manuell ebenfalls geklont werden.</div>
+      <div class="rule"><span class="rname">14.3 &middot; Logging-Level</span><code>java.util.logging.Level</code>-Reihenfolge: <code>SEVERE</code> (Fehler) &gt; <code>WARNING</code> &gt; <code>INFO</code> &gt; <code>CONFIG</code> &gt; <code>FINE</code> &gt; <code>FINER</code> &gt; <code>FINEST</code>.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Musterimplementierung equals &amp; hashCode</h3>
+<pre>@Override
+public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null || getClass() != obj.getClass()) return false;
+    Clown other = (Clown) obj;
+    return id == other.id && Objects.equals(name, other.name);
+}
+
+@Override
+public int hashCode() {
+    return Objects.hash(id, name);
+}</pre>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Deep Clone &amp; Logging</div>
+        <div class="safe-body">
+<pre>// Tiefe Kopie:
+public class Clown implements Cloneable {
+    private Circus circus;
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        Clown c = (Clown) super.clone();
+        c.circus = (Circus) this.circus.clone(); // Deep!
+        return c;
+    }
+}
+
+// Logging:
+Logger log = Logger.getLogger(Start.class.getName());
+log.info("Anwendung gestartet");
+// Root-Logger stummschalten:
+Logger.getLogger("").getHandlers()[0].setLevel(Level.OFF);</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Datenverarbeitung (Java) &middot; Klausur-Guide</span>
+    <span>DHSN Leipzig &middot; Von Studis für Studis &middot; ohne Gewähr</span>
+  </footer>
+</div>
+</body>
+</html>

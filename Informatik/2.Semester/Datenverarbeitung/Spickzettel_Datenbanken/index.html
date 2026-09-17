@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spickzettel: Datenbankzugriffssprachen (SQL) – Modul 5CS-DPDL-20</title>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      packages: {'[+]': ['ams']}
+    },
+    chtml: { scale: 1.0 },
+    startup: {
+      ready() {
+        MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(function () {
+          if (window.__fitMath) window.__fitMath(false);
+        });
+      }
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+<script>
+  /* Passt jede Formel an die verfügbare Breite an */
+  (function () {
+    var PRINT_W = 680;
+    function fitMath(forPrint) {
+      var nodes = document.querySelectorAll('mjx-container');
+      for (var i = 0; i < nodes.length; i++) {
+        var c = nodes[i];
+        c.style.fontSize = '';
+        var math = c.querySelector('mjx-math') || c;
+        var natural = math.getBoundingClientRect().width;
+        if (!natural) continue;
+        var avail;
+        if (forPrint) {
+          avail = PRINT_W;
+        } else {
+          var p = c.parentElement;
+          avail = p ? p.clientWidth : natural;
+        }
+        if (avail > 0 && natural > avail) {
+          var scale = Math.max(0.5, (avail / natural) * 0.96);
+          c.style.fontSize = (scale * 100).toFixed(1) + '%';
+        }
+      }
+    }
+    window.__fitMath = fitMath;
+
+    var t;
+    window.addEventListener('resize', function () {
+      clearTimeout(t);
+      t = setTimeout(function () { fitMath(false); }, 120);
+    });
+    window.addEventListener('load', function () { fitMath(false); });
+    window.addEventListener('beforeprint', function () { fitMath(true); });
+    window.addEventListener('afterprint', function () { fitMath(false); });
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#191d2b;
+    --ink-soft:#454b5e;
+    --paper:#fbfaf6;
+    --line:#e4e0d6;
+
+    --amber:#e08a1e;
+    --amber-bg:#fdf3e1;
+    --amber-edge:#f3d9a8;
+
+    --indigo:#3a4cf0;
+    --indigo-bg:#eef0ff;
+    --indigo-edge:#c5ccff;
+
+    --green:#179a5c;
+    --green-bg:#e9faf0;
+    --green-edge:#b5e8cd;
+
+    --red:#d4452f;
+    --red-bg:#fdecea;
+  }
+
+  *{box-sizing:border-box;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    word-wrap: break-word;
+  }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:48px 28px 90px; }
+
+  .toolbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    gap:16px; flex-wrap:wrap;
+    background:rgba(251,250,246,.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:12px 28px;
+  }
+  .toolbar .brand{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+  .toolbar a.back{ color:var(--indigo); text-decoration:none; font-weight:600; font-size:13px; }
+  .toolbar a.back:hover{ text-decoration:underline; }
+  .printbtn{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.06em;
+    background:var(--ink); color:#fff; border:none; border-radius:8px;
+    padding:9px 16px; cursor:pointer; transition:transform .12s ease, opacity .12s;
+  }
+  .printbtn:hover{ transform:translateY(-1px); opacity:.9; }
+  .printbtn:focus-visible{ outline:3px solid var(--indigo); outline-offset:2px; }
+
+  .cover{ padding:18px 0 8px; }
+  .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--indigo); margin:0 0 14px; }
+  h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(38px,6.5vw,72px); line-height:1.02; letter-spacing:-.02em;
+    margin:0 0 6px;
+  }
+  h1 .sub{ display:block; color:var(--indigo); font-size:0.75em; margin-top:4px; }
+  .tag{ color:var(--ink-soft); font-size:18px; max-width:54ch; margin:14px 0 0; }
+
+  .legend{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:30px 0 8px; }
+  .chip{ border:1px solid var(--line); border-radius:14px; padding:16px 16px 15px; background:#fff; }
+  .chip .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  .chip .dot{ width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .chip p{ margin:9px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
+  .chip.a .lbl{ color:var(--amber); } .chip.a .dot{ background:var(--amber); }
+  .chip.k .lbl{ color:var(--indigo); } .chip.k .dot{ background:var(--indigo); }
+  .chip.b .lbl{ color:var(--green); } .chip.b .dot{ background:var(--green); }
+
+  .vorwort{ margin-top:34px; }
+  .vorwort h2{ font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); font-weight:600; margin:0 0 12px; }
+  .vorwort p{ margin:0 0 14px; }
+
+  hr.div{ border:none; border-top:1px solid var(--line); margin:46px 0; }
+
+  .aufgabe{
+    position:relative;
+    border-left:3px solid var(--indigo);
+    padding:6px 0 8px 34px;
+    margin:0 0 32px;
+  }
+  .aufgabe + .aufgabe{ margin-top:32px; }
+  .a-head{ display:flex; align-items:center; gap:18px; margin:18px 0 18px -52px; }
+  .a-num{
+    flex:none;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--indigo); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px;
+    box-shadow:0 0 0 6px var(--paper);
+  }
+  .a-titles .ey{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--indigo); }
+  .a-titles h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; letter-spacing:-.01em; margin:2px 0 0; }
+
+  h3{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; margin:26px 0 10px; }
+  h4{ font-family:'Inter',sans-serif; font-weight:700; font-size:15px; margin:18px 0 6px; }
+  p{ margin:0 0 12px; }
+  .muted{ color:var(--ink-soft); }
+  strong{ font-weight:700; }
+
+  .erklaer{
+    background:var(--amber-bg);
+    border:1px solid var(--amber-edge);
+    border-left:5px solid var(--amber);
+    border-radius:14px;
+    padding:18px 20px 18px 20px;
+    margin:6px 0 14px;
+    display:flex; gap:14px;
+  }
+  .erklaer .ico{ font-size:24px; line-height:1.2; flex:none; }
+  .erklaer .body{ flex:1; }
+  .erklaer p:last-child{ margin-bottom:0; }
+
+  .grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:22px; margin:18px 0; align-items:start; }
+  .weg, .safe { min-width: 0; } 
+  .weg h3:first-child, .weg h4:first-child{ margin-top:0; }
+
+  .safe{
+    background:var(--indigo-bg);
+    border:1px solid var(--indigo-edge);
+    border-radius:14px;
+    position:relative;
+    background-image:
+      linear-gradient(var(--indigo-bg),var(--indigo-bg)),
+      linear-gradient(rgba(58,76,240,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(58,76,240,.07) 1px, transparent 1px);
+    background-size:100% 100%, 22px 22px, 22px 22px;
+    background-blend-mode:normal;
+  }
+  .safe .safe-head{
+    background:var(--indigo); color:#fff;
+    border-radius: 13px 13px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:9px 16px; display:flex; align-items:center; gap:8px;
+  }
+  .safe .safe-body{ 
+    padding:14px 16px 14px; 
+    overflow:visible; 
+  }
+  .safe ol{ margin:2px 0 12px; padding-left:20px; }
+  .safe li{ margin:0 0 10px; }
+  .safe p{ margin:0 0 10px; }
+  .safe p:last-child { margin-bottom: 0; }
+  .safe .note{ font-size:13.5px; color:var(--ink-soft); }
+
+  .ref{
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:6px 20px; margin:16px 0;
+    overflow:visible;
+  }
+  .ref .rule{ padding:11px 0; border-bottom:1px dashed var(--line); }
+  .ref .rule:last-child{ border-bottom:none; }
+  .ref .rname{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--indigo); display:block; margin-bottom:3px; font-weight:700; }
+
+  .achtung{
+    background:var(--red-bg); border:1px solid #f3c4bc; border-left:5px solid var(--red);
+    border-radius:12px; padding:13px 16px; margin:14px 0; font-size:14.5px;
+  }
+  .achtung b{ color:var(--red); }
+
+  .beispiel{
+    background:var(--green-bg);
+    border:1px solid var(--green-edge);
+    border-radius:16px;
+    margin:22px 0 14px;
+  }
+  .beispiel .b-head{
+    background:var(--green); color:#fff;
+    border-radius: 15px 15px 0 0;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:10px 20px; display:flex; align-items:center; gap:9px;
+  }
+  .beispiel .b-body{ 
+    padding:12px 22px 14px; 
+    overflow:visible; 
+  }
+  .beispiel .b-body h4{ color:#0d6b3f; }
+  .schritt{ margin:14px 0; }
+  .schritt .stitle{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; letter-spacing:.05em; color:#0d6b3f; text-transform:uppercase; margin-bottom: 6px; }
+  .result{
+    background:#fff; border:1px dashed var(--green); border-radius:10px;
+    padding:8px 16px; margin:8px 0; font-weight:600;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: #f1f0ea;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--indigo);
+  }
+  pre {
+    background: #f4f2ec;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.42;
+    margin: 8px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .safe pre {
+    background: rgba(255,255,255,0.7);
+    border-color: var(--indigo-edge);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13.5px;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f1f0ea;
+    font-weight: 600;
+  }
+
+  mjx-container{ 
+    overflow:visible !important; 
+    max-width: 100%; 
+    padding: 6px 0; 
+  }
+  mjx-container[display="true"]{ margin:10px 0 !important; }
+
+  footer{ margin-top:60px; padding-top:18px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:720px){
+    .wrap{ padding:30px 16px 70px; }
+    .legend{ grid-template-columns:1fr; }
+    .grid{ grid-template-columns:1fr; }
+    .aufgabe{ padding-left:22px; }
+    .a-head{ margin-left:-40px; gap:12px; }
+    .a-num{ width:44px; height:44px; font-size:20px; }
+    .a-titles h2{ font-size:24px; }
+    body{ font-size:15.5px; }
+  }
+
+  /* ---------- PRINT OPTIMIERUNGEN ---------- */
+  @media print{
+    @page{ size:A4; margin:14mm 14mm 16mm; }
+    html,body{ background:#fff; font-size:10pt; line-height:1.38; }
+    .toolbar{ display:none !important; }
+    .wrap{ max-width:none; padding:0; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    .aufgabe{
+      break-before:page; page-break-before:always;
+      padding:4px 0 6px 28px;
+      border-left:2px solid var(--indigo);
+      margin-bottom:0;
+    }
+    #a1{ break-before:auto; page-break-before:auto; }
+
+    .a-head{ margin:14px 0 14px -28px; gap:12px; }
+    .a-num{ width:40px; height:40px; font-size:20px; box-shadow:0 0 0 4px #fff; }
+    .a-titles h2{ font-size:22px; }
+
+    h1{ font-size:32pt; line-height:1; }
+    .tag{ font-size:11pt; }
+    .legend{ gap:10px; margin:16px 0 6px; }
+
+    .grid{ grid-template-columns:1fr; gap:12px; margin:12px 0; }
+    .safe .safe-body{ font-size:9.5pt; }
+
+    .erklaer,.ref,.achtung,.chip,.schritt,.result,.beispiel,.safe{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    .grid,.weg,.b-body,.safe-body{ break-inside:auto; }
+    .b-head,.safe-head{ break-after:avoid; page-break-after:avoid; }
+    .b-body,.safe-body{ break-before:avoid; page-break-before:avoid; }
+    .beispiel .b-body .schritt:first-child,
+    .b-body > p:first-child,
+    .safe-body > *:first-child{ break-before:avoid; page-break-before:avoid; }
+
+    .a-head,h3,h4{ break-after:avoid; }
+    p,li{ orphans:3; widows:3; }
+    mjx-container{ font-size:90%; }
+    mjx-container[display="true"]{ margin:8px 0 !important; }
+
+    .safe .safe-body, .beispiel .b-body, .ref, mjx-container{
+      overflow:visible !important;
+      white-space:normal !important;
+    }
+    a{ color:inherit; text-decoration:none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="toolbar">
+  <a class="back" href="../../../../index.php">&larr; Archiv</a>
+  <span class="brand">Datenbankzugriffssprachen (SQL) &middot; Klausur-Guide</span>
+  <button class="printbtn" onclick="window.print()">Als PDF speichern / drucken</button>
+</div>
+
+<div class="wrap">
+  <header class="cover">
+    <p class="eyebrow">DHSN LEIPZIG &middot; MODUL 5CS-DPDL-20 &middot; PROF. DR. DEWEß</p>
+    <h1>Datenbanken &amp; SQL<span class="sub">Klausur-Spickzettel &amp; Syntax-Guide (60 Min)</span></h1>
+    <p class="tag">Der vollständige Spickzettel-Begleiter für den 60-minütigen Datenbankenteil: Relationale Algebra, Schlüssel-Hierarchie, ACID, B-Bäume, ERM, DDL, DML &amp; Multi-Table-JOINs.</p>
+  </header>
+
+  <div class="legend">
+    <div class="chip a"><span class="lbl"><span class="dot"></span>Erklärkasten</span><p>Theoretische Grundlagen &amp; mathematische Definitionen.</p></div>
+    <div class="chip k"><span class="lbl"><span class="dot"></span>Klausur-Safe</span><p>Mustersätze &amp; exakte MariaDB-SQL-Schablonen für die Klausur.</p></div>
+    <div class="chip b"><span class="lbl"><span class="dot"></span>Praxis-Beispiel</span><p>Konkrete Klausuraufgaben (Musikschule, Streaming, Film-Verleih).</p></div>
+  </div>
+
+  <section class="vorwort">
+    <h2>Vorwort &amp; Prüfungsrahmen</h2>
+    <p>Der zweite Prüfungsteil umfasst 60 Minuten und deckt sowohl theoretische Grundlagen (Relationenmodell, ACID, Schlüssel, Suchbäume, ERM-Zeichnen) als auch praktische SQL-Befehle (DDL und DML in MariaDB) ab.</p>
+    <p><strong>Praxis-Umgebung:</strong> Windows-PC, MariaDB-Server, CLI / HeidiSQL / VS Code. Auch hier gilt: Vorlesungsunterlagen liegen auf dem Netzlaufwerk, das einzige handschriftliche Hilfsmittel ist das mitgebrachte DIN-A4-Blatt.</p>
+  </section>
+  <hr class="div">
+
+  <!-- ==================== AUFGABE 1 ==================== -->
+  <section class="aufgabe" id="a1">
+    <div class="a-head">
+      <div class="a-num">1</div>
+      <div class="a-titles"><div class="ey">Theorie 1</div><h2>Relationale Grundlagen &amp; Relationale Algebra</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das relationale Datenmodell basiert auf der Mengenlehre von E. F. Codd. Daten werden in mathematischen Relationen (Tabellen) organisiert, deren Zeilen Tupel und deren Spalten Attribute darstellen.</p>
+      </div>
+    </div>
+
+    <h3>Definitionen &amp; Grundoperationen</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">1.1 &middot; Relation</span>Mathematisch eine Teilmenge des kartesischen Produkts von Wertebereichen (Domänen): $R \subseteq S_1 \times S_2 \times \dots \times S_n$. Anschaulich: Eine <strong>Tabelle</strong>.</div>
+      <div class="rule"><span class="rname">1.2 &middot; Tupel &amp; Attribut</span>Ein <strong>Tupel</strong> ist ein Element der Relation (eine Tabellenzeile). Ein <strong>Attribut</strong> ist eine benannte Spalte mit festem Wertebereich (Domäne).</div>
+      <div class="rule"><span class="rname">1.3 &middot; Atomarität</span>1. Normalform fordert: Alle Attributwerte müssen atomar (im Kontext nicht weiter sinnvoll zerlegbar) sein.</div>
+      <div class="rule"><span class="rname">1.4 &middot; Schema vs. Zustand</span><strong>Relationsschema:</strong> Struktur &amp; Metadaten (Spaltennamen, Typen, Constraints &ndash; ändert sich selten). <strong>Ausprägung / Zustand:</strong> Der aktuelle Datenbestand zu einem Zeitpunkt.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Relationale Algebra (Operatoren)</h3>
+        <p>&bull; <strong>Selektion ($\sigma$):</strong> Filtert Zeilen nach Prädikat &rarr; entspricht <code>WHERE</code>.</p>
+        <p>&bull; <strong>Projektion ($\pi$):</strong> Wählt Spalten aus und eliminiert Duplikate &rarr; entspricht <code>SELECT spalten</code>.</p>
+        <p>&bull; <strong>Kartesisches Produkt ($\times$):</strong> Bildet alle Paare aus zwei Relationen.</p>
+        <div class="result">SQL ist eine deklarative Sprache: Man beschreibt <em>WAS</em> man will, das DBMS entscheidet <em>WIE</em>.</div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Grundbegriffe</div>
+        <div class="safe-body">
+          <ol>
+            <li><strong>Tabelle:</strong> Relation $R$</li>
+            <li><strong>Zeile:</strong> Tupel $t \in R$</li>
+            <li><strong>Spalte:</strong> Attribut $A$</li>
+            <li><strong>Wertebereich:</strong> Domäne $dom(A)$</li>
+            <li><strong>Projektion $\pi$:</strong> Spaltenauswahl</li>
+            <li><strong>Selektion $\sigma$:</strong> Zeilenfilter</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 2 ==================== -->
+  <section class="aufgabe" id="a2">
+    <div class="a-head">
+      <div class="a-num">2</div>
+      <div class="a-titles"><div class="ey">Theorie 2</div><h2>Schlüssel-Hierarchie &amp; Surrogatschlüssel</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Ein zentraler Klausurschwerpunkt ist die formale Unterscheidung von Schlüsseln und die Begründung, warum in der Praxis fast immer künstliche Surrogatschlüssel (IDs) verwendet werden.</p>
+      </div>
+    </div>
+
+    <h3>Die 4 Schlüsselstufen</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">2.1 &middot; Super-Schlüssel</span>Jede Attributmenge, die ein Tupel in der Relation eindeutig identifiziert. Darf überflüssige Attribute enthalten (z. B. <code>{ID, Nachname, E-Mail}</code>).</div>
+      <div class="rule"><span class="rname">2.2 &middot; Schlüsselkandidat (Candidate Key)</span>Ein <strong>minimaler</strong> Super-Schlüssel: Entfernt man auch nur ein einziges Attribut, geht die Eindeutigkeit verloren (irreduzibel).</div>
+      <div class="rule"><span class="rname">2.3 &middot; Primärschlüssel (Primary Key)</span>Ein vom Datenbankentwickler ausgewählter Schlüsselkandidat. <strong>Restriktionen:</strong> Muss zwingend <code>NOT NULL</code> und <code>UNIQUE</code> sein. Kann aus mehreren Spalten bestehen (zusammengesetzter PK)!</div>
+      <div class="rule"><span class="rname">2.4 &middot; Fremdschlüssel (Foreign Key)</span>Ein Attribut (oder eine Attributkombination), das auf den Primärschlüssel einer anderen Tabelle verweist und so Beziehungen abbildet.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Warum künstliche Surrogatschlüssel (IDs)?</h3>
+        <p>In der Klausur wird oft gefragt: <em>„Begründen Sie die Wahl des Primärschlüssels (künstliche ID statt natürlicher Schlüssel wie Name/E-Mail)!"</em></p>
+        <p><strong>Die 4 stichhaltigen Argumente:</strong></p>
+        <ol>
+          <li><strong>Änderungsresistenz:</strong> Natürliche Schlüssel (Namen, E-Mails) können sich ändern; künstliche IDs bleiben lebenslang unverändert.</li>
+          <li><strong>Performance:</strong> Ein schlanker Integer (4 Bytes) ist extrem schnell vergleichbar und performant bei Indexen und JOIN-Operationen.</li>
+          <li><strong>Eindeutigkeit bei Duplikaten:</strong> Zwei Benutzer können denselben Namen tragen.</li>
+          <li><strong>Datenschutz (DSGVO):</strong> Fremdschlüssel in Log- und Zwischentabellen enthalten keine sensiblen Klardaten.</li>
+        </ol>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Mustersatz Primärschlüssel</div>
+        <div class="safe-body">
+          <p class="note"><strong>Warum müssen PKs nicht aus nur einer Spalte bestehen?</strong></p>
+          <p>Primärschlüssel können <strong>zusammengesetzt</strong> sein (Composite Key). Typischer Fall: In n:m-Zwischentabellen bilden die beiden Fremdschlüssel zusammen den zusammengesetzten Primärschlüssel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 3 ==================== -->
+  <section class="aufgabe" id="a3">
+    <div class="a-head">
+      <div class="a-num">3</div>
+      <div class="a-titles"><div class="ey">Theorie 3</div><h2>Referentielle Integrität &amp; Löschregeln</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Referentielle Integrität stellt sicher, dass Fremdschlüsselverweise zu jedem Zeitpunkt gültig sind und nicht auf gelöschte oder nicht-existente Datensätze verweisen.</p>
+      </div>
+    </div>
+
+    <h3>Mustersatz &amp; Löschregeln (Klausurklassiker)</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">3.1 &middot; Warum Foreign Keys explizit im DBMS deklarieren? (2 Pkt)</span>
+        <strong>Mustersatz:</strong> <em>„Das explizite Festlegen von Fremdschlüsseln erzwingt referentielle Integrität auf Datenbankebene: Das DBMS verhindert ungültige Referenzen (Eintragen nicht-existenter Eltern-IDs) und verhindert Datenwaisen (orphaned records) durch automatisierte Konsistenzprüfungen und Kaskadierregeln."</em>
+      </div>
+      <div class="rule"><span class="rname">3.2 &middot; Lösch- &amp; Updateregeln</span>
+        <table>
+          <tr><th>Regel</th><th>Wirkung beim Löschen/Ändern der Elternzeile (Parent)</th></tr>
+          <tr><td><code>CASCADE</code></td><td>Änderung oder Löschung wird automatisch an alle Kindzeilen durchgereicht (Kindzeilen mitlöschen).</td></tr>
+          <tr><td><code>SET NULL</code></td><td>Die Fremdschlüsselspalte in den Kindzeilen wird auf <code>NULL</code> gesetzt (erfordert, dass FK nullable ist).</td></tr>
+          <tr><td><code>RESTRICT</code></td><td>Die Löschung der Elternzeile wird sofort mit einem Fehler verweigert, solange Kindzeilen existieren.</td></tr>
+          <tr><td><code>NO ACTION</code></td><td>Standard in MariaDB/MySQL; verhält sich wie <code>RESTRICT</code>.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Syntax bei CREATE TABLE</h3>
+        <p>Wird am Ende der Tabellendefinition angegeben:</p>
+<pre>FOREIGN KEY (lehrer_id) 
+    REFERENCES musiklehrer(id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT</pre>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Löschregeln</div>
+        <div class="safe-body">
+          <p>• <code>ON DELETE CASCADE</code>: Kunde wird gelöscht &rarr; Alle seine Ausleihen werden mitgelöscht.</p>
+          <p>• <code>ON DELETE RESTRICT</code>: Kunde kann nicht gelöscht werden, solange er noch Filme ausgeliehen hat!</p>
+          <p>• <code>ON UPDATE CASCADE</code>: ID des Lehrers ändert sich &rarr; Fremdschlüssel in allen Kursen passt sich automatisch an.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 4 ==================== -->
+  <section class="aufgabe" id="a4">
+    <div class="a-head">
+      <div class="a-num">4</div>
+      <div class="a-titles"><div class="ey">Theorie 4</div><h2>Transaktionen &amp; das ACID-Prinzip</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Eine Transaktion ist eine logische Einheit von Datenbankoperationen. Sie garantiert, dass die Datenbank auch bei Systemabstürzen oder parallelen Zugriffen fehlerfrei bleibt.</p>
+      </div>
+    </div>
+
+    <h3>Die 4 Säulen von ACID</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">A &middot; Atomicity (Atomarität)</span><strong>„Alles oder nichts":</strong> Eine Transaktion wird entweder vollständig und erfolgreich ausgeführt oder komplett zurückgerollt. Es gibt keine halben Transaktionen.</div>
+      <div class="rule"><span class="rname">C &middot; Consistency (Konsistenz)</span>Die Datenbank wechselt von einem gültigen Zustand in einen neuen gültigen Zustand. Alle Integritätsbedingungen (Constraints, Checks, FKs) sind am Ende erfüllt.</div>
+      <div class="rule"><span class="rname">I &middot; Isolation (Isolation)</span>Gleichzeitig laufende Transaktionen beeinflussen sich nicht gegenseitig. Das Ergebnis ist dasselbe, als wären sie nacheinander (seriell) ausgeführt worden.</div>
+      <div class="rule"><span class="rname">D &middot; Durability (Dauerhaftigkeit)</span>Sobald eine Transaktion mit <code>COMMIT</code> erfolgreich abgeschlossen wurde, bleiben die Daten dauerhaft im System gespeichert &ndash; selbst bei unmittelbarem Stromausfall oder Servercrash.</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Transaktionssteuerung in SQL</h3>
+<pre>START TRANSACTION;
+UPDATE konto SET stand = stand - 100 WHERE id = 1;
+UPDATE konto SET stand = stand + 100 WHERE id = 2;
+-- Wenn alles fehlerfrei war:
+COMMIT;
+-- Im Fehlerfall:
+ROLLBACK;</pre>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: ACID Kurzform</div>
+        <div class="safe-body">
+          <ul>
+            <li><strong>A:</strong> Unteilbar (ganz oder gar nicht)</li>
+            <li><strong>C:</strong> Erhält Datenkonsistenz &amp; Regeln</li>
+            <li><strong>I:</strong> Nebenläufige Isolation</li>
+            <li><strong>D:</strong> Dauerhaft nach Commit gesichert</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 5 ==================== -->
+  <section class="aufgabe" id="a5">
+    <div class="a-head">
+      <div class="a-num">5</div>
+      <div class="a-titles"><div class="ey">Theorie 5</div><h2>Suchbäume &amp; Binäre Bäume</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Datenbanken nutzen Baumstrukturen (B-Bäume, binäre Suchbäume) als Indexe, um Datensätze in logarithmischer Zeit $\mathcal{O}(\log n)$ statt linearem Full-Table-Scan $\mathcal{O}(n)$ zu finden.</p>
+      </div>
+    </div>
+
+    <h3>Zeichenregeln für Binäre Suchbäume</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">5.1 &middot; Wurzel &amp; Verzweigung</span>Die 1. Zahl der gegebenen Zahlenfolge wird die <strong>Wurzel</strong>. Für jede nachfolgende Zahl wandert man von der Wurzel abwärts:
+        <br>&bull; Ist die neue Zahl <strong>kleiner</strong> als der aktuelle Knoten &rarr; gehe nach <strong>links</strong>.
+        <br>&bull; Ist die neue Zahl <strong>größer</strong> als der aktuelle Knoten &rarr; gehe nach <strong>rechts</strong>.</div>
+      <div class="rule"><span class="rname">5.2 &middot; Klausur-Falle: Worst-Case-Szenario</span>
+        Wann entartet ein binärer Suchbaum? &rarr; <strong>Bei bereits vorsortierten Eingabedaten</strong> (aufsteigend oder absteigend, z. B. <code>10, 20, 30, 40, 50</code>)! Der Baum wird zu einer <strong>linearen Kette (Liste)</strong> mit katastrophaler Suchzeit $\mathcal{O}(n)$.</div>
+      <div class="rule"><span class="rname">5.3 &middot; B-Baum vs. Binärbaum</span>DBMS (wie MariaDB InnoDB) nutzen balancierte <strong>B+ Bäume</strong>: Knoten haben viele Kinder (hoher Verzweigungsgrad), wodurch die Baumhöhe extrem flach bleibt und wenige Festplattenzugriffe nötig sind.</div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> Zeichenbeispiel: Folge [15, 8, 24, 3, 12, 18, 30]</div>
+      <div class="b-body">
+<pre>         [15]
+        /    \
+      [8]     [24]
+     /   \    /   \
+   [3]  [12] [18]  [30]</pre>
+        <div class="result">Balancierter Baum: Jeder Suchschritt halbiert die verbleibende Menge ($\mathcal{O}(\log n)$).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 6 ==================== -->
+  <section class="aufgabe" id="a6">
+    <div class="a-head">
+      <div class="a-num">6</div>
+      <div class="a-titles"><div class="ey">Theorie 6</div><h2>ER-Modellierung (Chen / Krähenfuß) &amp; Tabellenabbildung</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Das Entity-Relationship-Modell (ERM) visualisiert die logische Datenstruktur. In der Klausur muss ein vorgegebenes Szenario (z. B. Streaming-Dienst) modelliert und in relationale Tabellen überführt werden.</p>
+      </div>
+    </div>
+
+    <h3>Notations-Elemente &amp; Kardinalitäten</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">6.1 &middot; Chen-Elemente</span><strong>Rechteck:</strong> Entitätstyp (z. B. <code>Benutzer</code>) | <strong>Ellipse:</strong> Attribut (PK unterstrichen, z. B. <u><code>id</code></u>) | <strong>Raute:</strong> Beziehung (z. B. <code>erstellt</code>).</div>
+      <div class="rule"><span class="rname">6.2 &middot; 1:n Transformation</span>Fremdschlüssel wandert IMMER auf die <strong>n-Seite</strong>! Bsp: Ein Benutzer hat $n$ Playlists &rarr; Tabelle <code>playlist</code> erhält Spalte <code>benutzer_id</code> als FK!</div>
+      <div class="rule"><span class="rname">6.3 &middot; n:m Transformation</span>Benötigt eine **eigene Verknüpfungstabelle**! Bsp: Playlists und Songs (eine Playlist enthält viele Songs, ein Song ist auf vielen Playlists) &rarr; Zwischentabelle <code>playlist_song</code> mit Spalten <code>(playlist_id, song_id)</code>. Beide zusammen bilden den zusammengesetzten Primärschlüssel!</div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Klausurszenario Musik-Streaming</h3>
+        <p>&bull; <code>Benutzer (id, geburtsdatum, email)</code></p>
+        <p>&bull; <code>Playlist (id, erstelldatum, benutzer_id)</code> &mdash; 1:n zu Benutzer</p>
+        <p>&bull; <code>Song (id, titel, kuenstler)</code></p>
+        <p>&bull; <code>Playlist_Song (playlist_id, song_id)</code> &mdash; n:m Zwischentabelle</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Relationale Schemata</div>
+        <div class="safe-body">
+          <p><code>benutzer(<u>id</u>, geburtsdatum, email)</code></p>
+          <p><code>playlist(<u>id</u>, erstelldatum, <em>benutzer_id</em> &uarr; benutzer.id)</code></p>
+          <p><code>song(<u>id</u>, titel, kuenstler)</code></p>
+          <p><code>playlist_song(<u><em>playlist_id</em>, <em>song_id</em></u>)</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 7 ==================== -->
+  <section class="aufgabe" id="a7">
+    <div class="a-head">
+      <div class="a-num">7</div>
+      <div class="a-titles"><div class="ey">Praxis 1</div><h2>DDL: Tabellen anlegen (CREATE TABLE) &amp; Constraints</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In der Praxisaufgabe 1 muss eine vollständige Datenbank mit Primärschlüsseln, Fremdschlüsseln und Integritätsbedingungen angelegt werden (Musikschul-Aufgabe aus 2026).</p>
+      </div>
+    </div>
+
+    <h3>Wichtige Datentypen &amp; Constraints</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">7.1 &middot; Datentypen</span><code>INT</code>, <code>VARCHAR(n)</code>, <code>DECIMAL(10,2)</code> (für Geld), <code>DATE</code> ('YYYY-MM-DD'), <code>DATETIME</code>, <code>BOOLEAN</code> (TINYINT 0/1).</div>
+      <div class="rule"><span class="rname">7.2 &middot; Constraints</span><code>PRIMARY KEY</code>, <code>AUTO_INCREMENT</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT wert</code>, <code>CHECK (preis &gt; 0)</code>.</div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> Vollständige Musterlösung: Musikschule (Gedächtnisprotokoll)</div>
+      <div class="b-body">
+<pre>-- 1. Tabelle ohne Abhängigkeiten zuerst erstellen:
+CREATE TABLE musikkurs (
+    kurscode VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+-- 2. Musiklehrer mit Auto-Increment und Unique Email:
+CREATE TABLE musiklehrer (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vorname VARCHAR(50) NOT NULL,
+    nachname VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 3. Funktionen mit Fremdschlüssel und Kaskadierung:
+CREATE TABLE funktionen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(50) NOT NULL,
+    musiklehrer_id INT NOT NULL,
+    FOREIGN KEY (musiklehrer_id) 
+        REFERENCES musiklehrer(id) 
+        ON UPDATE CASCADE 
+        ON DELETE RESTRICT
+);</pre>
+      </div>
+    </div>
+
+    <div class="achtung"><b>Reihenfolge-Regel:</b> Tabellen immer so anlegen, dass referenzierte Elterntabellen (z. B. <code>musiklehrer</code>) <strong>vor</strong> den referenzierenden Kindtabellen (z. B. <code>funktionen</code>) erzeugt werden!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 8 ==================== -->
+  <section class="aufgabe" id="a8">
+    <div class="a-head">
+      <div class="a-num">8</div>
+      <div class="a-titles"><div class="ey">Praxis 2</div><h2>DDL: Tabellenstruktur ändern (ALTER TABLE)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Bestehende Tabellenstrukturen können mit <code>ALTER TABLE</code> nachträglich erweitert, gekürzt oder modifiziert werden, ohne Daten zu löschen.</p>
+      </div>
+    </div>
+
+    <h3>Wichtige Varianten</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">8.1 &middot; Spalte hinzufügen</span><code>ALTER TABLE musiklehrer ADD COLUMN telefon VARCHAR(30);</code></div>
+      <div class="rule"><span class="rname">8.2 &middot; Spalte löschen</span><code>ALTER TABLE musiklehrer DROP COLUMN telefon;</code></div>
+      <div class="rule"><span class="rname">8.3 &middot; Spaltentyp ändern</span><code>ALTER TABLE musiklehrer MODIFY COLUMN vorname VARCHAR(80) NOT NULL;</code></div>
+      <div class="rule"><span class="rname">8.4 &middot; Fremdschlüssel nachrüsten</span><code>ALTER TABLE funktionen ADD CONSTRAINT fk_lehrer FOREIGN KEY (musiklehrer_id) REFERENCES musiklehrer(id);</code></div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 9 ==================== -->
+  <section class="aufgabe" id="a9">
+    <div class="a-head">
+      <div class="a-num">9</div>
+      <div class="a-titles"><div class="ey">Praxis 3</div><h2>Löschbefehle im Vergleich: TRUNCATE vs. DELETE vs. DROP</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In mündlichen Fragen und Multiple-Choice-Teilen wird der genaue Unterschied der drei Löschbefehle penibel geprüft.</p>
+      </div>
+    </div>
+
+    <h3>Vergleichstabelle</h3>
+    <div class="ref">
+      <table>
+        <tr><th>Kriterium</th><th>DELETE FROM</th><th>TRUNCATE TABLE</th><th>DROP TABLE</th></tr>
+        <tr><td><strong>Kategorie</strong></td><td>DML (Daten-Manipulation)</td><td>DDL (Daten-Definition)</td><td>DDL (Daten-Definition)</td></tr>
+        <tr><td><strong>Filterbar?</strong></td><td><strong>Ja</strong> mit <code>WHERE</code> (einzelne Zeilen löschen)</td><td><strong>Nein</strong> &ndash; leert immer die gesamte Tabelle!</td><td><strong>Nein</strong> &ndash; löscht Tabelle komplett!</td></tr>
+        <tr><td><strong>Auto-Increment</strong></td><td>Bleibt unverändert erhalten</td><td><strong>Wird auf 1 zurückgesetzt!</strong></td><td>Tabelle existiert nicht mehr</td></tr>
+        <tr><td><strong>Schema erhalten?</strong></td><td>Ja, leere Tabelle bleibt da</td><td>Ja, leere Tabelle bleibt da</td><td><strong>Nein</strong>, Struktur wird vernichtet</td></tr>
+        <tr><td><strong>Performance</strong></td><td>Langsamer (loggt jede Zeile einzeln)</td><td>Extrem schnell (deallokiert Datenblöcke)</td><td>Sofort</td></tr>
+      </table>
+    </div>
+
+    <div class="achtung"><b>Klausurfalle:</b> <code>TRUNCATE TABLE</code> kann fehlschlagen, wenn andere Tabellen Fremdschlüssel-Beziehungen mit <code>RESTRICT</code> auf diese Tabelle haben!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 10 ==================== -->
+  <section class="aufgabe" id="a10">
+    <div class="a-head">
+      <div class="a-num">10</div>
+      <div class="a-titles"><div class="ey">Praxis 4</div><h2>DML: Abfragen &amp; Filtern (SELECT)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Praxisaufgabe 2 verlangt diverse Leseoperationen auf der bestehenden Film-Verleih-Datenbank (Tabellen: <code>filme</code>, <code>kunden</code>, <code>ausleihen</code>).</p>
+      </div>
+    </div>
+
+    <h3>Typische Klausur-Abfragen</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">10.1 &middot; Alle Kunden abfragen</span><code>SELECT * FROM kunden;</code></div>
+      <div class="rule"><span class="rname">10.2 &middot; Größer-Gleich Filter</span><code>SELECT titel FROM filme WHERE erscheinungsjahr &gt;= 2024;</code></div>
+      <div class="rule"><span class="rname">10.3 &middot; LIKE Teilstring-Suche</span>Filmtitel, in denen "rie" vorkommt: <code>SELECT titel FROM filme WHERE titel LIKE '%rie%';</code></div>
+      <div class="rule"><span class="rname">10.4 &middot; Sortierung &amp; Limit</span><code>SELECT * FROM filme ORDER BY erscheinungsjahr DESC, titel ASC LIMIT 5;</code></div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>Aggregatsfunktionen &amp; GROUP BY</h3>
+        <p>Häufigkeit von Ausleihen pro Kunde:</p>
+<pre>SELECT kunde_id, COUNT(*) AS anzahl 
+FROM ausleihen 
+GROUP BY kunde_id 
+HAVING anzahl &gt; 3;</pre>
+        <div class="result"><code>WHERE</code> filtert vor dem Gruppieren; <code>HAVING</code> filtert Gruppen nach der Aggregation!</div>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Filter-Schablonen</div>
+        <div class="safe-body">
+          <p>&bull; <code>WHERE spalte IS NULL</code> (nie <code>= NULL</code>!)</p>
+          <p>&bull; <code>WHERE alter BETWEEN 18 AND 30</code></p>
+          <p>&bull; <code>WHERE status IN ('aktiv', 'neu')</code></p>
+          <p>&bull; <code>LIKE 'A%'</code> (beginnt mit A)</p>
+          <p>&bull; <code>LIKE '%A'</code> (endet mit A)</p>
+          <p>&bull; <code>LIKE '%rie%'</code> (enthält "rie")</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 11 ==================== -->
+  <section class="aufgabe" id="a11">
+    <div class="a-head">
+      <div class="a-num">11</div>
+      <div class="a-titles"><div class="ey">Praxis 5</div><h2>DML: Multi-Table JOINs über Fremdschlüssel</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>JOINs verknüpfen Datensätze aus mehreren Tabellen anhand ihrer Primär- und Fremdschlüsselbeziehungen.</p>
+      </div>
+    </div>
+
+    <h3>Musteraufgabe aus dem Gedächtnisprotokoll</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">11.1 &middot; Fragestellung</span><em>„Den Filmtitel abfragen, den der Kunde mit der id 5 ausgeliehen hat."</em></div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> SQL-Musterlösung: Multi-Table JOIN</div>
+      <div class="b-body">
+        <div class="schritt">
+          <div class="stitle">Kompakter 2-Tabellen JOIN (filme und ausleihen)</div>
+<pre>SELECT f.titel 
+FROM filme f 
+JOIN ausleihen a ON f.id = a.film_id 
+WHERE a.kunde_id = 5;</pre>
+        </div>
+        <div class="schritt">
+          <div class="stitle">Vollständiger 3-Tabellen JOIN (inkl. Kundennamen)</div>
+<pre>SELECT k.vorname, k.nachname, f.titel, a.ausleihdatum 
+FROM kunden k 
+JOIN ausleihen a ON k.id = a.kunde_id 
+JOIN filme f     ON a.film_id = f.id 
+WHERE k.id = 5;</pre>
+        </div>
+        <div class="result">Liefert exakt alle Filmtitel von Kunde 5.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="weg">
+        <h3>INNER JOIN vs. LEFT JOIN</h3>
+        <p><strong>INNER JOIN:</strong> Liefert nur Zeilen, die in <em>beiden</em> Tabellen einen Treffer haben. Filme, die nie ausgeliehen wurden, tauchen nicht auf.</p>
+        <p><strong>LEFT JOIN:</strong> Behält <em>alle</em> Zeilen der linken Tabelle, selbst wenn in der rechten Tabelle kein Treffer existiert (Felder werden mit <code>NULL</code> aufgefüllt).</p>
+      </div>
+      <div class="safe">
+        <div class="safe-head"><span>&#9998;</span> Klausur-Safe: Tabellen-Aliase</div>
+        <div class="safe-body">
+          <p>Verwende immer kurze Tabellen-Aliase (<code>f</code> für <code>filme</code>, <code>a</code> für <code>ausleihen</code>, <code>k</code> für <code>kunden</code>). Das verhindert Spalten-Namenskonflikte und spart viel Schreibarbeit!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AUFGABE 12 ==================== -->
+  <section class="aufgabe" id="a12">
+    <div class="a-head">
+      <div class="a-num">12</div>
+      <div class="a-titles"><div class="ey">Praxis 6</div><h2>DML: Daten verändern &amp; löschen (UPDATE &amp; DELETE)</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>Zum Ändern bestehender Zeilen dient <code>UPDATE</code>, zum Entfernen <code>DELETE FROM</code>. In der Praxisaufgabe müssen gezielte Ausleihdaten aktualisiert und einzelne Einträge gelöscht werden.</p>
+      </div>
+    </div>
+
+    <h3>Musterlösungen (Gedächtnisprotokoll)</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">12.1 &middot; Ausleihdatum auf '2026-06-26' setzen</span>
+<pre>UPDATE ausleihen 
+SET ausleihdatum = '2026-06-26' 
+WHERE id = 12; <span class="cmt">-- Gezielter Zugriff über PK</span></pre>
+      </div>
+      <div class="rule"><span class="rname">12.2 &middot; Eintrag mit ID 3 löschen</span>
+<pre>DELETE FROM ausleihen 
+WHERE id = 3;</pre>
+      </div>
+    </div>
+
+    <div class="achtung"><b>LEBENSGEFAHR IN SQL:</b> Ein <code>UPDATE</code> oder <code>DELETE</code> ohne <code>WHERE</code> überschreibt oder vernichtet <strong>alle Zeilen der gesamten Tabelle</strong>! Prüfe in der Klausur dreimal, ob die <code>WHERE</code>-Klausel vorhanden und korrekt ist!</div>
+  </section>
+
+  <!-- ==================== AUFGABE 13 ==================== -->
+  <section class="aufgabe" id="a13">
+    <div class="a-head">
+      <div class="a-num">13</div>
+      <div class="a-titles"><div class="ey">Praxis 7 &middot; Bonus (+5 Punkte)</div><h2>Zusatzaufgabe: SQL Stored Functions</h2></div>
+    </div>
+
+    <div class="erklaer">
+      <div class="ico">&#129504;</div>
+      <div class="body">
+        <p>In der Klausur 2026 gab es 5 optionale Zusatzpunkte für das Erstellen einer benutzerdefinierten Funktion in SQL (Stored Function). Sie liefert immer genau einen skalaren Rückgabewert.</p>
+      </div>
+    </div>
+
+    <h3>Struktur &amp; Delimiter-Umschaltung</h3>
+    <div class="ref">
+      <div class="rule"><span class="rname">13.1 &middot; DELIMITER</span>Da innerhalb der Funktion Semikolons verwendet werden, muss der Befehlstrenner temporär umgestellt werden (z. B. auf <code>//</code>).</div>
+      <div class="rule"><span class="rname">13.2 &middot; DETERMINISTIC</span>Signalisiert dem Query-Optimizer, dass die Funktion bei gleichen Eingabeparametern immer dasselbe Ergebnis liefert.</div>
+    </div>
+
+    <div class="beispiel">
+      <div class="b-head"><span>&#9656;</span> Vollständige Schablone: Rabatt-Berechnung</div>
+      <div class="b-body">
+<pre>DELIMITER //
+
+CREATE FUNCTION berechne_gebuehr (basispreis DECIMAL(8,2), ist_premium BOOLEAN)
+RETURNS DECIMAL(8,2)
+DETERMINISTIC
+BEGIN
+    DECLARE endpreis DECIMAL(8,2);
+    
+    IF ist_premium THEN
+        SET endpreis = basispreis * 0.80; -- 20% Rabatt
+    ELSE
+        SET endpreis = basispreis;
+    END IF;
+    
+    RETURN endpreis;
+END //
+
+DELIMITER ;
+
+-- Aufruf in normalem SELECT:
+SELECT titel, preis, berechne_gebuehr(preis, TRUE) AS rabattpreis FROM filme;</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Datenbankzugriffssprachen (SQL) &middot; Klausur-Guide</span>
+    <span>DHSN Leipzig &middot; Von Studis für Studis &middot; ohne Gewähr</span>
+  </footer>
+</div>
+</body>
+</html>
