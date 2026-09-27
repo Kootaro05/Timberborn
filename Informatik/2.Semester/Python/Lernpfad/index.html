@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernpfad – Python (5CS25-2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo:#4338ca; --indigo-deep:#312e81; --indigo-soft:#e1e2ff;
+    --amber:#b45309; --amber-soft:#ffe6c7;
+    --coral:#be123c; --coral-soft:#ffdce4;
+    --teal:#0f766e; --teal-soft:#c8efe9;
+    --ink:#11111a; --ink-soft:#3b3b4c; --line:#d6d6e4;
+    --paper:#fbfbfd; --card:#ffffff;
+    --mono:'JetBrains Mono',monospace; --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--indigo);text-decoration:none;font-weight:500}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:#f1f1f6;padding:.1em .38em;border-radius:5px;color:var(--indigo-deep)}
+
+  /* ---------- Sticky control bar ---------- */
+  .bar{position:sticky;top:0;z-index:50;background:rgba(251,251,253,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar-inner{max-width:880px;margin:0 auto;padding:.7rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+  .timer{display:flex;align-items:center;gap:.7rem}
+  .ring{position:relative;width:58px;height:58px;flex:none}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:.82rem;letter-spacing:-.5px}
+  .t-meta{display:flex;flex-direction:column;line-height:1.25}
+  .t-mode{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;color:var(--indigo)}
+  .t-mode.brk{color:var(--teal)} .t-mode.lbrk{color:var(--amber)}
+  .t-cycle{font-size:.72rem;color:var(--ink-soft)}
+  .t-cycle .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line);margin-right:3px;vertical-align:middle}
+  .t-cycle .dot.on{background:var(--coral)}
+  .btns{display:flex;gap:.4rem}
+  .btns button{font-family:var(--mono);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.45rem .7rem;border-radius:8px;cursor:pointer;transition:.15s}
+  .btns button:hover{border-color:var(--indigo);color:var(--indigo)}
+  .btns button.primary{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+  .btns button.primary:hover{background:var(--indigo-deep);color:#fff}
+  .prog{margin-left:auto;display:flex;align-items:center;gap:.6rem;min-width:170px}
+  .prog-track{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--indigo));transition:width .4s}
+  .prog-txt{font-family:var(--mono);font-size:.74rem;font-weight:700;white-space:nowrap}
+
+  /* ---------- Page ---------- */
+  .wrap{max-width:880px;margin:0 auto;padding:2.4rem 1.1rem 5rem}
+  header.hero{margin-bottom:2.6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--indigo)}
+  h1{font-family:var(--display);font-weight:700;font-size:2.5rem;line-height:1.05;letter-spacing:-1.5px;margin:.5rem 0 .4rem}
+  .sub{color:var(--ink-soft);font-size:1.02rem;max-width:60ch}
+  .legend{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.3rem}
+  .legend span{font-family:var(--mono);font-size:.68rem;font-weight:700;padding:.28rem .6rem;border-radius:99px;text-transform:uppercase;letter-spacing:.5px}
+  .lg-tip{background:var(--amber-soft);color:var(--amber)}
+  .lg-trap{background:var(--coral-soft);color:var(--coral)}
+  .lg-merk{background:var(--teal-soft);color:var(--teal)}
+  .lg-task{background:var(--indigo-soft);color:var(--indigo-deep)}
+
+  /* ---------- Satz / set divider ---------- */
+  .satz{margin:2.6rem 0 1.2rem;display:flex;align-items:center;gap:.9rem}
+  .satz-n{font-family:var(--mono);font-weight:700;font-size:.72rem;letter-spacing:1.5px;color:#fff;background:var(--ink);padding:.35rem .7rem;border-radius:7px;text-transform:uppercase;white-space:nowrap}
+  .satz-t{font-family:var(--display);font-weight:600;font-size:1.18rem;letter-spacing:-.5px}
+  .satz-line{flex:1;height:1px;background:var(--line)}
+
+  /* ---------- Pomodoro card ---------- */
+  .pom{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:.85rem;position:relative;transition:.2s;scroll-margin-top:90px}
+  .pom:hover{box-shadow:0 6px 24px -12px rgba(79,70,229,.22);border-color:#d8d8ea}
+  .pom.done{background:#fafafb;border-color:var(--line)}
+  .pom.done .p-title,.pom.done .p-intro{opacity:.5}
+  .pom.done::after{content:"✓ erledigt";position:absolute;top:1.2rem;right:1.4rem;font-family:var(--mono);font-size:.68rem;font-weight:700;color:var(--teal);letter-spacing:.5px}
+  .p-head{display:flex;align-items:flex-start;gap:.9rem;margin-bottom:.7rem}
+  .p-num{font-family:var(--mono);font-weight:700;font-size:.78rem;color:var(--indigo);background:var(--indigo-soft);width:44px;height:44px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;line-height:1}
+  .p-num small{font-size:.52rem;letter-spacing:.5px;color:var(--ink-soft);margin-top:2px}
+  .p-titles{flex:1;min-width:0}
+  .p-theme{font-family:var(--mono);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink-soft)}
+  .p-title{font-family:var(--display);font-weight:600;font-size:1.16rem;letter-spacing:-.4px;margin:.1rem 0 0;line-height:1.2}
+  .p-intro{font-size:.96rem;margin:.2rem 0 .9rem}
+  .p-intro code{font-size:.84em}
+
+  .callout{border-radius:11px;padding:.7rem .9rem .7rem 1rem;margin:.5rem 0;font-size:.9rem;border-left:5px solid}
+  .callout .c-lbl{font-family:var(--mono);font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:.2rem}
+  .c-tip{background:var(--amber-soft);border-left-color:var(--amber)} .c-tip .c-lbl{color:var(--amber)}
+  .c-trap{background:var(--coral-soft);border-left-color:var(--coral)} .c-trap .c-lbl{color:var(--coral)}
+  .c-merk{background:var(--teal-soft);border-left-color:var(--teal)} .c-merk .c-lbl{color:var(--teal)}
+  .c-task{background:var(--indigo-soft);border-left-color:var(--indigo)} .c-task .c-lbl{color:var(--indigo-deep)}
+
+  .p-foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding-top:.85rem;border-top:1px dashed var(--line);flex-wrap:wrap}
+  .p-tut{font-size:.84rem;color:var(--ink-soft);flex:1;min-width:200px}
+  .p-tut .who{font-family:var(--mono);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:.18rem .45rem;border-radius:5px;margin-right:.45rem}
+  .who.mm{background:#e7e4ff;color:#5b21b6}
+  .who.pdf{background:#ffe9d6;color:#b45309}
+  .who.doc{background:#e2f3ee;color:#0f766e}
+  .check{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;font-family:var(--mono);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);flex:none}
+  .check input{appearance:none;width:22px;height:22px;border:2px solid var(--line);border-radius:7px;cursor:pointer;position:relative;transition:.15s;flex:none}
+  .check input:checked{background:var(--teal);border-color:var(--teal)}
+  .check input:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;font-weight:700}
+  .check input:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+
+  /* ---------- break marker ---------- */
+  .brk-mark{display:flex;align-items:center;gap:.6rem;margin:.2rem 0 .85rem;padding-left:.3rem}
+  .brk-pill{font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:.28rem .65rem;border-radius:99px}
+  .brk-short{background:var(--teal-soft);color:var(--teal)}
+  .brk-long{background:var(--amber-soft);color:var(--amber)}
+  .brk-mark .ln{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 12px)}
+
+  footer{max-width:880px;margin:0 auto;padding:0 1.1rem 4rem;color:var(--ink-soft);font-size:.84rem}
+  footer .reset{font-family:var(--mono);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);padding:.5rem .8rem;border-radius:8px;cursor:pointer;margin-top:1rem}
+  footer .reset:hover{border-color:var(--coral);color:var(--coral)}
+
+  @media (max-width:560px){
+    h1{font-size:1.9rem}
+    .bar-inner{gap:.7rem}
+    .prog{min-width:0;width:100%;order:3;margin-left:0}
+    .p-head{gap:.65rem}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== Control bar ===== -->
+<div class="bar">
+  <div class="bar-inner">
+    <div class="timer">
+      <div class="ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle cx="29" cy="29" r="25" fill="none" stroke="#e6e6ee" stroke-width="5"/>
+          <circle id="ringFill" cx="29" cy="29" r="25" fill="none" stroke="#4338ca" stroke-width="5"
+                  stroke-linecap="round" stroke-dasharray="157.08" stroke-dashoffset="0"/>
+        </svg>
+        <div class="time" id="timeTxt">25:00</div>
+      </div>
+      <div class="t-meta">
+        <span class="t-mode" id="modeTxt">Fokus</span>
+        <span class="t-cycle" id="cycleTxt"><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="startBtn">Start</button>
+      <button id="skipBtn">Skip</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+    <div class="prog">
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <span class="prog-txt" id="progTxt">0/20</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Modul 5CS25-2 · Dr. Mike Müller · DHSN Leipzig</div>
+    <h1>Lernpfad Python-Prüfung</h1>
+    <p class="sub">20 Pomodoro-Blöcke (25 min Fokus / 5 min Pause, nach jedem 4. Block 30 min) strukturiert durch alle 4 Prüfungsaufgaben – Konzept, Quicktipp, Klausurfalle, Programmier-Drill und Cheatsheet-Referenz pro Block. Dein Fortschritt bleibt lokal gespeichert.</p>
+    <div class="legend">
+      <span class="lg-task">Aufgabe</span>
+      <span class="lg-tip">Quicktipp</span>
+      <span class="lg-trap">Klausurfalle</span>
+      <span class="lg-merk">Merksatz</span>
+    </div>
+  </header>
+
+  <div id="path"></div>
+
+</div>
+
+<footer>
+  <p>Lernpfad abgestimmt auf die Python-Klausur an der DHSN Leipzig. Zur Ergänzung: das druckfertige <a href="../Python_Pruefung_CheatSheet_4Seiten.pdf" download><strong>4-Seiten Cheatsheet (PDF)</strong></a> sowie der ausführliche <a href="../index.html"><strong>Klausur-Guide</strong></a>.</p>
+  <button class="reset" id="resetProgress">Fortschritt zurücksetzen</button>
+</footer>
+
+<script>
+/* ============================================================
+   CURRICULUM DATA (Python Modul 5CS25-2)
+   types: tip | trap | merk | task
+   tut.who: mm = Vorlesung Dr. Müller | pdf = 4-Seiten Cheatsheet | doc = Python Doku
+   ============================================================ */
+const SETS = [
+  { satz:"Satz 1", titel:"Listen, Slicing & Dictionaries (Aufgabe 1)", poms:[
+    { theme:"Aufgabe 1 · Listen & Range", title:"range(), Slicing & In-place vs. Neu",
+      intro:"Aufgabe 1 verlangt das Erzeugen einer Liste (z.&nbsp;B. 100 bis 2300 in 200er-Schritten) und das Umkehren auf möglichst viele verschiedene Arten für Zusatzpunkte.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>range(start, stop, step)</code>: Der <code>stop</code>-Wert ist <strong>stets exklusiv</strong>! Für 2300 als Endwert muss <code>stop &gt; 2300</code> sein (z.&nbsp;B. <code>range(100, 2301, 200)</code>)."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>L.reverse()</code> kehrt <strong>in-place</strong> um und gibt <code>None</code> zurück! Schreibe nie <code>R = L.reverse()</code> (R ist dann None)."},
+        {type:"tip",lbl:"Quicktipp",text:"6 Umkehr-Arten für Zusatzpunkte: <code>L[::-1]</code>, <code>list(reversed(L))</code>, <code>sorted(L, reverse=True)</code>, <code>list(range(2300, 99, -200))</code>, <code>[L[i] for i in range(len(L)-1, -1, -1)]</code>, <code>R=L.copy(); R.reverse()</code>."}
+      ],
+      task:"Erzeuge die Liste <code>L = list(range(100, 2301, 200))</code>. Schreibe aus dem Kopf mindestens 4 verschiedene Ausdrücke auf, die die umgekehrte Liste erzeugen, ohne das Original zu zerstören.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1, Block 1.1 & 1.2 (Listen-Umkehrung & Range-Tricks)."} },
+
+    { theme:"Aufgabe 1 · Dictionaries & zip", title:"ASCII-Slicing, Dict-Erzeugung & Key-Lookups",
+      intro:"Zuordnung von Schlüsseln (z.&nbsp;B. Buchstaben ab 'D') zu Werten via <code>string.ascii_uppercase</code> und <code>zip()</code>. Sicherer Zugriff ohne Absturz.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>import string</code>; <code>keys = string.ascii_uppercase[3:]</code> liefert alle Großbuchstaben ab 'D'. <code>dict(zip(keys, L))</code> stoppt automatisch beim kürzeren Iterable."},
+        {type:"trap",lbl:"Klausurfalle",text:"<code>d['Z']</code> wirft einen <code>KeyError</code>, wenn der Schlüssel fehlt! Sicherer Zugriff: <code>d.get('Z')</code> (liefert <code>None</code>) oder <code>d.get('Z', default)</code>."},
+        {type:"tip",lbl:"Quicktipp",text:"Dict-Comprehension zum Vertauschen/Invertieren: <code>{v: k for k, v in d.items()}</code> (nur wenn Werte eindeutig sind!)."}
+      ],
+      task:"Baue das Dictionary aus Buchstaben ab 'D' und den 12 Zahlen aus L. Greife in einer einzigen Zeile so auf den Schlüssel 'Z' zu, dass bei Fehlen 'nicht vorhanden' zurückgegeben wird.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1, Block 1.3 (Dictionaries & zip)."} },
+
+    { theme:"Aufgabe 1 · Sets & Mengenlehre", title:"Mengentheorie, Operatoren & Duplikat-Filterung",
+      intro:"Sets sind ungeordnete Sammlungen eindeutiger Elemente. In der Klausur werden Schnittmengen, Differenzen und Teilmengen-Prüfungen abgefragt.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Operatoren: <code>&amp;</code> Schnittmenge, <code>|</code> Vereinigung, <code>-</code> Differenz, <code>^</code> symmetrische Differenz. <code>s1 &lt;= s2</code> prüft Teilmenge (<code>issubset</code>)."},
+        {type:"trap",lbl:"Klausurfalle",text:"Ein leeres Set erzeugt man mit <code>set()</code> – <code>{}</code> erzeugt ein leeres <strong>Dictionary</strong>!"},
+        {type:"tip",lbl:"Quicktipp",text:"Duplikate in einer Liste <code>L</code> prüfen: <code>len(set(L)) != len(L)</code>. Duplikate entfernen: <code>list(set(L))</code> (Achtung: Reihenfolge geht verloren)."}
+      ],
+      task:"Gegeben: <code>s1 = {1, 2, 3, 4, 5}</code> und <code>s2 = {4, 5, 6, 7}</code>. Notiere im Kopf das Ergebnis von <code>s1 &amp; s2</code>, <code>s1 - s2</code> und <code>s1 ^ s2</code>. Wie prüfst du, ob keine gemeinsamen Elemente existieren?",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1, Block 1.4 (Sets & Mengenoperatoren)."} },
+
+    { theme:"Aufgabe 1 · Formatierung & f-Strings", title:"Format-Specifier, Ausrichtung & Typ-Konvertierung",
+      intro:"f-Strings formatieren Zahlen und Text präzise für Tabellen und Konsolenausgaben. Syntax: <code>{wert:[füll][&lt;&gt;^][breite][.präzision][typ]}</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Ausrichtung: <code>&lt;</code> linksbündig, <code>&gt;</code> rechtsbündig (Standard bei Zahlen), <code>^</code> zentriert. <code>{x:&gt;10.2f}</code> = 10 Zeichen breit, 2 Nachkommastellen Float."},
+        {type:"tip",lbl:"Quicktipp",text:"Typen im Specifier: <code>d</code> Integer, <code>f</code> Float, <code>%</code> Prozent (multipliziert mit 100!), <code>x</code> Hexadezimal, <code>b</code> Binär, <code>e</code> Exponential."}
+      ],
+      task:"Schreibe einen f-String, der die Zahl <code>pi = 3.1415926</code> rechtsbündig auf 8 Stellen mit 3 Dezimalstellen und führenden Nullen ausgibt (Ergebnis: <code>'0003.142'</code>).",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1, Block 1.6 (f-Strings & Format-Specifier)."} }
+  ]},
+
+  { satz:"Satz 2", titel:"Dateien & CSV-Parsing (Aufgabe 2)", poms:[
+    { theme:"Aufgabe 2 · File I/O & Encodings", title:"with open(), Dateimodi & UTF-8 / BOM",
+      intro:"Dateien müssen ressourcensicher geöffnet werden. Bei CSV-Dateien aus Excel droht die gefürchtete BOM-Falle (Byte Order Mark).",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Immer den Context-Manager nutzen: <code>with open(filepath, 'r', encoding='utf-8') as f:</code> schließt die Datei auch im Fehlerfall garantiert."},
+        {type:"trap",lbl:"Klausurfalle",text:"Excel erzeugt oft UTF-8 mit BOM: Der erste Schlüssel heißt dann <code>'\\ufeffName'</code> statt <code>'Name'</code>! Lösung: <code>encoding='utf-8-sig'</code> filtert das BOM automatisch heraus."},
+        {type:"tip",lbl:"Quicktipp",text:"Zeilenumbrüche sicher entfernen: <code>line.rstrip('\\r\\n')</code> entfernt CRLF (Windows) und LF (Linux/Mac)."}
+      ],
+      task:"Schreibe ein Grundgerüst, das eine Datei zeilenweise einliest, Leerzeilen sowie mit '#' beginnende Kommentarzeilen ignoriert und den Inhalt ohne Umbrüche ausgibt.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 2, Block 2.1 (Files & Encodings)."} },
+
+    { theme:"Aufgabe 2 · Manuelles CSV-Parsing", title:"String.split(';'), Typerkennung & Spalten-Tausch",
+      intro:"Die Klausur 2025 verlangte eine Funktion <code>parse_messdaten(filepath)</code>, die Semikolon-getrennte Zeilen zerlegt und robust erkennt, welche Spalte der Wert und welche die Station ist.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Robuste Typerkennung per <code>try/except ValueError</code>: Versuche zuerst <code>val = float(parts[0])</code>; schlägt es fehl, ist die Station in Spalte 0 und der Wert in Spalte 1."},
+        {type:"trap",lbl:"Klausurfalle",text:"Deutsches Dezimalkomma in Textdateien: <code>float('1,85')</code> wirft <code>ValueError</code>! Vorher immer <code>.replace(',', '.')</code> aufrufen."},
+        {type:"tip",lbl:"Quicktipp",text:"Listen vor der Schleife initialisieren: <code>stations = []; values = []</code> und in der Schleife <code>.append()</code> aufrufen. Am Ende <code>return stations, values</code>."}
+      ],
+      task:"Schreibe die vollständige Funktion <code>parse_messdaten(filepath)</code> fehlerfrei handschriftlich auf Papier. Teste im Kopf den Fall <code>\"12.5;Station_A\"</code> und <code>\"Station_B;18.2\"</code>.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 2, Block 2.2 (Aufgabe 2: Musterlösung parse_messdaten)."} },
+
+    { theme:"Aufgabe 2 · Auswertungen & min/max", title:"Statistische Auswertung & min/max mit Lambda-Key",
+      intro:"Ermittlung des Minimums, Maximums und Mittelwerts über gekoppelte Listen (z.&nbsp;B. Namen und Größen oder Stationen und Messwerte).",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>min(zip(values, stations))</code> vergleicht nach dem ersten Element (values) und liefert das Tupel <code>(min_val, station)</code>."},
+        {type:"trap",lbl:"Klausurfalle",text:"Wenn nach mehreren Personen/Stationen mit demselben Extremwert gesucht wird, reicht ein einfaches <code>min()</code> nicht! Man ermittelt erst den Extremwert und filtert dann per List-Comprehension."},
+        {type:"tip",lbl:"Quicktipp",text:"Mittelwert ohne Zusatzmodul: <code>sum(values) / len(values)</code>. Mit Standardbibliothek: <code>import statistics as st; st.mean(values)</code>."}
+      ],
+      task:"Schreibe eine Funktion <code>min_max_persons(names, heights, func)</code>, die für <code>func=min</code> oder <code>func=max</code> ALLE Namen zurückgibt, die diesen Extremwert teilen.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 2, Block 2.4 & 2.5 (Mehrfach-Treffer & min/max)."} },
+
+    { theme:"Aufgabe 2 · csv-Modul & Export", title:"csv.reader, csv.writer & DictReader/Writer",
+      intro:"Standardkonforme Verarbeitung von CSV-Dateien mit dem Modul <code>csv</code>. Handhabung von Delimitern, Quoting und Headerzeilen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Beim Öffnen für <code>csv.writer</code> immer <code>newline=''</code> angeben, sonst entstehen unter Windows unerwünschte Leerzeilen zwischen den Datensätzen!"},
+        {type:"tip",lbl:"Quicktipp",text:"<code>next(reader)</code> liest die nächste Zeile und überspringt somit elegant die Header-Zeile vor der Iterationsschleife."}
+      ],
+      task:"Lies <code>daten.csv</code> per <code>csv.reader(f, delimiter=';')</code> ein, überspringe den Header und schreibe alle Zeilen, deren Wert &gt; 10 ist, in <code>gefiltert.csv</code>.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 2, Block 2.3 (csv-Modul Standard)."} }
+  ]},
+
+  { satz:"Satz 3", titel:"Objektorientierte Programmierung (Aufgabe 3)", poms:[
+    { theme:"Aufgabe 3 · Klassen & Instanzierung", title:"Klassen, __init__, self & Attribute",
+      intro:"Aufgabe 3 verlangt eine Basisklasse (z.&nbsp;B. <code>Person</code>) mit Konstruktor, Instanzattributen und einfachen Methoden zur Manipulation des Objektzustands.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>self</code> ist die Referenz auf die konkrete Instanz. Jede Instanzmethode muss <code>self</code> als ersten Parameter deklarieren."},
+        {type:"trap",lbl:"Klausurfalle",text:"Verwechsle nicht Klassenattribute (außerhalb von <code>__init__</code> definiert, geteilt von allen Instanzen) mit Instanzattributen (<code>self.x = ...</code>)."},
+        {type:"tip",lbl:"Quicktipp",text:"Defensives Programmieren: Prüfe im Konstruktor oder in Methoden Parameter auf Gültigkeit und wirf <code>raise ValueError(\"Meldung\")</code>."}
+      ],
+      task:"Implementiere die Klasse <code>Person</code> mit <code>__init__(self, name, height)</code> und einer Methode <code>grow(self, amount)</code>, die die Körpergröße erhöht.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 3, Block 3.1 (Aufgabe 3: Person & BesserePerson)."} },
+
+    { theme:"Aufgabe 3 · Vererbung & super()", title:"Subklassen, super().__init__() & Validierung",
+      intro:"Erstellen einer abgeleiteten Klasse (z.&nbsp;B. <code>BesserePerson</code>), die von der Basisklasse erbt, Methoden überschreibt und Eingabewerte validiert.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Mit <code>super().__init__(name, height)</code> wird der Konstruktor der Elternklasse aufgerufen. So vermeidet man Code-Duplizierung."},
+        {type:"trap",lbl:"Klausurfalle",text:"Wird eine Methode überschrieben (z.&nbsp;B. <code>grow()</code>), muss die Validierung VOR dem Aufruf von <code>super().grow(amount)</code> stattfinden."},
+        {type:"tip",lbl:"Quicktipp",text:"Bereichsprüfung: In Python kann man Kettenvergleiche schreiben: <code>if not (0 &lt; amount &lt; 10): raise ValueError(...)</code>."}
+      ],
+      task:"Implementiere <code>BesserePerson(Person)</code>. Überschreibe <code>grow(self, amount)</code> so, dass nur Werte zwischen 0 und 10 (exklusiv) erlaubt sind, andernfalls soll ein <code>ValueError</code> fliegen.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 3, Block 3.1 & 3.2 (Vererbung & Validierung)."} },
+
+    { theme:"Aufgabe 3 · Dunder-Methoden", title:"__repr__, __str__, __len__ & Dynamische Repräsentation",
+      intro:"Dunder-Methoden (Double Underscore) steuern das Verhalten von Objekten bei Builtin-Funktionen wie <code>print()</code>, <code>repr()</code> oder <code>len()</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>__repr__</code> liefert eine eindeutige, für Entwickler gedachte String-Repräsentation (idealerweise als gültiger Python-Code zur Wiederherstellung). Muss immer einen String zurückgeben!"},
+        {type:"tip",lbl:"Quicktipp",text:"Dynamischer <code>__repr__</code> für alle Unterklassen: <code>attrs = ', '.join(f'{k}={v!r}' for k, v in vars(self).items()); return f'{type(self).__name__}({attrs})'</code>."}
+      ],
+      task:"Schreibe eine Klasse <code>Messreihe</code> mit Attribut <code>werte</code> (Liste). Implementiere <code>__len__</code>, <code>__repr__</code> und <code>__getitem__</code> (für Indexzugriff <code>m[0]</code>).",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 3, Block 3.3 (Dunder-Methoden & dynamischer __repr__)."} },
+
+    { theme:"Aufgabe 3 · Fehlerbehandlung", title:"try / except / else / finally & Exception Hierarchie",
+      intro:"Saubere Ausnahmebehandlung verhindert Programmabstürze. Verständnis des Ablaufs von <code>else</code> und <code>finally</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<code>else</code> wird nur ausgeführt, wenn <strong>keine</strong> Exception auftrat. <code>finally</code> wird <strong>immer</strong> ausgeführt (auch bei <code>return</code>!)."},
+        {type:"trap",lbl:"Klausurfalle",text:"Fange nie blind <code>except:</code> oder <code>except Exception:</code> ab, wenn du spezifische Fehler (wie <code>ValueError</code> oder <code>FileNotFoundError</code>) behandeln kannst."}
+      ],
+      task:"Schreibe eine Funktion <code>safe_convert(val)</code>, die versucht, einen String in Float zu wandeln. Bei <code>ValueError</code> soll <code>None</code> zurückgegeben werden, bei Erfolg die Zahl.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 3, Block 3.4 (Exception Handling)."} }
+  ]},
+
+  { satz:"Satz 4", titel:"Module, Packages & Scopes (Aufgabe 4)", poms:[
+    { theme:"Aufgabe 4 · Modul- & Paketstruktur", title:"Ordnerbaum, Packages & die Rolle von __init__.py",
+      intro:"Aufgabe 4 prüft das Verständnis von Python-Paketen: Wie muss ein Verzeichnisbaum aussehen und was bewirkt <code>__init__.py</code>?",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Ein Ordner wird zum Python-Paket, sobald er eine <code>__init__.py</code> enthält. Diese Datei wird beim Import des Pakets automatisch ausgeführt."},
+        {type:"tip",lbl:"Quicktipp",text:"Typischer Klausur-Baum:<br><code>stationen/<br>  ├── __init__.py<br>  ├── reader.py<br>  └── calc.py</code>"}
+      ],
+      task:"Zeichne den Verzeichnisbaum für ein Paket <code>stationen</code> mit <code>reader.py</code> (enthält parse_messdaten) und <code>calc.py</code> (enthält mittelwert) auf.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 4, Block 4.1 (Paketstruktur & __init__.py)."} },
+
+    { theme:"Aufgabe 4 · __all__ & Import-Syntax", title:"from pkg import *, Alias-Imports & Wildcard-Kontrolle",
+      intro:"Steuerung des Wildcard-Imports <code>from paket import *</code> über die magische Liste <code>__all__</code> in der <code>__init__.py</code>.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"In <code>__init__.py</code>:<br><code>from .reader import parse_messdaten<br>from .calc import mittelwert<br>__all__ = ['parse_messdaten', 'mittelwert']</code>.<br>Nur die in <code>__all__</code> gelisteten Namen werden bei <code>import *</code> exportiert!"},
+        {type:"tip",lbl:"Quicktipp",text:"Zwei Import-Möglichkeiten im Hauptskript:<br>1. Direkt: <code>from stationen import parse_messdaten</code><br>2. Mit Alias: <code>import stationen.reader as sr</code> (Aufruf: <code>sr.parse_messdaten()</code>)."}
+      ],
+      task:"Schreibe den exakten Inhalt der <code>__init__.py</code> auf, damit <code>from stationen import *</code> genau <code>parse_messdaten</code> und <code>mittelwert</code> bereitstellt.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 4, Block 4.2 (Lösung Aufgabe 4: __init__.py & Imports)."} },
+
+    { theme:"Aufgabe 4 · Scopes & LEGB-Regel", title:"Local, Enclosing, Global, Built-in & if __name__",
+      intro:"Namensraum-Auflösung in Python. Wann greift die LEGB-Regel und warum ist <code>if __name__ == '__main__':</code> unverzichtbar?",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"<strong>LEGB-Reihenfolge:</strong> <strong>L</strong>ocal &rarr; <strong>E</strong>nclosing (Closure) &rarr; <strong>G</strong>lobal (Modul) &rarr; <strong>B</strong>uilt-in. Zuweisung in Funktion ohne <code>global</code> erzeugt immer eine lokale Variable!"},
+        {type:"trap",lbl:"Klausurfalle",text:"Ohne <code>if __name__ == '__main__':</code> wird der Test-Code beim Importieren des Moduls in ein anderes Skript sofort ungewollt ausgeführt!"}
+      ],
+      task:"Erkläre in zwei Sätzen, was <code>__name__</code> enthält, wenn ein Skript direkt gestartet wird vs. wenn es per <code>import</code> geladen wird.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 4, Block 4.3 (Scopes & Modulausführung)."} },
+
+    { theme:"Aufgabe 4 · Generatoren & yield", title:"yield vs. return, Generator-Expressions & lazy evaluation",
+      intro:"Generatoren erzeugen Werte nach Bedarf (lazy). Sie sparen drastisch Arbeitsspeicher bei großen Datenmengen.",
+      callouts:[
+        {type:"merk",lbl:"Merksatz",text:"Eine Funktion mit <code>yield</code> gibt ein Generator-Objekt zurück. Bei jedem Aufruf von <code>next()</code> läuft sie bis zum nächsten <code>yield</code> und behält ihren Zustand."},
+        {type:"tip",lbl:"Quicktipp",text:"Generator-Expression: <code>(x**2 for x in range(1000000))</code> verbraucht fast keinen Speicher; <code>[x**2 ...]</code> baut die gesamte Liste im RAM auf."}
+      ],
+      task:"Schreibe eine Generatorfunktion <code>read_large_file(filepath)</code>, die eine Datei öffnet und zeilenweise mit <code>yield line.strip()</code> zurückgibt.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 4, Block 4.4 (Generatoren & Iteratoren)."} }
+  ]},
+
+  { satz:"Satz 5", titel:"Klausur-Simulation & Finale Checkliste", poms:[
+    { theme:"Klausur-Drill 1", title:"Speed-Simulation Aufgabe 1 & 2 (Handschriftlich)",
+      intro:"Klausurbedingungen simulieren: 25 Minuten Zeit, weißes Blatt Papier, kein Autovervollständigen. Schreibe die Lösungen zu Aufgabe 1 und 2 aus dem Gedächtnisprotokoll nieder.",
+      callouts:[
+        {type:"task",lbl:"Drill-Aufgaben",text:"1) Liste 100..2300 umkehren (3 Arten). 2) Dict ab 'D' zippen. 3) KeyError abfangen. 4) <code>parse_messdaten(filepath)</code> mit Spaltenerkennung komplett niederschreiben."},
+        {type:"tip",lbl:"Quicktipp",text:"Achte peinlich genau auf Doppelpunkte nach <code>def</code>, <code>if</code>, <code>for</code>, <code>try</code>, <code>except</code> und korrekte 4-Space-Einrückung."}
+      ],
+      task:"Stoppe 25 Minuten und schreibe alle 4 Teilaufgaben auf Papier. Vergleiche danach Zeile für Zeile mit dem Cheatsheet.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1 & 2 zur Selbstkorrektur."} },
+
+    { theme:"Klausur-Drill 2", title:"Speed-Simulation Aufgabe 3 & 4 (Handschriftlich)",
+      intro:"Zweiter praktischer Klausurteil: Klassen, Vererbung mit <code>super()</code>, Exception-Validierung und Paket-Initialisierung unter Zeitdruck.",
+      callouts:[
+        {type:"task",lbl:"Drill-Aufgaben",text:"1) Klasse <code>Person</code> mit <code>grow()</code>. 2) Klasse <code>BesserePerson</code> mit <code>super().grow()</code> und <code>ValueError</code>. 3) Dynamischer <code>__repr__</code>. 4) Ordnerbaum & <code>__init__.py</code> mit <code>__all__</code>."},
+        {type:"tip",lbl:"Quicktipp",text:"Schreibe den <code>super()</code>-Aufruf stets als <code>super().__init__(name, height)</code> (ohne Argumente in <code>super()</code>)."}
+      ],
+      task:"Stoppe 25 Minuten für die beiden Aufgaben. Notiere jeden Syntax-Hänger auf einer Korrektur-Liste.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 3 & 4 zur Selbstkorrektur."} },
+
+    { theme:"Active Recall", title:"Die 10 fatalen Python-Klausurfallen",
+      intro:"Systematisches Durchgehen der typischen Fehler, die in Dr. Müllers Klausuren regelmäßig Punkte kosten. Laut erklären und verinnerlichen!",
+      callouts:[
+        {type:"trap",lbl:"Falle 1 & 2",text:"1) <code>range(100, 2300, 200)</code> hört bei 2100 auf (stop exklusiv!).<br>2) <code>L.reverse()</code> liefert <code>None</code> zurück."},
+        {type:"trap",lbl:"Falle 3 & 4",text:"3) <code>float('1,85')</code> scheitert am Komma.<br>4) UTF-8 BOM macht <code>'Name'</code> zu <code>'\\ufeffName'</code>."},
+        {type:"trap",lbl:"Falle 5 & 6",text:"5) <code>{}</code> ist ein Dict, kein Set.<br>6) <code>d['Z']</code> wirft <code>KeyError</code>, <code>d.get('Z')</code> nicht."},
+        {type:"trap",lbl:"Falle 7 & 8",text:"7) Fehlendes <code>super().__init__()</code> in Subklasse.<br>8) <code>__repr__</code> gibt keinen String zurück."}
+      ],
+      task:"Decke die Erklärungen ab und gehe die 8 Fallen durch. Erkläre zu jeder Falle den Einzeiler, der das Problem behebt.",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 4, Block 4.5 (Klausur-Fallstricke)."} },
+
+    { theme:"Klausur-Ready", title:"Tastaturkürzel & Cheatsheet-Navigation",
+      intro:"Letzte Vorbereitung: Orientierung auf dem 4-seitigen Spickzettel und Tastaturkürzel für CIP-Pool Rechner.",
+      callouts:[
+        {type:"merk",lbl:"Tastaturkürzel",text:"<strong>Backslash (\\):</strong> Windows <code>AltGr + ?</code> &middot; Mac <code>Option + Shift + 7</code><br><strong>Pipe (|):</strong> Windows <code>AltGr + &lt;</code> &middot; Mac <code>Option + 7</code>"},
+        {type:"tip",lbl:"Quicktipp",text:"Drucke das 4-seitige PDF auf genau 2 DIN-A4-Blättern beidseitig aus. Nutze das Inhaltsverzeichnis auf Seite 1 als Schnell-Index während der Prüfung."}
+      ],
+      task:"Prüfe auf deinem Prüfungs-Cheatsheet: Weißt du genau, wo die Dunder-Methoden, wo der CSV-Split und wo die Paket-Imports stehen? Viel Erfolg in der Prüfung!",
+      tut:{who:"pdf",lbl:"Cheatsheet",text:"Seite 1 Inhaltsverzeichnis & Seite 4 Tastatur-Kürzel."} }
+  ]}
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const TYPE = {tip:{c:"c-tip"},trap:{c:"c-trap"},merk:{c:"c-merk"},task:{c:"c-task"}};
+const WHO = {mm:"mm",pdf:"pdf",doc:"doc"};
+const path = document.getElementById("path");
+let counter = 0;
+const allNums = [];
+
+SETS.forEach((set,si)=>{
+  const div = document.createElement("div");
+  div.className="satz";
+  div.innerHTML=`<span class="satz-n">${set.satz}</span><span class="satz-t">${set.titel}</span><span class="satz-line"></span>`;
+  path.appendChild(div);
+
+  set.poms.forEach((p,pi)=>{
+    counter++;
+    const n = counter; allNums.push(n);
+    const card = document.createElement("section");
+    card.className="pom"; card.id="pom-"+n;
+    const callouts = p.callouts.map(c=>
+      `<div class="callout ${TYPE[c.type].c}"><span class="c-lbl">${c.lbl}</span>${c.text}</div>`).join("");
+    const tutLink = p.tut.url ? ` <a href="${p.tut.url}" target="_blank" rel="noopener">↗ öffnen</a>` : "";
+    card.innerHTML=`
+      <div class="p-head">
+        <div class="p-num">${n}<small>POMODORO</small></div>
+        <div class="p-titles">
+          <div class="p-theme">${p.theme}</div>
+          <h3 class="p-title">${p.title}</h3>
+        </div>
+      </div>
+      <p class="p-intro">${p.intro}</p>
+      ${callouts}
+      <div class="callout c-task"><span class="c-lbl">Aufgabe</span>${p.task}</div>
+      <div class="p-foot">
+        <div class="p-tut"><span class="who ${WHO[p.tut.who]}">${p.tut.lbl}</span>${p.tut.text}${tutLink}</div>
+        <label class="check"><input type="checkbox" data-n="${n}"> erledigt</label>
+      </div>`;
+    path.appendChild(card);
+
+    // break marker after each pomodoro (long every 4th)
+    const isLong = (n % 4 === 0);
+    const isLastOverall = (si===SETS.length-1 && pi===set.poms.length-1);
+    if(!isLastOverall){
+      const bm = document.createElement("div");
+      bm.className="brk-mark";
+      bm.innerHTML = isLong
+        ? `<span class="brk-pill brk-long">☕ 30 min lange Pause</span><span class="ln"></span>`
+        : `<span class="brk-pill brk-short">5 min Pause</span><span class="ln"></span>`;
+      path.appendChild(bm);
+    }
+  });
+});
+
+/* ============================================================
+   PROGRESS PERSISTENCE
+   ============================================================ */
+const KEY = "lernpfad-python:done";
+let done = new Set();
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) JSON.parse(raw).forEach(x=>done.add(Number(x)));
+  }catch(e){}
+  applyProgress();
+}
+function saveProgress(){
+  try{ localStorage.setItem(KEY, JSON.stringify([...done])); }catch(e){}
+}
+function applyProgress(){
+  document.querySelectorAll('.check input').forEach(cb=>{
+    const n = Number(cb.dataset.n);
+    cb.checked = done.has(n);
+    cb.closest('.pom').classList.toggle('done', cb.checked);
+  });
+  updateBar();
+}
+function updateBar(){
+  const total = allNums.length, d = done.size;
+  document.getElementById('progFill').style.width = (d/total*100)+'%';
+  document.getElementById('progTxt').textContent = d+'/'+total;
+}
+document.addEventListener('change', e=>{
+  if(e.target.matches('.check input')){
+    const n = Number(e.target.dataset.n);
+    e.target.checked ? done.add(n) : done.delete(n);
+    e.target.closest('.pom').classList.toggle('done', e.target.checked);
+    updateBar(); saveProgress();
+  }
+});
+document.getElementById('resetProgress').addEventListener('click', ()=>{
+  done.clear(); applyProgress();
+  try{ localStorage.removeItem(KEY); }catch(e){}
+});
+loadProgress();
+
+/* ============================================================
+   POMODORO TIMER  25 / 5 / (30 every 4th)
+   ============================================================ */
+const DUR = {work:25*60, short:5*60, long:30*60};
+const LABEL = {work:"Fokus", short:"Pause", long:"Lange Pause"};
+let mode="work", remaining=DUR.work, ticking=false, tid=null, workDone=0;
+const CIRC = 2*Math.PI*25; // 157.08
+
+const ringFill=document.getElementById('ringFill');
+const timeTxt=document.getElementById('timeTxt');
+const modeTxt=document.getElementById('modeTxt');
+const cycleTxt=document.getElementById('cycleTxt');
+const startBtn=document.getElementById('startBtn');
+
+function fmt(s){const m=Math.floor(s/60),ss=s%60;return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function renderTimer(){
+  timeTxt.textContent=fmt(remaining);
+  const frac = remaining / DUR[mode];
+  ringFill.style.strokeDashoffset = CIRC*(1-frac);
+  const col = mode==='work' ? '#4338ca' : (mode==='long' ? '#b45309' : '#0f766e');
+  ringFill.style.stroke = col;
+  modeTxt.textContent = LABEL[mode];
+  modeTxt.className = 't-mode' + (mode==='short'?' brk':mode==='long'?' lbrk':'');
+  const inSet = workDone % 4;
+  const lit = (mode==='work') ? inSet : (inSet===0?4:inSet);
+  let dots='';
+  for(let i=0;i<4;i++) dots+=`<span class="dot ${i<lit?'on':''}"></span>`;
+  cycleTxt.innerHTML = dots;
+}
+function setMode(m){ mode=m; remaining=DUR[m]; renderTimer(); }
+function tick(){
+  remaining--;
+  if(remaining<=0){
+    ping();
+    if(mode==='work'){
+      workDone++;
+      setMode( (workDone%4===0) ? 'long' : 'short' );
+    } else {
+      setMode('work');
+    }
+    renderTimer();
+    return;
+  }
+  renderTimer();
+}
+function start(){ if(ticking)return; ticking=true; startBtn.textContent='Pause'; tid=setInterval(tick,1000); }
+function pause(){ ticking=false; startBtn.textContent='Start'; clearInterval(tid); }
+startBtn.addEventListener('click', ()=> ticking?pause():start());
+document.getElementById('resetBtn').addEventListener('click', ()=>{ pause(); workDone=0; setMode('work'); });
+document.getElementById('skipBtn').addEventListener('click', ()=>{
+  if(mode==='work'){ workDone++; setMode(workDone%4===0?'long':'short'); }
+  else setMode('work');
+});
+
+// audio ping
+let actx=null;
+function ping(){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.frequency.value=660; o.type='sine';
+    g.gain.setValueAtTime(0.0001,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.2,actx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.6);
+    o.start(); o.stop(actx.currentTime+0.62);
+  }catch(e){}
+}
+renderTimer();
+</script>
+</body>
+</html>
